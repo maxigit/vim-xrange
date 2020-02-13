@@ -263,9 +263,9 @@ function s:readRange(name)
 endfunction 
 
 
-function xrange#createRange(name)
+function xrange#createRange(name, code='')
   if empty(xrange#getOuterRange(a:name, 1))
-    call append(line('.'), [printf(b:xrange_start, a:name), printf(b:xrange_end, a:name)])
+    call append(line('.'), [printf(b:xrange_start, a:name) . a:code, printf(b:xrange_end, a:name)])
   endif
   normal j 
 endfunction
