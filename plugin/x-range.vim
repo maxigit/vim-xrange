@@ -14,8 +14,8 @@ nnoremap <leader>xi :call xrange#createNewRange()<CR>
 " insert new result range
 nnoremap <leader>xR :call xrange#createResultRange()<CR>
 " go to result range
-nnoremap <leader>xn /<C-R>=xrange#anyStartRegex()<CR><CR>
-nnoremap <leader>xN ?<C-R>=xrange#anyStartRegex()<CR><CR>
+nnoremap <leader>xn ^/<C-R>=xrange#anyStartRegex()<CR><CR>
+nnoremap <leader>xN ^?<C-R>=xrange#anyStartRegex()<CR><CR>
 
 finish
 <data>
