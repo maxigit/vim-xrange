@@ -54,7 +54,22 @@ function DisplayRange(range)
   endif
 endfunction
 
-"
+function CreateRange(name, comment=1)
+  if empty(GetOuterRange(a:name, 1))
+    let block_start = WrapInComment(b:start_prefix . a:name . b:start_suffix, a:comment)
+    let block_end = WrapInComment(b:end_prefix . a:name . b:end_suffix, a:comment)
+    call append(line('.'), [block_start, block_end])
+  endif
+endfunction
+
+function WrapInComment(string, comment)
+  if a:comment && &commentstring != ""
+    return printf(&commentstring, a:string)
+  else
+    return a:string
+  endif
+endfunction
+
 function ExecuteLine(line, extract_vim="")
   call s:init()
     " remove zone at the begining
