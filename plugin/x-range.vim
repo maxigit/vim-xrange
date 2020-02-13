@@ -62,11 +62,25 @@ function CreateRange(name, comment=1)
   endif
 endfunction
 
+" Wrap a range name in comment (like fold)
 function WrapInComment(string, comment)
   if a:comment && &commentstring != ""
     return printf(&commentstring, a:string)
   else
     return a:string
+  endif
+endfunction
+
+" Wrap regexp in comment
+" if commentstring is like /* %s */
+" the resulting regexp should be
+" \M/* \m%s\M */" | %s
+function WrapRegexpInComment(regexp, comment)
+  if a:comment && &commentstring != ""
+    let commentstring= printf(&commentstring, '\m.*'. a:regexp . '.*\M')
+    return printf('\%(^\M%s\)\|\%(^%s\)', commentstring, a:regexp)
+  else
+    return '^'. a:regexp
   endif
 endfunction
 
