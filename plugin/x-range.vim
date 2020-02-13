@@ -56,6 +56,7 @@ endfunction
 
 "
 function ExecuteLine(line, extract_vim="")
+  call s:init()
     " remove zone at the begining
     " allows to write tho code on the same line
   call ExecuteLines(a:line, a:line, a:extract_vim . '\%(' .AnyStartRegex() .'\)\?')
@@ -121,8 +122,8 @@ function ExpandZone(key, token)
         elseif mode == '-'
           call DeleteInnerRange(name)
           return range->InnerRange()->DisplayRange()
-        elseif mode == ''''
-          return token
+        elseif mode == '''' 
+          return '@'. name
         endif
       endif
 endfunction
