@@ -191,7 +191,7 @@ function xrange#anyStartRegex()
   return s:anyStartRegex()
 endfunction
 function s:anyStartRegex()
-  return '^\M'. printf(b:xrange_start,'\m\(\f\+\)\M') . '\m'
+  return '^\M'. printf(b:xrange_start,'\m\(\f\+\>\)\M') . '\m'
 endfunction
 
 function xrange#anyEndRegex() 
@@ -199,7 +199,7 @@ function xrange#anyEndRegex()
   return s:anyEndRegex()
 endfunction
 function s:anyEndRegex() 
-  return '^\M'. printf(b:xrange_end,'\m\(\f\+\)\M') . '\m'
+  return '^\M'. printf(b:xrange_end,'\m\(\f\+\>\)\M') . '\m'
 endfunction
 
 
