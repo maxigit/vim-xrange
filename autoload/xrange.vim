@@ -2,11 +2,12 @@ let s:start = '#+BEGIN %s'
 let s:end =   '#+END%0.s'
 let s:start = '<%s>'
 let s:end =   '</%s>'
+let s:result = '%s_result'
 
 " Make sure all buffer variables are initialed
 function s:init()
   if(!exists("b:xrange_done"))
-    for v in ["start", "end"]
+    for v in ["start", "end", "result"]
       if(exists("g:xrange_".v))
         let b:xrange_{v} = g:xrange_{v}
       else
@@ -24,7 +25,7 @@ function xrange#getOuterRange(name, create_end=0)
   let start = search('^\M'.block_start, 'cw') " wrap if needed and move cursor
   if start > 0
     let end = search('^\M'.block_end, 'nW') " don't wrap, end should be after start
-    let next_block = search(xrange#anyStartRegex() .'\|'. xrange#anyEndRegex(), 'nW')
+    let next_block = search(s:anyStartRegex() .'\|'. s:anyEndRegex(), 'nW')
     if end > 0 && end <= next_block
       return {'start':start, 'end':end}
     elseif a:create_end
@@ -61,7 +62,7 @@ function xrange#executeLine(line, extract_vim="")
   call s:init()
     " remove zone at the begining
     " allows to write tho code on the same line
-  call xrange#executeLines(a:line, a:line, a:extract_vim . '\%(' .xrange#anyStartRegex() .'\)\?')
+  call xrange#executeLines(a:line, a:line, a:extract_vim . '\%(' .s:anyStartRegex() .'\)\?')
 endfunction
 
 function s:executeLine(line, extract_vim)
@@ -144,7 +145,7 @@ function xrange#executeRangeByName(name, extract_vim="")
     return 
   endif 
   let first_line = getline(range.start)
-  if first_line =~ a:extract_vim . xrange#anyStartRegex() . '\s*\S\+'
+  if first_line =~ a:extract_vim . s:anyStartRegex() . '\s*\S\+'
     call xrange#executeLine(range.start, a:extract_vim)
   else
     let range = xrange#innerRange(range)
@@ -186,20 +187,29 @@ function xrange#deleteRangeUnderCursor()
 endfunction
 
 function xrange#anyStartRegex()
-  return '^\M'. printf(b:xrange_start,'\(\f\+\)') . '\m'
+  call s:init()
+  return s:anyStartRegex()
+endfunction
+function s:anyStartRegex()
+  return '^\M'. printf(b:xrange_start,'\m\(\f\+\)\M') . '\m'
 endfunction
 
 function xrange#anyEndRegex() 
-  return '^\M'. printf(b:xrange_end,'\(\f\+\)') . '\m'
+  call s:init()
+  return s:anyEndRegex()
 endfunction
+function s:anyEndRegex() 
+  return '^\M'. printf(b:xrange_end,'\m\(\f\+\)\M') . '\m'
+endfunction
+
 
 function xrange#findCurrentRange()
   call s:init()
-  let start = search(xrange#anyStartRegex(), "nbWc")
+  let start = search(s:anyStartRegex(), "nbWc")
   if start == 0
     return ""
   end
-  let matches = matchlist(getline(start),xrange#anyStartRegex())
+  let matches = matchlist(getline(start),s:anyStartRegex())
   return matches[1]
 endfunction
       
@@ -251,3 +261,29 @@ function s:readRange(name)
     call delete(file.path)
   endif
 endfunction 
+
+
+function xrange#createRange(name)
+  if empty(xrange#getOuterRange(a:name, 1))
+    call append(line('.'), [printf(b:xrange_start, a:name), printf(b:xrange_end, a:name)])
+  endif
+  normal j 
+endfunction
+
+function xrange#createNewRange()
+  call xrange#createRange(input("Range? "))
+endfunction
+
+
+function xrange#createResultRange()
+  let name = xrange#findCurrentRange()
+  let range = xrange#getOuterRange(name)
+  if !empty(range)
+    call setpos('.', [0,range.end,0,0])
+    call xrange#createRange(xrange#resultName(name), ' @'.name.'!')
+  endif
+endfunction
+
+function xrange#resultName(name)
+    return printf(b:xrange_result, a:name)
+endfunction
