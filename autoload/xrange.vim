@@ -1,29 +1,30 @@
-let s:start_prefix = "<"
-let s:start_suffix = ">"
-let s:end_prefix = "</"
-let s:end_suffix = ">"
+let s:start = '#+BEGIN %s'
+let s:end =   '#+END%0.s'
+let s:start = '<%s>'
+let s:end =   '</%s>'
 
 " Make sure all buffer variables are initialed
 function s:init()
-  if(!exists("b:embed_done"))
-    for v in ["start_prefix", "end_prefix", "start_suffix", "end_suffix"]
-      if(exists("g:embed_".v))
-        let b:{v} = g:embed_{v}
+  if(!exists("b:xrange_done"))
+    for v in ["start", "end"]
+      if(exists("g:xrange_".v))
+        let b:xrange_{v} = g:xrange_{v}
       else
-        let b:{v} = s:{v}
+        let b:xrange_{v} = s:{v}
       endif
     endfor
+    let b:xrange_done=1
   endif
 endfunction
 
 function xrange#getOuterRange(name, create_end=0)
   call s:init()
-  let block_start = b:start_prefix . a:name . b:start_suffix
-  let block_end = b:end_prefix . a:name . b:end_suffix
-  let start = search('^'.block_start, 'cw') " wrap if needed and move cursor
+  let block_start = printf(b:xrange_start, a:name)
+  let block_end = printf(b:xrange_end, a:name)
+  let start = search('^\M'.block_start, 'cw') " wrap if needed and move cursor
   if start > 0
-    let end = search('^'.block_end, 'nW') " don't wrap, end should be after start
-    let next_block = search('^'.b:start_prefix.'\|'.b:end_prefix.'$', 'nW')
+    let end = search('^\M'.block_end, 'nW') " don't wrap, end should be after start
+    let next_block = search(xrange#anyStartRegex() .'\|'. xrange#anyEndRegex(), 'nW')
     if end > 0 && end <= next_block
       return {'start':start, 'end':end}
     elseif a:create_end
@@ -185,8 +186,13 @@ function xrange#deleteRangeUnderCursor()
 endfunction
 
 function xrange#anyStartRegex()
-  return '^'.b:start_prefix.'\(\f\+\)'.b:start_suffix
+  return '^\M'. printf(b:xrange_start,'\(\f\+\)') . '\m'
 endfunction
+
+function xrange#anyEndRegex() 
+  return '^\M'. printf(b:xrange_end,'\(\f\+\)') . '\m'
+endfunction
+
 function xrange#findCurrentRange()
   call s:init()
   let start = search(xrange#anyStartRegex(), "nbWc")
@@ -199,7 +205,7 @@ endfunction
       
 function xrange#deleteInnerRange(name)
   let range = xrange#getOuterRange(a:name)->xrange#innerRange()
-  if !empty(range) && range.end > range.start
+  if !empty(range) && range.end >= range.start
     call deletebufline("%",range.start, range.end)
     return 0
   end
