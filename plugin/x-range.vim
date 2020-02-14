@@ -1,4 +1,4 @@
-command -nargs=1 DeleteRange :call xrange#deleteInnerRange("<args>")
+" command -nargs=1 DeleteRange :call xrange#deleteInnerRange("<args>")
 
 nnoremap <leader>xm :call xrange#createSettings()->xrange#executeRangeByName("main")<CR>
 nnoremap <leader>xx :call xrange#createSettings()->xrange#executeCurrentRange()<CR>

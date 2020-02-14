@@ -179,7 +179,7 @@ function xrange#deleteCurrentRange(settings)
 endfunction
 
 function xrange#deleteRangeUnderCursor(settings)
-  call xrange#deleteInnerRange(a:settings, expand("<cword>"))
+  call xrange#deleteInnerRange(expand("<cword>"), a:settings)
 endfunction
 
 function xrange#anyStartRegex(settings)
@@ -256,15 +256,15 @@ function s:readRange(name, settings)
 endfunction 
 
 
-function xrange#createRange(name, settings, code='')
+function xrange#createRange(settings, name, code='')
   if empty(xrange#getOuterRange(a:settings, a:name, 1))
     call append(line('.'), [printf(a:settings.start, a:name) . a:code, printf(a:settings.end, a:name)])
   endif
   normal j 
 endfunction
 
-function xrange#createNewRange()
-  call xrange#createRange(input("Range? "))
+function xrange#createNewRange(settings)
+  call xrange#createRange(a:settings, input("Range? "))
 endfunction
 
 
@@ -273,10 +273,10 @@ function xrange#createResultRange(settings)
   let range = xrange#getOuterRange(a:settings, name)
   if !empty(range)
     call setpos('.', [0,range.end,0,0])
-    call xrange#createRange(a:settings, xrange#resultName(name), ' @'.name.'!')
+    call xrange#createRange(a:settings, xrange#resultName(a:settings, name), ' @'.name.'!')
   endif
 endfunction
 
-function xrange#resultName(name)
+function xrange#resultName(settings, name)
     return printf(a:settings.result, a:name)
 endfunction

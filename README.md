@@ -41,6 +41,8 @@ Executing
   match IncSearch /range/
   2match Search /<[^>]*>/
 </code>
+<clear> match
+</clear>
 
 Will execute the code between <code> and </code>.
 You can clear the matches by pressing <leader>xe on the next line (execute the line under cursor)
@@ -89,11 +91,11 @@ red,#ff000
 blue,#00ff00
 green,#0000ff
 </colors>
-<awk> @colors*w !awk -f @awk< >@awk_result> ; @awk_result&; @awk_result*>
+<awk> @colors*w !awk -F, -f @awk< >@awk_result> ; @awk_result&; @awk_result*>
 BEGIN {print "colors=[];" }
 // {printf("colors['%s']='%s'\n",$1,$2)}
 </awk>
-<awk_result>
+<awk_result> @awk!
 </awk_result>
 
 Note that `@awk_result&; @awk_result_` is only there to indent the result
@@ -110,10 +112,11 @@ Note that `@awk_result&; @awk_result_` is only there to indent the result
 
 # Todos
 - TODO change getOuterRange create optoins to create at the end of file or next line, etc
-- TODO replace s:init by context dictionary
+- DONE replace s:init by context dictionary
 - TODO autocommand to set option by filetype
 - TODO extract vim (part of dictionary ?)
 - TODO how to set variable m4 ?
 - TODO expand abbreviation
 - TODO custom modeline
---
+- TODO change block in README
+- TODO fix bugs when start regex match end ex <tag> </tag>
