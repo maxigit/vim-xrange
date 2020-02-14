@@ -104,3 +104,13 @@ Note that `@awk_result&; @awk_result_` is only there to indent the result
 	- <leader>xi echo range under cursor name
 	- <leader>xg go to range under cursor
 	- <leader>x! execute range under cursor
+
+# Todos
+- TODO change getOuterRange create optoins to create at the end of file or next line, etc
+- TODO replace s:init by context dictionary
+- TODO autocommand to set option by filetype
+- TODO extract vim (part of dictionary ?)
+- TODO how to set variable m4 ?
+- TODO expand abbreviation
+- TODO custom modeline
+--
