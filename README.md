@@ -30,6 +30,9 @@ Example
 <online> match Search /range/
 </online>
 
+<clear> match
+</clear>
+
 will execute `match Search /range/` and  not use the content of the range itself.
 
 Executing 
