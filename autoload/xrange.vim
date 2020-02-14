@@ -186,14 +186,14 @@ function xrange#anyStartRegex(settings)
   return s:anyStartRegex(a:settings)
 endfunction
 function s:anyStartRegex(settings)
-  return '^\M'. printf(a:settings.start,'\m\(\f\+\>\)\M') . '\m'
+  return '^\M'. printf(a:settings.start,'\m\([a-zA-Z0-9_.-]*\>\)\M') . '\m'
 endfunction
 
 function xrange#anyEndRegex(settings) 
   return s:anyEndRegex(a:settings)
 endfunction
 function s:anyEndRegex(settings) 
-  return '^\M'. printf(a:settings.end,'\m\(\f\+\>\)\M') . '\m'
+  return '^\M'. printf(a:settings.end,'\m\([a-zA-Z0-9_.-]*\>\)\M') . '\m'
 endfunction
 
 

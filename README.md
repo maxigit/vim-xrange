@@ -119,4 +119,4 @@ Note that `@awk_result&; @awk_result_` is only there to indent the result
 - TODO expand abbreviation
 - TODO custom modeline
 - TODO change block in README
-- TODO fix bugs when start regex match end ex <tag> </tag>
+- DONE fix bugs when start regex match end ex <tag> </tag>
