@@ -222,7 +222,7 @@ function s:createFileForRange(name, settings, mode)
   let range = xrange#getOuterRange(a:settings, a:name, 1)->xrange#innerRange()
   let tmp = tempname()
   if a:mode == 'in' && !empty(range) && range.end >= range.start
-    call s:executeLine(a:settings, '@'.a:name.'*w! ' . tmp,"")
+    call s:executeLine(a:settings, 'silent @'.a:name.'*w! ' . tmp,"")
   endif
   let b:file_dict[a:name] = {'path':tmp, 'mode':a:mode}
   return tmp
@@ -234,7 +234,7 @@ function s:readRange(name, settings)
     let file = b:file_dict[a:name]
     if file.mode != 'in'
       call xrange#deleteInnerRange(a:name, a:settings)
-      call s:executeLine(a:settings, '@'.a:name.'^r ' . file.path, "")
+      call s:executeLine(a:settings, 'silent @'.a:name.'^r ' . file.path, "")
       if file.mode == 'error'
         " load the error and adjust the line number
         let range = xrange#getOuterRange(a:settings, a:name)
