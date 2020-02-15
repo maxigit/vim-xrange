@@ -4,7 +4,7 @@ nnoremap <leader>xm :call xrange#executeRangeByName("main", xrange#createSetting
 nnoremap <leader>xx :call xrange#createSettings()->xrange#executeCurrentRange()<CR>
 nnoremap <leader>xe m`:call xrange#createSettings()->xrange#executeLine('.')<CR>``j
 nnoremap <leader>xd :call xrange#createSettings()->xrange#deleteCurrentRange()<CR>
-nnoremap <leader>xD e:call xrange#createSettings()->xrange#deleteRangeUnderCursor()<CR>
+"nnoremap <leader>xD e:call xrange#createSettings()->xrange#deleteRangeUnderCursor()<CR>
 nnoremap <leader>xI :echo xrange#createSettings()->xrange#findCurrentRange()<CR>
 nnoremap <leader>xg e:execute xrange#createSettings()->xrange#getOuterRange(expand('<cword>')).start<CR>
 nnoremap <leader>x! e:call xrange#createSettings()->xrange#executeRangeByName(expand('<cword>'))<CR><C-O>
@@ -13,7 +13,7 @@ nnoremap <leader>x! e:call xrange#createSettings()->xrange#executeRangeByName(ex
 nnoremap <leader>xi :call xrange#createSettings()->xrange#createNewRange()<CR>
 nnoremap <leader>xc ::call xrange#createSettings()->xrange#closeCurrentRange()<CR>
 " insert new result range
-nnoremap <leader>xR :call xrange#createSettings()->xrange#createResultRange()<CR>
+nnoremap <leader>xr :call xrange#createSettings()->xrange#createResultRange()<CR>
 " go to result range
 nnoremap <leader>xn ^/<C-R>=xrange#createSettings()->xrange#anyStartRegex()<CR><CR>
 nnoremap <leader>xN ^?<C-R>=xrange#createSettings()->xrange#anyStartRegex()<CR><CR>
@@ -27,16 +27,19 @@ function s:completeRanges(A,L,P)
   let ranges =  xrange#createSettings()->xrange#rangeList()
   return join(ranges, "\n")
 endfunction
+
 command -nargs=1 -complete=custom,s:completeRanges ExecuteRange :call xrange#executeRangeByName("<args>", xrange#createSettings())
 command -nargs=1 -complete=custom,s:completeRanges DeleteRange :call xrange#deleteInnerRange("<args>", xrange#createSettings())
 command -nargs=1 -complete=custom,s:completeRanges GotoRange :execute xrange#createSettings()->xrange#getOuterRange("<args>").start
-nnoremap <leader>Xx :ExecuteRange<space><C-D> 
-nnoremap <leader>Xd :DeleteRange<space><C-D> 
-nnoremap <leader>Xg :GotoRange<space><C-D> 
+nnoremap <leader>xX :ExecuteRange <C-R>=xrange#createSettings()->xrange#rangeUnderCursor()<CR>
+nnoremap <leader>xD :DeleteRange <C-R>=xrange#createSettings()->xrange#rangeUnderCursor()<CR>
+nnoremap <leader>xG :GotoRange <C-R>=xrange#createSettings()->xrange#rangeUnderCursor()<CR>
 
+nnoremap <leader>xo :echo xrange#createSettings()->xrange#rangeUnderCursor()<CR>
 augroup xrange
   au BufReadPost * call s:executeAuto("auto", "silent")
   au BufReadPost * call s:executeAuto("auto-confirm", "confirm")
+nnoremap <leader>xXG :GotoRange<space><C-D> 
 augroup END
 finish
 <data>

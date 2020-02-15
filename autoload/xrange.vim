@@ -86,8 +86,9 @@ function s:executeLine(settings, line, strip)
   endif
  return ""
 endfunction
+let s:operators = '[$^*%@''<>{}!&-]'
 function xrange#splitRanges(line) 
-  let matches = matchlist(a:line, '\([^@]*\)\(@[a-zA-Z0-9-_:]*[$^*%@''<>{}!&-]\)\(.*\)')
+  let matches = matchlist(a:line, '\([^@]*\)\(@[a-zA-Z0-9-_:]*'.s:operators.'\)\(.*\)')
   if empty(matches)
     return [a:line]
   else
@@ -97,7 +98,7 @@ endfunction
 
 function xrange#expandZone(settings, key, token)
       let current_range = get(a:settings.ranges, 0 , "")
-      let matches = matchlist(a:token, '^@\([a-zA-Z0-9_:<>-]*\)\([$^*%@''<>{}!&-]\)$')
+      let matches = matchlist(a:token, '^@\([a-zA-Z0-9_:<>-]*\)\('.s:operators.'\)$')
       if empty(matches)
           return a:token
       else
@@ -336,3 +337,31 @@ function xrange#rangeList(settings)
   execute current_line
   return results
 endfunction
+
+
+" check if word under cursor is a valid range and 
+" expand it if necessary
+function xrange#rangeUnderCursor(settings)
+  let pos = getpos('.')
+  let full_word = expand('<cWORD>')
+  let word = expand('<cword>')
+  " expand short hand for @: and @ etc ...
+  if full_word =~ '@\W'
+    let current_range = xrange#findCurrentRange(a:settings)
+    let range_name = substitute(full_word, '^@', current_range,'')
+  else
+    let range_name = substitute(full_word, '^@', '', '')
+  endif
+  "clean  end
+  let range = substitute(range_name, s:operators.'.*$', '', '')
+  " check the range exists
+  if empty(xrange#getOuterRange(a:settings, range))
+    let range = word
+    if empty(xrange#getOuterRange(a:settings, range))
+      let range = ''
+    endif
+  endif
+  call setpos('.', pos)
+  return range
+endfunction
+
