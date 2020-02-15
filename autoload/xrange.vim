@@ -18,7 +18,13 @@ function xrange#createSettings(settings={})
   return settings
 endfunction
 
-function xrange#getOuterRange(settings, name, create_end=0)
+" Get a range by name and creates it's end if needed.
+" create_end can be either '$' (end of file or next block)
+" or '}' just after beginin
+" or '.' current line
+" or '' don't create
+function xrange#getOuterRange(settings, name, create_end='')
+  let current_line = line('.')
   let block_start = printf(a:settings.start, a:name)
   let block_end = printf(a:settings.end, a:name)
   let start = search(a:settings.strip.'\M'.block_start, 'cw') " wrap if needed and move cursor
@@ -27,8 +33,12 @@ function xrange#getOuterRange(settings, name, create_end=0)
     let next_block = search(s:anyStartRegex(a:settings) .'\|'. s:anyEndRegex(a:settings), 'nW')
     if end > 0 && end <= next_block
       return {'start':start, 'end':end}
-    elseif a:create_end
-      if next_block == 0
+    elseif a:create_end != ''
+      if a:create_end == '}'
+        let end = start
+      elseif a:create_end == '.'
+        let end = current_line
+      elseif next_block == ''
         let end=line('$')
       else
         let end = next_block-1
@@ -66,7 +76,7 @@ endfunction
 function s:executeLine(settings, line, strip)
   if match(a:line, a:strip) != -1
     let line = substitute(a:line, a:strip, "","")
-    let statements = split(substitute(line, a:strip, "",""), ';')
+    let statements = split(line, ';')
     for statement in statements
       let tokens = xrange#splitRanges(statement)
       call join(map(tokens, function('xrange#expandZone', [a:settings])), " ")
@@ -220,7 +230,7 @@ function s:createFileForRange(name, settings, mode)
   if b:file_dict->has_key(a:name)
     return b:file_dict[a:name].path
   else
-  let range = xrange#getOuterRange(a:settings, a:name, 1)->xrange#innerRange()
+  let range = xrange#getOuterRange(a:settings, a:name, '}')->xrange#innerRange()
   let tmp = tempname()
   if a:mode == 'in' && !empty(range) && range.end >= range.start
     call s:executeLine(a:settings, 'silent @'.a:name.'*w! ' . tmp,"")
@@ -258,7 +268,7 @@ endfunction
 
 
 function xrange#createRange(settings, name, code='')
-  if empty(xrange#getOuterRange(a:settings, a:name, 1))
+  if empty(xrange#getOuterRange(a:settings, a:name, '}'))
     call append(line('.'), [printf(a:settings.start, a:name) . a:code, printf(a:settings.end, a:name)])
   endif
   normal j 
@@ -280,4 +290,10 @@ endfunction
 
 function xrange#resultName(settings, name)
     return printf(a:settings.result, a:name)
+endfunction
+
+function xrange#closeCurrentRange(settings)
+  let name = xrange#findCurrentRange(a:settings)
+  let range = xrange#getOuterRange(a:settings, name, '.')
+  execute range.end
 endfunction

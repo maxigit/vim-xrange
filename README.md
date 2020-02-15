@@ -111,14 +111,19 @@ Note that `@awk_result&; @awk_result_` is only there to indent the result
 	- <leader>x! execute range under cursor
 
 # Todos
-- TODO change getOuterRange create optoins to create at the end of file or next line, etc
+- DONE change getOuterRange create optoins to create at the end of file or next line, etc
 - DONE replace s:init by context dictionary
 - TODO autocommand to set option by filetype
-- TODO extract vim (part of dictionary ?)
-   - TODO remove second substitute ?
-- TODO how to set variable m4 ?
+- TODO expand range name to use current range
+- DONE extract vim (part of dictionary ?)
+   - DONE remove second substitute ?
 - TODO expand abbreviation
+ - to get mysql parameters for example
 - TODO custom modeline
   - add pre hook
 - TODO change block in README
 - DONE fix bugs when start regex match end ex <tag> </tag>
+- Chain range operator, example @range-<
+- TODO how to set variable m4 ?
+- TODO block paramters range key=value? (or := ?)
+- TODO all mappings

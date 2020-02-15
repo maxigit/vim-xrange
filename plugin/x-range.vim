@@ -11,6 +11,7 @@ nnoremap <leader>x! e:call xrange#createSettings()->xrange#executeRangeByName(ex
 
 " insert new range
 nnoremap <leader>xi :call xrange#createSettings()->xrange#createNewRange()<CR>
+nnoremap <leader>xc ::call xrange#createSettings()->xrange#closeCurrentRange()<CR>
 " insert new result range
 nnoremap <leader>xR :call xrange#createSettings()->xrange#createResultRange()<CR>
 " go to result range
