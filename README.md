@@ -1,6 +1,6 @@
-<!-- <auto-confirm>
+<!-- <auto>
   match Error /TODO/
-  </auto-confirm>
+</auto>
 -->
 # Overview
 X-Range is a plugin allowing to execute source code of any language within any text documents in a similar way to emacs org-babel.
@@ -14,10 +14,10 @@ fill the `<toc>` range with all the lines starting with a `#`. Executing the `<l
 To delete the content of the range just press `<leader>xd`
 
 
-!-- <toc> @toc-; g/^#/t @toc}; @toc*g/./m@toc^
+<toc> @-; g/^#/t @}; @*g/./m@^
 </toc>
 
-<ls> !ls -l > @ls>
+<ls> !ls -l > @>
 </ls>
 
 The first example inspect the vim buffer itself and copy the line to the last line of the `toc` range (`@toc}`) and reverse the lines.
@@ -117,8 +117,8 @@ Note that `@awk_result&; @awk_result_` is only there to indent the result
 # Todos
 - DONE change getOuterRange create optoins to create at the end of file or next line, etc
 - DONE replace s:init by context dictionary
-- TODO autocommand to set option by filetype
-- TODO expand range name to use current range
+- DONE expand range name to use current range
+- TODO expand range under cursor
 - TODO list current ranges
   - [ ] X command with completion
 - DONE extract vim (part of dictionary ?)
@@ -135,3 +135,4 @@ Note that `@awk_result&; @awk_result_` is only there to indent the result
 - TODO block paramters range key=value? (or := ?)
 - TODO all mappings
 - TODO disable mapping and autocmd with global settings
+- TODO autocommand to set option by filetype

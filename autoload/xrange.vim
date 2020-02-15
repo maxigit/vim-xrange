@@ -2,12 +2,12 @@ let s:start = '#+BEGIN %s'
 let s:end =   '#+END%0.s'
 let s:start = '<%s>'
 let s:end =   '</%s>'
-let s:result = '%s_result'
+let s:result = '%s:out'
 let s:strip = '\%(^\s*[#*/"!:<>-]\+\s\+\|^\)' " something followed with a space or nothing
 
 " Create a setting object
 function xrange#createSettings(settings={})
-  let settings = {}
+  let settings = {'ranges':[]}
   for v in ['start', 'end', 'result', 'strip']
     if(has_key(a:settings, v))
       let settings[v] = a:settings[v]
@@ -87,7 +87,7 @@ function s:executeLine(settings, line, strip)
  return ""
 endfunction
 function xrange#splitRanges(line) 
-  let matches = matchlist(a:line, '\([^@]*\)\(@[a-zA-Z0-9-_:]\+[$^*%@''<>{}!&-]\)\(.*\)')
+  let matches = matchlist(a:line, '\([^@]*\)\(@[a-zA-Z0-9-_:]*[$^*%@''<>{}!&-]\)\(.*\)')
   if empty(matches)
     return [a:line]
   else
@@ -96,11 +96,19 @@ function xrange#splitRanges(line)
 endfunction
 
 function xrange#expandZone(settings, key, token)
-      let matches = matchlist(a:token, '^@\([a-zA-Z0-9-_:]\+\)\([$^*%@''<>{}!&-]\)$')
+      let current_range = get(a:settings.ranges, 0 , "")
+      let matches = matchlist(a:token, '^@\([a-zA-Z0-9_:<>-]*\)\([$^*%@''<>{}!&-]\)$')
       if empty(matches)
           return a:token
       else
         let name = matches[1]
+        " expand name if needed
+        if name[0] == ':'
+          let name = current_range . name
+        elseif name == ''
+          let name = current_range
+        endif
+
         let range = xrange#getOuterRange(a:settings, name)
         if empty(range)
           throw  "Range not found : " . name
@@ -149,7 +157,7 @@ endfunction
 "  mode can be
 "    confirm : ask confirmation (implies silent)
 "    silent: don't throw an error if not present
-function xrange#executeRangeByName(name, settings, strip=a:settings.strip,mode='')
+function xrange#executeRangeByName(name, settings, strip=a:settings.strip, mode='')
   let range = xrange#getOuterRange(a:settings, a:name)
   if empty(range)
     if a:mode == ''
@@ -162,6 +170,8 @@ function xrange#executeRangeByName(name, settings, strip=a:settings.strip,mode='
       return
     endif
   endif
+  " add range to ranges stack
+  call insert(a:settings.ranges, a:name)
   let first_line = getline(range.start)
   if first_line =~ a:strip . s:anyStartRegex(a:settings, '') . '\s*\S\+'
     call xrange#executeLine(a:settings, range.start, a:strip)
@@ -169,6 +179,7 @@ function xrange#executeRangeByName(name, settings, strip=a:settings.strip,mode='
     let range = xrange#innerRange(range)
     call xrange#executeLines(a:settings, range.start, range.end, a:strip)
   endif
+  call remove(a:settings.ranges,0)
 endfunction
 
 function xrange#executeLines(settings, start, end, strip=a:settings.strip)

@@ -1,6 +1,6 @@
 " command -nargs=1 DeleteRange :call xrange#deleteInnerRange("<args>")
 
-nnoremap <leader>xm :call xrange#createSettings()->xrange#executeRangeByName("main")<CR>
+nnoremap <leader>xm :call xrange#executeRangeByName("main", xrange#createSettings())<CR>
 nnoremap <leader>xx :call xrange#createSettings()->xrange#executeCurrentRange()<CR>
 nnoremap <leader>xe m`:call xrange#createSettings()->xrange#executeLine('.')<CR>``j
 nnoremap <leader>xd :call xrange#createSettings()->xrange#deleteCurrentRange()<CR>
