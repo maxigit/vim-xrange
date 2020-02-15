@@ -3,11 +3,12 @@ let s:end =   '#+END%0.s'
 let s:start = '<%s>'
 let s:end =   '</%s>'
 let s:result = '%s_result'
+let s:strip = '\%(^\s*[#*/"!:<>-]\+\s\+\|^\)' " something followed with a space or nothing
 
 " Create a setting object
 function xrange#createSettings(settings={})
   let settings = {}
-  for v in ["start", "end", "result"]
+  for v in ['start', 'end', 'result', 'strip']
     if(has_key(a:settings, v))
       let settings[v] = a:settings[v]
     else
@@ -20,9 +21,9 @@ endfunction
 function xrange#getOuterRange(settings, name, create_end=0)
   let block_start = printf(a:settings.start, a:name)
   let block_end = printf(a:settings.end, a:name)
-  let start = search('^\M'.block_start, 'cw') " wrap if needed and move cursor
+  let start = search(a:settings.strip.'\M'.block_start, 'cw') " wrap if needed and move cursor
   if start > 0
-    let end = search('^\M'.block_end, 'nW') " don't wrap, end should be after start
+    let end = search(a:settings.strip.'\M'.block_end, 'nW') " don't wrap, end should be after start
     let next_block = search(s:anyStartRegex(a:settings) .'\|'. s:anyEndRegex(a:settings), 'nW')
     if end > 0 && end <= next_block
       return {'start':start, 'end':end}
@@ -56,16 +57,16 @@ function xrange#displayRange(range)
 endfunction
 
 "
-function xrange#executeLine(settings, line, extract_vim="")
+function xrange#executeLine(settings, line, strip=a:settings.strip)
     " remove zone at the begining
     " allows to write tho code on the same line
-  call xrange#executeLines(a:settings, a:line, a:line, a:extract_vim . '\%(' .s:anyStartRegex(a:settings) .'\)\?')
+  call xrange#executeLines(a:settings, a:line, a:line, a:strip . '\%(' .s:anyStartRegex(a:settings, '') .'\)\?')
 endfunction
 
-function s:executeLine(settings, line, extract_vim)
-  if match(a:line, a:extract_vim) != -1
-    let line = substitute(a:line, a:extract_vim, "","")
-    let statements = split(substitute(line, a:extract_vim, "",""), ';')
+function s:executeLine(settings, line, strip)
+  if match(a:line, a:strip) != -1
+    let line = substitute(a:line, a:strip, "","")
+    let statements = split(substitute(line, a:strip, "",""), ';')
     for statement in statements
       let tokens = xrange#splitRanges(statement)
       call join(map(tokens, function('xrange#expandZone', [a:settings])), " ")
@@ -135,22 +136,22 @@ endfunction
 " <query> @execut_query!
 " ...
 " </query>
-function xrange#executeRangeByName(name, settings, extract_vim="")
+function xrange#executeRangeByName(name, settings, strip=a:settings.strip)
   let range = xrange#getOuterRange(a:settings, a:name)
   if empty(range)
     echoerr "Can't execute range " . a:name
     return 
   endif 
   let first_line = getline(range.start)
-  if first_line =~ a:extract_vim . s:anyStartRegex(a:settings) . '\s*\S\+'
-    call xrange#executeLine(a:settings, range.start, a:extract_vim)
+  if first_line =~ a:strip . s:anyStartRegex(a:settings, '') . '\s*\S\+'
+    call xrange#executeLine(a:settings, range.start, a:strip)
   else
     let range = xrange#innerRange(range)
-    call xrange#executeLines(a:settings, range.start, range.end, a:extract_vim)
+    call xrange#executeLines(a:settings, range.start, range.end, a:strip)
   endif
 endfunction
 
-function xrange#executeLines(settings, start, end, extract_vim="")
+function xrange#executeLines(settings, start, end, strip=a:settings.strip)
   if exists('b:file_dict')
     let recursive = 1
   else 
@@ -158,7 +159,7 @@ function xrange#executeLines(settings, start, end, extract_vim="")
     let b:file_dict = {}
   endif
   for line in getline(a:start, a:end)
-    call s:executeLine(a:settings, line, a:extract_vim)
+    call s:executeLine(a:settings, line, a:strip)
   endfor
   " update all modified file
   if !recursive
@@ -185,15 +186,15 @@ endfunction
 function xrange#anyStartRegex(settings)
   return s:anyStartRegex(a:settings)
 endfunction
-function s:anyStartRegex(settings)
-  return '^\M'. printf(a:settings.start,'\m\([a-zA-Z0-9_.-]*\>\)\M') . '\m'
+function s:anyStartRegex(settings, start=a:settings.strip)
+  return a:start . '\M'. printf(a:settings.start,'\m\([a-zA-Z0-9_.-]*\>\)\M') . '\m'
 endfunction
 
 function xrange#anyEndRegex(settings) 
   return s:anyEndRegex(a:settings)
 endfunction
-function s:anyEndRegex(settings) 
-  return '^\M'. printf(a:settings.end,'\m\([a-zA-Z0-9_.-]*\>\)\M') . '\m'
+function s:anyEndRegex(settings, start=a:settings.strip) 
+  return a:start . '\M'. printf(a:settings.end,'\m\([a-zA-Z0-9_.-]*\>\)\M') . '\m'
 endfunction
 
 

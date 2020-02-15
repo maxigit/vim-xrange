@@ -10,7 +10,7 @@ fill the `<toc>` range with all the lines starting with a `#`. Executing the `<l
 To delete the content of the range just press `<leader>xd`
 
 
-<toc> @toc-; g/^#/t @toc}; @toc*g/./m@toc^
+!-- <toc> @toc-; g/^#/t @toc}; @toc*g/./m@toc^
 </toc>
 
 <ls> !ls -l > @ls>
@@ -41,7 +41,7 @@ Executing
   match IncSearch /range/
   2match Search /<[^>]*>/
 </code>
-<clear> match
+<clear> match ; 2match
 </clear>
 
 Will execute the code between <code> and </code>.
@@ -76,10 +76,10 @@ between the range delimiters.
 
 this example execute the sql query in the sql range and display the result in sql_result
 <sql> @sql*w !mysql -host<host>  > @sql_result>
-  ... you query
+ ... you query
 </sql>
 <sql_result> @sql!
-</sql_resul>
+</sql_result>
 
 Note that the `@sql!` on the first lin of the `sql_result` range allows the result range to be refreshed by executing the range itself.
 
@@ -115,8 +115,10 @@ Note that `@awk_result&; @awk_result_` is only there to indent the result
 - DONE replace s:init by context dictionary
 - TODO autocommand to set option by filetype
 - TODO extract vim (part of dictionary ?)
+   - TODO remove second substitute ?
 - TODO how to set variable m4 ?
 - TODO expand abbreviation
 - TODO custom modeline
+  - add pre hook
 - TODO change block in README
 - DONE fix bugs when start regex match end ex <tag> </tag>
