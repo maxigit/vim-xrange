@@ -1,5 +1,5 @@
 <!-- <auto>
-  match Error /TODO/
+ match Error /TODO/
 </auto>
 -->
 # Overview
@@ -118,21 +118,24 @@ Note that `@awk_result&; @awk_result_` is only there to indent the result
 - DONE change getOuterRange create optoins to create at the end of file or next line, etc
 - DONE replace s:init by context dictionary
 - DONE expand range name to use current range
-- TODO expand range under cursor
-- TODO list current ranges
-  - [ ] X command with completion
+- DONE list current ranges
 - DONE extract vim (part of dictionary ?)
    - DONE remove second substitute ?
-- TODO rename range
+- TODO change mapping upper case complete
+- TODO change block in README
+  better if there is a range under cursor prefill it
+  so @> got to current_range output
 - TODO expand abbreviation
  - to get mysql parameters for example
 - TODO custom modeline
   - add pre hook
-- TODO change block in README
 - DONE fix bugs when start regex match end ex <tag> </tag>
 - Chain range operator, example @range-<
 - TODO how to set variable m4 ?
 - TODO block paramters range key=value? (or := ?)
 - TODO all mappings
 - TODO disable mapping and autocmd with global settings
+- TODO complete with fzf ?
+- TODO rename range
+- TODO expand range under cursor
 - TODO autocommand to set option by filetype

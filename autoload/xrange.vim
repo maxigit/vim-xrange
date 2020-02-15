@@ -318,3 +318,21 @@ function xrange#closeCurrentRange(settings)
   let range = xrange#getOuterRange(a:settings, name, '.')
   execute range.end
 endfunction
+
+function xrange#rangeList(settings)
+  let current_line = line('.') " save current line
+  let results = []
+  let last_range = ''
+  execute '0' 
+  while 1
+    let match = search(xrange#anyStartRegex(a:settings), 'W')
+    let range = xrange#findCurrentRange(a:settings)
+    if range == '' || range == last_range
+      break
+    endif
+    let last_range = range
+    call add(results, range)
+  endwhile
+  execute current_line
+  return results
+endfunction

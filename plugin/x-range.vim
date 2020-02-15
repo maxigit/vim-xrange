@@ -23,6 +23,17 @@ function s:executeAuto(name, mode)
   call xrange#executeRangeByName(a:name, settings, settings.strip, a:mode)
 endfunction
 
+function s:completeRanges(A,L,P)
+  let ranges =  xrange#createSettings()->xrange#rangeList()
+  return join(ranges, "\n")
+endfunction
+command -nargs=1 -complete=custom,s:completeRanges ExecuteRange :call xrange#executeRangeByName("<args>", xrange#createSettings())
+command -nargs=1 -complete=custom,s:completeRanges DeleteRange :call xrange#deleteInnerRange("<args>", xrange#createSettings())
+command -nargs=1 -complete=custom,s:completeRanges GotoRange :execute xrange#createSettings()->xrange#getOuterRange("<args>").start
+nnoremap <leader>Xx :ExecuteRange<space><C-D> 
+nnoremap <leader>Xd :DeleteRange<space><C-D> 
+nnoremap <leader>Xg :GotoRange<space><C-D> 
+
 augroup xrange
   au BufReadPost * call s:executeAuto("auto", "silent")
   au BufReadPost * call s:executeAuto("auto-confirm", "confirm")
