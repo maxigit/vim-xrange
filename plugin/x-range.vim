@@ -4,10 +4,9 @@ nnoremap <leader>xm :call xrange#executeRangeByName("main", xrange#createSetting
 nnoremap <leader>xx :call xrange#createSettings()->xrange#executeCurrentRange()<CR>
 nnoremap <leader>xe m`:call xrange#createSettings()->xrange#executeLine('.')<CR>``j
 nnoremap <leader>xd :call xrange#createSettings()->xrange#deleteCurrentRange()<CR>
-"nnoremap <leader>xD e:call xrange#createSettings()->xrange#deleteRangeUnderCursor()<CR>
 nnoremap <leader>xI :echo xrange#createSettings()->xrange#findCurrentRange()<CR>
-nnoremap <leader>xg e:execute xrange#createSettings()->xrange#getOuterRange(expand('<cword>')).start<CR>
-nnoremap <leader>x! e:call xrange#createSettings()->xrange#executeRangeByName(expand('<cword>'))<CR><C-O>
+nnoremap <leader>xg :call xrange#createSettings()->xrange#gotoUnderCursor()<CR>
+nnoremap <leader>x! e:call xrange#createSettings()->xrange#executeUnderCursor()<CR>
 
 " insert new range
 nnoremap <leader>xi :call xrange#createSettings()->xrange#createNewRange()<CR>
@@ -39,7 +38,6 @@ nnoremap <leader>xo :echo xrange#createSettings()->xrange#rangeUnderCursor()<CR>
 augroup xrange
   au BufReadPost * call s:executeAuto("auto", "silent")
   au BufReadPost * call s:executeAuto("auto-confirm", "confirm")
-nnoremap <leader>xXG :GotoRange<space><C-D> 
 augroup END
 finish
 <data>

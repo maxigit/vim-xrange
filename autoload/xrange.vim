@@ -219,14 +219,14 @@ function xrange#anyStartRegex(settings)
   return s:anyStartRegex(a:settings)
 endfunction
 function s:anyStartRegex(settings, start=a:settings.strip)
-  return a:start . '\M'. printf(a:settings.start,'\m\([a-zA-Z0-9_.-]*\>\)\M') . '\m'
+  return a:start . '\M'. printf(a:settings.start,'\m\([a-zA-Z0-9_.:-]*\>\)\M') . '\m'
 endfunction
 
 function xrange#anyEndRegex(settings) 
   return s:anyEndRegex(a:settings)
 endfunction
 function s:anyEndRegex(settings, start=a:settings.strip) 
-  return a:start . '\M'. printf(a:settings.end,'\m\([a-zA-Z0-9_.-]*\>\)\M') . '\m'
+  return a:start . '\M'. printf(a:settings.end,'\m\([a-zA-Z0-9_.:-]*\>\)\M') . '\m'
 endfunction
 
 
@@ -341,7 +341,7 @@ endfunction
 
 " check if word under cursor is a valid range and 
 " expand it if necessary
-function xrange#rangeUnderCursor(settings)
+function xrange#rangeUnderCursor(settings, check=1)
   let pos = getpos('.')
   let full_word = expand('<cWORD>')
   let word = expand('<cword>')
@@ -355,7 +355,7 @@ function xrange#rangeUnderCursor(settings)
   "clean  end
   let range = substitute(range_name, s:operators.'.*$', '', '')
   " check the range exists
-  if empty(xrange#getOuterRange(a:settings, range))
+  if a:check && empty(xrange#getOuterRange(a:settings, range))
     let range = word
     if empty(xrange#getOuterRange(a:settings, range))
       let range = ''
@@ -365,3 +365,18 @@ function xrange#rangeUnderCursor(settings)
   return range
 endfunction
 
+function xrange#gotoUnderCursor(settings)
+  let range = xrange#rangeUnderCursor(a:settings)
+  if empty(range)
+    return
+  endif
+  execute xrange#getOuterRange(a:settings, range).start
+endfunction
+
+function xrange#executeUnderCursor(settings)
+  let range = xrange#rangeUnderCursor(a:settings)
+  if empty(range)
+    return
+  endif
+  execute xrange#executeRangeByName(range, a:settings)
+endfunction

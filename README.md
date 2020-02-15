@@ -78,14 +78,14 @@ between the range delimiters.
 
 ### SQL query
 
-this example execute the sql query in the sql range and display the result in sql_result
-<sql> @sql*w !mysql -host<host>  > @sql_result>
+this example execute the sql query in the sql range and display the result in sql:out
+<sql> @sql*w !mysql -host<host>  > @sql:out>
  ... you query
 </sql>
-<sql_result> @sql!
-</sql_result>
+<sql:out> @sql!
+</sql:out>
 
-Note that the `@sql!` on the first lin of the `sql_result` range allows the result range to be refreshed by executing the range itself.
+Note that the `@sql!` on the first lin of the `sql:out` range allows the result range to be refreshed by executing the range itself.
 
 
 ### Awk
@@ -95,14 +95,18 @@ red,#ff000
 blue,#00ff00
 green,#0000ff
 </colors>
-<awk> @colors*w !awk -F, -f @awk< >@awk_result> ; @awk_result&; @awk_result*>
+<awk> @colors*w !awk -F, -f @awk< > @:out> ; @:out&; @:out*>
 BEGIN {print "colors=[];" }
 // {printf("colors['%s']='%s'\n",$1,$2)}
 </awk>
-<awk_result> @awk!
-</awk_result>
+<awk:out> @awk!
+  colors=[];
+  colors['red']='#ff000'
+  colors['blue']='#00ff00'
+  colors['green']='#0000ff'
+</awk:out>
 
-Note that `@awk_result&; @awk_result_` is only there to indent the result
+Note that `@awk:out&; @awk:out_` is only there to indent the result
 
 # Default Mappings
 	- <leader>xm execute `main` range
@@ -121,7 +125,7 @@ Note that `@awk_result&; @awk_result_` is only there to indent the result
 - DONE list current ranges
 - DONE extract vim (part of dictionary ?)
    - DONE remove second substitute ?
-- TODO change mapping upper case complete
+- DONE change mapping upper case complete
 - TODO change block in README
   better if there is a range under cursor prefill it
   so @> got to current_range output
@@ -137,5 +141,5 @@ Note that `@awk_result&; @awk_result_` is only there to indent the result
 - TODO disable mapping and autocmd with global settings
 - TODO complete with fzf ?
 - TODO rename range
-- TODO expand range under cursor
+- DONE expand range under cursor
 - TODO autocommand to set option by filetype
