@@ -146,12 +146,22 @@ endfunction
 " <query> @execut_query!
 " ...
 " </query>
-function xrange#executeRangeByName(name, settings, strip=a:settings.strip)
+"  mode can be
+"    confirm : ask confirmation (implies silent)
+"    silent: don't throw an error if not present
+function xrange#executeRangeByName(name, settings, strip=a:settings.strip,mode='')
   let range = xrange#getOuterRange(a:settings, a:name)
   if empty(range)
-    echoerr "Can't execute range " . a:name
+    if a:mode == ''
+      echoerr "Can't execute range " . a:name
+    endif
     return 
   endif 
+  if a:mode == 'confirm'
+    if input("Execute xrange: ". a:name . "[y/n]?") !~ '\cy\(es\)\?'
+      return
+    endif
+  endif
   let first_line = getline(range.start)
   if first_line =~ a:strip . s:anyStartRegex(a:settings, '') . '\s*\S\+'
     call xrange#executeLine(a:settings, range.start, a:strip)

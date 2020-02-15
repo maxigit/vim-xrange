@@ -18,6 +18,15 @@ nnoremap <leader>xR :call xrange#createSettings()->xrange#createResultRange()<CR
 nnoremap <leader>xn ^/<C-R>=xrange#createSettings()->xrange#anyStartRegex()<CR><CR>
 nnoremap <leader>xN ^?<C-R>=xrange#createSettings()->xrange#anyStartRegex()<CR><CR>
 
+function s:executeAuto(name, mode)
+  let settings = xrange#createSettings()
+  call xrange#executeRangeByName(a:name, settings, settings.strip, a:mode)
+endfunction
+
+augroup xrange
+  au BufReadPost * call s:executeAuto("auto", "silent")
+  au BufReadPost * call s:executeAuto("auto-confirm", "confirm")
+augroup END
 finish
 <data>
 3

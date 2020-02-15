@@ -1,3 +1,7 @@
+<!-- <auto-confirm>
+  match Error /TODO/
+  </auto-confirm>
+-->
 # Overview
 X-Range is a plugin allowing to execute source code of any language within any text documents in a similar way to emacs org-babel.
 This can be used to add local macro to a buffer, generate portion of code, or just a "within buffer REPL".
@@ -115,8 +119,11 @@ Note that `@awk_result&; @awk_result_` is only there to indent the result
 - DONE replace s:init by context dictionary
 - TODO autocommand to set option by filetype
 - TODO expand range name to use current range
+- TODO list current ranges
+  - [ ] X command with completion
 - DONE extract vim (part of dictionary ?)
    - DONE remove second substitute ?
+- TODO rename range
 - TODO expand abbreviation
  - to get mysql parameters for example
 - TODO custom modeline
@@ -127,3 +134,4 @@ Note that `@awk_result&; @awk_result_` is only there to indent the result
 - TODO how to set variable m4 ?
 - TODO block paramters range key=value? (or := ?)
 - TODO all mappings
+- TODO disable mapping and autocmd with global settings
