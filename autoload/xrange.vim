@@ -88,7 +88,7 @@ function s:executeLine(settings, line, strip)
 endfunction
 let s:operators = '[$^*%@''<>{}!&-]'
 function xrange#splitRanges(line) 
-  let matches = matchlist(a:line, '\([^@]*\)\(@[a-zA-Z0-9-_:]*'.s:operators.'\)\(.*\)')
+  let matches = matchlist(a:line, '\([^@]*\)\(@[a-zA-Z0-9-_:]\{-}+\?'.s:operators.'\+\)\(.*\)')
   if empty(matches)
     return [a:line]
   else
@@ -98,11 +98,12 @@ endfunction
 
 function xrange#expandZone(settings, key, token)
       let current_range = get(a:settings.ranges, 0 , "")
-      let matches = matchlist(a:token, '^@\([a-zA-Z0-9_:<>-]*\)\('.s:operators.'\)$')
+      let matches = matchlist(a:token, '^@\([a-zA-Z0-9_:<>-]\{-}\)\(+\?\)\('.s:operators.'\+\)$')
       if empty(matches)
           return a:token
       else
         let name = matches[1]
+        let modes = matches[3]
         " expand name if needed
         if name[0] == ':'
           let name = current_range . name
@@ -112,39 +113,50 @@ function xrange#expandZone(settings, key, token)
 
         let range = xrange#getOuterRange(a:settings, name)
         if empty(range)
-          throw  "Range not found : " . name
+          if matches[2] == '+'
+            call xrange#createRange(a:settings, name)
+            let range = xrange#getOuterRange(a:settings, name)
+          else
+            throw  "Range not found : " . name
+          endif
         endif
-        let mode = matches[2]
-        if mode == '^'
-          return range.start
-        elseif mode == '$'
-          return range.end
-        elseif mode == '{'
-          return range.start+1
-        elseif mode == '}'
-          return range.end-1
-        elseif mode == '*'
-          return range->xrange#innerRange()->xrange#displayRange()
-        elseif mode == '%'
-          return range->xrange#displayRange()
-        elseif mode == '<'
-          return s:createFileForRange(name, a:settings,  'in')
-        elseif mode == '>'
-          return s:createFileForRange(name, a:settings,  'out')
-        elseif mode == '@'
-          return s:createFileForRange(name, a:settings,  'error')
-        elseif mode == '&'
-          call s:readRange(name, a:settings) " synchronize 
-          return ""
-        elseif mode == '!'
-          " return "call xrange#executeRangeByName('".name."')"
-          return xrange#executeRangeByName(name, a:settings)
-        elseif mode == '-'
-          call xrange#deleteInnerRange(name, a:settings)
-          return range->xrange#innerRange()->xrange#displayRange()
-        elseif mode == '''' 
-          return '@'. name
-        endif
+        let result = ''
+        for mode in split(modes, '\zs')
+          if mode == '^'
+            return range.start
+          elseif mode == '$'
+            let result =  range.end
+          elseif mode == '{'
+            let result = range.start+1
+          elseif mode == '}'
+            let result = range.end-1
+          elseif mode == '*'
+            let result = range->xrange#innerRange()->xrange#displayRange()
+          elseif mode == '%'
+            let result = range->xrange#displayRange()
+          elseif mode == '<'
+            let result = s:createFileForRange(name, a:settings,  'in')
+          elseif mode == '>'
+            let result = s:createFileForRange(name, a:settings,  'out')
+          elseif mode == '@'
+            let result = s:createFileForRange(name, a:settings,  'error')
+          elseif mode == '&'
+            call s:readRange(name, a:settings) " synchronize 
+            let range = xrange#getOuterRange(a:settings, name)
+            let result = ""
+          elseif mode == '!'
+            " let result = "call xrange#executeRangeByName('".name."')"
+            let result = xrange#executeRangeByName(name, a:settings)
+          elseif mode == '-'
+            call xrange#deleteInnerRange(name, a:settings)
+            " update range
+            let range = xrange#getOuterRange(a:settings, name)
+            let result = range->xrange#innerRange()->xrange#displayRange()
+          elseif mode == '''' 
+            let result = '@'. name
+          endif
+        endfor
+        return result
       endif
 endfunction
 
@@ -262,9 +274,9 @@ function s:createFileForRange(name, settings, mode)
   if b:file_dict->has_key(a:name)
     return b:file_dict[a:name].path
   else
+    call xrange#CreateRange(a:settings, a:name, '')
     let range = xrange#getOuterRange(a:settings, a:name, '}')->xrange#innerRange()
     let tmp = tempname()
-    echo "NEW FILE for" a:name a:mode tmp
     if a:mode == 'in' " && !empty(range) && range.end >= range.start
       call s:saveRange(a:name, tmp, a:settings)
       " call s:executeLine(a:settings, 'silent @'.a:name.'*w! ' . tmp,"")
@@ -285,7 +297,6 @@ function s:saveRange(name, file,  settings)
   endif
   let line = substitute(getline(range.start-1), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
   let tags = xrange#extractTags(line)
-  echomsg "TAGS for" range tags
 
   let do_undo = 0
   if has_key(tags, 'pre')
@@ -310,7 +321,6 @@ function s:saveRange(name, file,  settings)
   endif
 
   let command = printf("silent %d,%dw !%s > %s", range.start, range.end, join(commands, ' | '), a:file)
-  echomsg "COMMAND" command
 
   "call s:executeLine(a:settings, command, '')
   execute l:command
@@ -352,11 +362,9 @@ function xrange#createRange(settings, name, code='')
     " find next space outside a range
     " so that ranges are not nested
      let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
-     echo "CURRENT" getline('.')
      while !empty(current_range)
        execute current_range.end+1
        let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
-     echo "CURRENT" getline('.')
      endwhile
       call append(line('.'), [printf(a:settings.start, a:name) . a:code, printf(a:settings.end, a:name)])
   endif

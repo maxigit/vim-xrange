@@ -14,12 +14,11 @@ fill the `<toc>` range with all the lines starting with a `#`. Executing the `<l
 To delete the content of the range just press `<leader>xd`
 
 
-<toc> @-; g/^#/t @}; @*g/./m@^
+<toc> g/^#/t @-}; @*g/./m@^
 </toc>
 
 <ls> !ls -l > @>
 </ls>
-
 
 <data> +pre s/a/X/
 a b
@@ -139,7 +138,7 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - DONE extract vim (part of dictionary ?)
    - DONE remove second substitute ?
 - DONE change mapping upper case complete
-- TODO create output range if needed
+- DONE create output range if needed
 - TODO change block in README
   better if there is a range under cursor prefill it
   so @> got to current_range output
