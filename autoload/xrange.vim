@@ -173,9 +173,10 @@ function xrange#executeRangeByName(name, settings, strip=a:settings.strip, mode=
   endif
   " add range to ranges stack
   call insert(a:settings.ranges, a:name)
-  let first_line = getline(range.start)
-  if first_line =~ a:strip . s:anyStartRegex(a:settings, '') . '\s*\S\+'
-    call xrange#executeLine(a:settings, range.start, a:strip)
+  let first_line = substitute(getline(range.start), a:strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
+  let tags = xrange#extractTags(first_line)
+  if tags.code != ''
+    call xrange#executeRawLines(a:settings, [tags.code], a:strip) 
   else
     let range = xrange#innerRange(range)
     call xrange#executeLines(a:settings, range.start, range.end, a:strip)
@@ -184,13 +185,17 @@ function xrange#executeRangeByName(name, settings, strip=a:settings.strip, mode=
 endfunction
 
 function xrange#executeLines(settings, start, end, strip=a:settings.strip)
+  return xrange#executeRawLines(a:settings, getline(a:start, a:end), a:strip)
+endfunction
+function xrange#executeRawLines(settings, lines, strip=a:settings.strip)
+  let pos = getpos('.')
   if exists('b:file_dict')
     let recursive = 1
   else 
     let recursive = 0
     let b:file_dict = {}
   endif
-  for line in getline(a:start, a:end)
+  for line in a:lines
     call s:executeLine(a:settings, line, a:strip)
   endfor
   " update all modified file
@@ -200,7 +205,7 @@ function xrange#executeLines(settings, start, end, strip=a:settings.strip)
   endfor
     unlet b:file_dict
   end
-  call setpos('.', [0,a:start,0,0])
+  call setpos('.', pos)
 endfunction
 
 function xrange#executeCurrentRange(settings)
@@ -380,3 +385,42 @@ function xrange#executeUnderCursor(settings)
   endif
   execute xrange#executeRangeByName(range, a:settings)
 endfunction
+
+" Extracts a dictionary of tag starting with +
+"  if no tags is provided the left over will be assigned to the +code tag.
+"  The syntax is the following
+"  +tag a b c +tag2 d +tag3+ code
+"  Will generate
+"  { tag: "a b c"
+"  , tag2: "d"
+"  , tag3: '' not value
+"  , code: 'code'
+"  }
+function xrange#extractTags(line)
+  if match(a:line, '^\s*+') == -1
+    " not tags
+    return {'code': substitute(a:line, '^\s*', '', '')}
+  endif
+  let result = {'code':''}
+  let tags = split(a:line, '\s\+\ze+')
+  for tag_value in tags
+    let matches = matchlist(tag_value, '^+\(\i\+\)\(+\?\)\s*\(.*\)')
+    if matches == []
+      " no tag
+      let result.code.= tag
+    else
+      let tag = matches[1]
+      let closed = matches[2]
+      let value = matches[3]
+      if closed == '+'
+        " the tag has no value
+        let result.code.= value
+        let result[tag] = ''
+      else
+        let result[tag]=value
+      endif
+    endif
+  endfor
+  return result
+endfunction
+
