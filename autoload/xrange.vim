@@ -303,7 +303,15 @@ function s:saveRange(name, file,  settings)
     " execute the code and undo it afterward
     if range.end > range.start
       let do_undo = 1
-      execute range.start "," range.end " " tags.pre
+      call s:executeLine(a:settings, tags.pre, '')
+    endif
+  endif
+
+  if has_key(tags, 's')
+    " execute the code and undo it afterward
+    if range.end > range.start
+      let do_undo = 1
+      execute range.start "," range.end " s" tags.s
     endif
   endif
 
