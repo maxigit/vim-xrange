@@ -236,8 +236,13 @@ endfunction
 
 
 function xrange#findCurrentRange(settings)
-  let start = search(s:anyStartRegex(a:settings), "nbWc")
+  let current_line = line('.')
+  let start = search(s:anyStartRegex(a:settings), "nbWc") " don't move, backaward, no wrap accept curors
+  let end = search(s:anyEndRegex(a:settings), "nbW")
   if start == 0
+    return ""
+  elseif end != 0 && start < end " we are not within a range
+    " the start we found has an end we are outside
     return ""
   end
   let matches = matchlist(getline(start),s:anyStartRegex(a:settings))
@@ -278,22 +283,6 @@ function s:saveRange(name, file,  settings)
   if empty(range)
     return 
   endif
-  "  " we need to create it
-  "  let pos = getpos('.')
-  "  " find if we are within a range
-  "  " and then then last non adjacent range
-  "  let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
-  "  while !empty(current_range)
-  "    execute current_range.end+1
-  "    let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
-  "  endwhile
-  "  call xrange#createRange(settings, name)
-  "  let tags = {}
-  "  let range = xrange#innerRange(range)
-  "else
-  "  " is there code to execute
-  "  let tags = xrange#extractTags(getline(range.start))
-  "endif
   let line = substitute(getline(range.start-1), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
   let tags = xrange#extractTags(line)
   echomsg "TAGS for" range tags
@@ -360,7 +349,16 @@ endfunction
 
 function xrange#createRange(settings, name, code='')
   if empty(xrange#getOuterRange(a:settings, a:name, '}'))
-    call append(line('.'), [printf(a:settings.start, a:name) . a:code, printf(a:settings.end, a:name)])
+    " find next space outside a range
+    " so that ranges are not nested
+     let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
+     echo "CURRENT" getline('.')
+     while !empty(current_range)
+       execute current_range.end+1
+       let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
+     echo "CURRENT" getline('.')
+     endwhile
+      call append(line('.'), [printf(a:settings.start, a:name) . a:code, printf(a:settings.end, a:name)])
   endif
   normal j 
 endfunction
