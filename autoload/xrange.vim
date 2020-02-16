@@ -317,7 +317,7 @@ function s:saveRange(name, file,  settings)
 
   let commands = ['cat']
   if has_key(tags, 'w')
-    call append(commands, tags.w)
+    call add(commands, tags.w)
   endif
 
   let command = printf("silent %d,%dw !%s > %s", range.start, range.end, join(commands, ' | '), a:file)
