@@ -171,7 +171,7 @@ endfunction
 "    confirm : ask confirmation (implies silent)
 "    silent: don't throw an error if not present
 function xrange#executeRangeByName(name, settings, strip=a:settings.strip, mode='')
-  let range = xrange#getOuterRange(a:settings, a:name)
+  let range = xrange#getOuterRange(a:settings, a:name, '}')
   if empty(range)
     if a:mode == ''
       echoerr "Can't execute range " . a:name
@@ -396,7 +396,7 @@ function xrange#closeCurrentRange(settings)
 endfunction
 
 function xrange#rangeList(settings)
-  let current_line = line('.') " save current line
+  let pos = getpos('.')
   let results = []
   let last_range = ''
   execute '0' 
@@ -409,7 +409,7 @@ function xrange#rangeList(settings)
     let last_range = range
     call add(results, range)
   endwhile
-  execute current_line
+  call setpot('.', pos)
   return results
 endfunction
 
