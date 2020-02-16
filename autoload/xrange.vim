@@ -257,14 +257,70 @@ function s:createFileForRange(name, settings, mode)
   if b:file_dict->has_key(a:name)
     return b:file_dict[a:name].path
   else
+    let range = xrange#getOuterRange(a:settings, a:name, '}')->xrange#innerRange()
+    let tmp = tempname()
+    echo "NEW FILE for" a:name a:mode tmp
+    if a:mode == 'in' " && !empty(range) && range.end >= range.start
+      call s:saveRange(a:name, tmp, a:settings)
+      " call s:executeLine(a:settings, 'silent @'.a:name.'*w! ' . tmp,"")
+    endif
+    let b:file_dict[a:name] = {'path':tmp, 'mode':a:mode}
+    return tmp
+  endif
+endfunction
+
+" Write the content of the range to a file
+" preprocess it depending on the value of the tags
+" pre: vim code to execute first
+" shell: shell command to run through
+function s:saveRange(name, file,  settings)
   let range = xrange#getOuterRange(a:settings, a:name, '}')->xrange#innerRange()
-  let tmp = tempname()
-  if a:mode == 'in' && !empty(range) && range.end >= range.start
-    call s:executeLine(a:settings, 'silent @'.a:name.'*w! ' . tmp,"")
+  if empty(range)
+    return 
   endif
-  let b:file_dict[a:name] = {'path':tmp, 'mode':a:mode}
-  return tmp
+  "  " we need to create it
+  "  let pos = getpos('.')
+  "  " find if we are within a range
+  "  " and then then last non adjacent range
+  "  let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
+  "  while !empty(current_range)
+  "    execute current_range.end+1
+  "    let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
+  "  endwhile
+  "  call xrange#createRange(settings, name)
+  "  let tags = {}
+  "  let range = xrange#innerRange(range)
+  "else
+  "  " is there code to execute
+  "  let tags = xrange#extractTags(getline(range.start))
+  "endif
+  let line = substitute(getline(range.start-1), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
+  let tags = xrange#extractTags(line)
+  echomsg "TAGS for" range tags
+
+  let do_undo = 0
+  if has_key(tags, 'pre')
+    " execute the code and undo it afterward
+    if range.end > range.start
+      let do_undo = 1
+      execute range.start "," range.end " " tags.pre
+    endif
   endif
+
+  let commands = ['cat']
+  if has_key(tags, 'w')
+    call append(commands, tags.w)
+  endif
+
+  let command = printf("silent %d,%dw !%s > %s", range.start, range.end, join(commands, ' | '), a:file)
+  echomsg "COMMAND" command
+
+  "call s:executeLine(a:settings, command, '')
+  execute l:command
+  if do_undo
+    undo
+  endif
+
 endfunction
 
 function s:readRange(name, settings)

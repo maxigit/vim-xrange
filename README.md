@@ -20,6 +20,19 @@ To delete the content of the range just press `<leader>xd`
 <ls> !ls -l > @>
 </ls>
 
+
+<data> +pre s/a/X/
+a b
+b
+d
+</data>
+<test> !cp @data< @test>
+a b
+b
+d
+</test>
+
+
 The first example inspect the vim buffer itself and copy the line to the last line of the `toc` range (`@toc}`) and reverse the lines.
 The second example execute a shell command and redirect it to file which is then injected in the range itself.
 
