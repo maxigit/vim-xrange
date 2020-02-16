@@ -126,6 +126,7 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - DONE extract vim (part of dictionary ?)
    - DONE remove second substitute ?
 - DONE change mapping upper case complete
+- TODO create output range if needed
 - TODO change block in README
   better if there is a range under cursor prefill it
   so @> got to current_range output
