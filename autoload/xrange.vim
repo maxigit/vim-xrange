@@ -335,10 +335,35 @@ function s:readRange(name, settings)
     let file = b:file_dict[a:name]
     if file.mode != 'in'
       call xrange#deleteInnerRange(a:name, a:settings)
-      call s:executeLine(a:settings, 'silent @'.a:name.'^r ' . file.path, "")
+      let range = xrange#getOuterRange(a:settings, a:name)
+      let first_line = substitute(getline(range.start), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
+      let tags = xrange#extractTags(first_line)
+
+
+      let commands = []
+      if has_key(tags, 'r')
+        call add(commands, tags.r)
+      endif
+      if empty(commands)
+        call s:executeLine(a:settings, 'silent @'.a:name.'^r ' . file.path, "")
+      else
+        call s:executeLine(a:settings, 'silent @'.a:name.'^r !cat ' . file.path . " | " . join(commands, '|'), "")
+      endif
+      let inner = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
+
+      if has_key(tags, 's')
+        " execute the code and undo it afterward
+        if inner.end > inner.start
+          execute inner.start "," inner.end " s" tags.s
+        endif
+      endif
+      if has_key(tags, 'post')
+        " execute the code and undo it afterward
+        call s:executeLine(a:settings, tags.post, '')
+      endif
+
       if file.mode == 'error'
         " load the error and adjust the line number
-        let range = xrange#getOuterRange(a:settings, a:name)
         execute "lgetfile " . file.path
         if !empty(range)
           "let offset = range.start
