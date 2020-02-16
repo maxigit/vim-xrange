@@ -187,8 +187,8 @@ function xrange#executeRangeByName(name, settings, strip=a:settings.strip, mode=
   call insert(a:settings.ranges, a:name)
   let first_line = substitute(getline(range.start), a:strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
   let tags = xrange#extractTags(first_line)
-  if tags.code != ''
-    call xrange#executeRawLines(a:settings, [tags.code], a:strip) 
+  if tags.exec != ''
+    call xrange#executeRawLines(a:settings, [tags.exec], a:strip) 
   else
     let range = xrange#innerRange(range)
     call xrange#executeLines(a:settings, range.start, range.end, a:strip)
@@ -303,21 +303,28 @@ function s:saveRange(name, file,  settings)
     " execute the code and undo it afterward
     if range.end > range.start
       let do_undo = 1
-      call s:executeLine(a:settings, tags.pre, '')
+      for pre in tags.pre
+        call s:executeLine(a:settings, pre, '')
+      endfor
     endif
   endif
 
+      echomsg "TAG" tags
   if has_key(tags, 's')
     " execute the code and undo it afterward
     if range.end > range.start
       let do_undo = 1
-      execute range.start "," range.end " s" tags.s
+      for s in tags.s
+        execute range.start "," range.end " s" s
+      endfor
     endif
   endif
 
   let commands = ['cat']
   if has_key(tags, 'w')
-    call add(commands, tags.w)
+    for w in tags.w
+      call add(commands, w)
+    endfor
   endif
 
   let command = printf("silent %d,%dw !%s > %s", range.start, range.end, join(commands, ' | '), a:file)
@@ -342,7 +349,9 @@ function s:readRange(name, settings)
 
       let commands = []
       if has_key(tags, 'r')
-        call add(commands, tags.r)
+        for r in tags.r
+          call add(commands, tags.r)
+        endfor
       endif
       if empty(commands)
         call s:executeLine(a:settings, 'silent @'.a:name.'^r ' . file.path, "")
@@ -354,12 +363,16 @@ function s:readRange(name, settings)
       if has_key(tags, 's')
         " execute the code and undo it afterward
         if inner.end > inner.start
-          execute inner.start "," inner.end " s" tags.s
+          for s in tags.s
+            execute inner.start "," inner.end " s" s
+          endfor
         endif
       endif
       if has_key(tags, 'post')
         " execute the code and undo it afterward
-        call s:executeLine(a:settings, tags.post, '')
+        for post in tags.post
+          call s:executeLine(a:settings, post, '')
+        endfor
       endif
 
       if file.mode == 'error'
@@ -483,39 +496,45 @@ endfunction
 
 " Extracts a dictionary of tag starting with +
 "  if no tags is provided the left over will be assigned to the +code tag.
+"  Tags can be repeated
 "  The syntax is the following
-"  +tag a b c +tag2 d +tag3+ code
+"  +tag a b +tag c +tag2 d +tag3+ exec code
 "  Will generate
-"  { tag: "a b c"
-"  , tag2: "d"
-"  , tag3: '' not value
-"  , code: 'code'
+"  { tag: ["a b", "c"]
+"  , tag2: ["d"]
+"  , tag3: [] not value
+"  , exec: 'code'
 "  }
 function xrange#extractTags(line)
   if match(a:line, '^\s*+') == -1
     " not tags
-    return {'code': substitute(a:line, '^\s*', '', '')}
+    return {'exec': substitute(a:line, '^\s*', '', '')}
   endif
-  let result = {'code':''}
+  let result = {'exec':[]}
   let tags = split(a:line, '\s\+\ze+')
   for tag_value in tags
     let matches = matchlist(tag_value, '^+\(\i\+\)\(+\?\)\s*\(.*\)')
     if matches == []
       " no tag
-      let result.code.= tag
+      let result.exec.= tag
     else
       let tag = matches[1]
       let closed = matches[2]
       let value = matches[3]
       if closed == '+'
         " the tag has no value
-        let result.code.= value
-        let result[tag] = ''
+        call add(result.exec, value)
+        let result[tag] = []
       else
-        let result[tag]=value
+        if has_key(result, tag)
+          call add(result[tag], value)
+        else
+          let result[tag]=[value]
+        endif
       endif
     endif
   endfor
+  let result.exec = join(result.exec, ' ; ')
   return result
 endfunction
 

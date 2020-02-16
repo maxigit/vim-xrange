@@ -20,17 +20,6 @@ To delete the content of the range just press `<leader>xd`
 <ls> !ls -l > @>
 </ls>
 
-<data> +pre s/a/X/
-a b
-b
-d
-</data>
-<test> !cp @data< @test>
-a b
-b
-d
-</test>
-
 
 The first example inspect the vim buffer itself and copy the line to the last line of the `toc` range (`@toc}`) and reverse the lines.
 The second example execute a shell command and redirect it to file which is then injected in the range itself.
@@ -147,10 +136,10 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - TODO custom modeline
   - add pre hook
 - DONE fix bugs when start regex match end ex <tag> </tag>
-- Chain range operator, example @range-<
+- DONE Chain range operator, example @range-<
 - TODO how to set variable m4 ?
 - TODO block paramters range key=value? (or := ?)
-- TODO all mappings
+- TODO doc all mappings
 - TODO disable mapping and autocmd with global settings
 - TODO complete with fzf ?
 - TODO rename range
