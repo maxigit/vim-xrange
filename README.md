@@ -134,6 +134,7 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
   better if there is a range under cursor prefill it
   so @> got to current_range output
 - DONE create output range if needed
+- TODO debug AWK
 - TODO change +s to +pre and +post +s> +s<
 - TODO expand tags
  - to get mysql parameters for example

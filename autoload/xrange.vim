@@ -274,7 +274,7 @@ function s:createFileForRange(name, settings, mode)
   if b:file_dict->has_key(a:name)
     return b:file_dict[a:name].path
   else
-    call xrange#CreateRange(a:settings, a:name, '')
+    call xrange#createRange(a:settings, a:name, '')
     let range = xrange#getOuterRange(a:settings, a:name, '}')->xrange#innerRange()
     let tmp = tempname()
     if a:mode == 'in' " && !empty(range) && range.end >= range.start
