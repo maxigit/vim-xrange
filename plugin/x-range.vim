@@ -4,7 +4,7 @@ nnoremap <leader>xm :call xrange#executeRangeByName("main", xrange#createSetting
 nnoremap <leader>xx :call xrange#createSettings()->xrange#executeCurrentRange()<CR>
 nnoremap <leader>xe m`:call xrange#createSettings()->xrange#executeLine('.')<CR>``j
 nnoremap <leader>xd :call xrange#createSettings()->xrange#deleteCurrentRange()<CR>
-nnoremap <leader>xI :echo xrange#createSettings()->xrange#findCurrentRange()<CR>
+nnoremap <leader>xI :echo xrange#createSettings()->xrange#currentRangeInfo()<CR>
 nnoremap <leader>xg :call xrange#createSettings()->xrange#gotoUnderCursor()<CR>
 nnoremap <leader>x! e:call xrange#createSettings()->xrange#executeUnderCursor()<CR>
 
@@ -26,6 +26,7 @@ function s:completeRanges(A,L,P)
   let ranges =  xrange#createSettings()->xrange#rangeList()
   return join(ranges, "\n")
 endfunction
+
 
 command -nargs=1 -complete=custom,s:completeRanges ExecuteRange :call xrange#executeRangeByName("<args>", xrange#createSettings())
 command -nargs=1 -complete=custom,s:completeRanges DeleteRange :call xrange#deleteInnerRange("<args>", xrange#createSettings())

@@ -25,12 +25,7 @@ To delete the content of the range just press `<leader>xd`
 # Todos
 </toc>
 
-<ls> s/a/A/g +exec !ls -l > @>
-totAl 20
-drwxr-xr-x 2 mAx mAx 4096 Feb 17 15:26 AutoloAd
--rw-r--r-- 1 mAx mAx   85 Feb 17 15:12 @:out
-drwxr-xr-x 2 mAx mAx 4096 Feb 17 14:34 plugin
--rw-r--r-- 1 mAx mAx 5472 Feb 17 15:21 README.md
+<ls> +comment+ +x !ls -l > @>
 </ls>
 
 
@@ -141,11 +136,11 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - DONE create output range if needed
 - DONE debug AWK
 - DONE change +s to +pre and +post +s> +s<
-- TODO expand tags
+- DONE expand tags
  - to get mysql parameters for example
 - TODO +keep tag
-- TODO show tags (in information)
-- TODO +tag- clear it
+- DONE show tags (in information
+- DONE +tag- clear it
 - TODO change block in README
 - TODO check error correct line
 - TODO mecanism to authorize and remember auto

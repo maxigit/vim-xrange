@@ -4,11 +4,12 @@ let s:start = '<%s>'
 let s:end =   '</%s>'
 let s:result = '%s:out'
 let s:strip = '\%(^\s*[#*/"!:<>-]\+\s\+\|^\)' " something followed with a space or nothing
+let s:macros = {'comment': {'sw': '/^-- //e', 'sr': '/^/-- /e'}}
 
 " Create a setting object
 function xrange#createSettings(settings={})
   let settings = {'ranges':[]}
-  for v in ['start', 'end', 'result', 'strip']
+  for v in ['start', 'end', 'result', 'strip', 'macros']
     if(has_key(a:settings, v))
       let settings[v] = a:settings[v]
     else
@@ -186,9 +187,9 @@ function xrange#executeRangeByName(name, settings, strip=a:settings.strip, mode=
   " add range to ranges stack
   call insert(a:settings.ranges, a:name)
   let first_line = substitute(getline(range.start), a:strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
-  let tags = xrange#extractTags(first_line)
-  if tags.exec != ''
-    call xrange#executeRawLines(a:settings, [tags.exec], a:strip) 
+  let tags = xrange#extractTags(first_line, a:settings.macros)
+  if tags.x != ''
+    call xrange#executeRawLines(a:settings, [tags.x], a:strip) 
   else
     let range = xrange#innerRange(range)
     call xrange#executeLines(a:settings, range.start, range.end, a:strip)
@@ -296,7 +297,7 @@ function s:saveRange(name, file,  settings)
     return 
   endif
   let line = substitute(getline(range.start-1), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
-  let tags = xrange#extractTags(line)
+  let tags = xrange#extractTags(line, a:settings.macros)
 
   let do_undo = 0
   if has_key(tags, 'pre')
@@ -353,7 +354,7 @@ function s:readRange(name, settings, keep=0)
       call xrange#deleteInnerRange(a:name, a:settings)
       let range = xrange#getOuterRange(a:settings, a:name)
       let first_line = substitute(getline(range.start), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
-      let tags = xrange#extractTags(first_line)
+      let tags = xrange#extractTags(first_line, a:settings.macros)
 
 
       let commands = []
@@ -519,33 +520,48 @@ endfunction
 "  if no tags is provided the left over will be assigned to the +code tag.
 "  Tags can be repeated
 "  The syntax is the following
-"  +tag a b +tag c +tag2 d +tag3+ exec code
+"  +tag a b +tag c +tag2 d +tag3+ x code
 "  Will generate
 "  { tag: ["a b", "c"]
 "  , tag2: ["d"]
 "  , tag3: [] not value
-"  , exec: 'code'
+"  , x: 'code'
 "  }
-function xrange#extractTags(line)
+function xrange#extractTags(line, macros)
   if match(a:line, '^\s*+') == -1
     " not tags
-    return {'exec': substitute(a:line, '^\s*', '', '')}
+    return {'x': substitute(a:line, '^\s*', '', '')}
   endif
-  let result = {'exec':[]}
+  let result = {'x':[]}
   let tags = split(a:line, '\s\+\ze+')
   for tag_value in tags
-    let matches = matchlist(tag_value, '^+\(\i\+\)\(+\?\)\s*\(.*\)')
+    let matches = matchlist(tag_value, '^+\(\i\+\)\([+-]\?\)\s*\(.*\)')
     if matches == []
       " no tag
-      let result.exec.= tag
+      let result.x.= tag
     else
       let tag = matches[1]
       let closed = matches[2]
       let value = matches[3]
       if closed == '+'
         " the tag has no value
-        call add(result.exec, value)
+        call add(result.x, value)
+        " expand macro
+        let macro = get(a:macros, tag, {})
         let result[tag] = []
+        for m in keys(macro)
+          if has_key(result, m)
+            call add(result[m], macro[m])
+          else
+            let result[m] = [macro[m]]
+          endif
+        endfor
+      elseif closed == '-'
+        " the tag has no value
+        call add(result.x, value)
+        if has_key(result,tag)
+          unlet result[tag]
+        endif
       else
         if has_key(result, tag)
           call add(result[tag], value)
@@ -555,7 +571,16 @@ function xrange#extractTags(line)
       endif
     endif
   endfor
-  let result.exec = join(result.exec, ' ; ')
+  let result.x = join(result.x, ' ; ')
   return result
 endfunction
 
+function xrange#currentRangeInfo(settings)
+  let name = xrange#findCurrentRange(a:settings)
+  let range= xrange#getOuterRange(a:settings, name)
+  if !empty(range)
+    let first_line = substitute(getline(range.start), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
+    let tags = xrange#extractTags(first_line, a:settings.macros)
+    return {'name':name, 'range':range, 'tags':tags}
+  endif
+endfunction
