@@ -143,6 +143,7 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - DONE macros work with list or string
 - TODO expand tags recursively
 - TODO check error correct line
+- TODO escape not working
 - DONE show tags (in information
 - DONE +tag- clear it
 - TODO change block in README
