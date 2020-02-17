@@ -557,10 +557,14 @@ function xrange#extractTags(line, macros)
         let macro = get(a:macros, tag, {})
         let result[tag] = []
         for m in keys(macro)
+          let ms = macro[m] 
+          if type(ms) == 1 " string
+            let ms = [ms]
+          endif
           if has_key(result, m)
-            call add(result[m], macro[m])
+            call extend(result[m], ms)
           else
-            let result[m] = [macro[m]]
+            let result[m] = ms
           endif
         endfor
       elseif closed == '-'
