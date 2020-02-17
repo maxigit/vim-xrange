@@ -142,7 +142,7 @@ function xrange#expandZone(settings, key, token)
             let result = s:createFileForRange(name, a:settings,  'error')
           elseif mode == '&'
             call s:readRange(name, a:settings) " synchronize 
-            let range = xrange#getOuterRange(a:settings, name)
+            let range = xrange#getOuterRange(a:settings, name, 1)
             let result = ""
           elseif mode == '!'
             " let result = "call xrange#executeRangeByName('".name."')"
@@ -337,10 +337,10 @@ function s:saveRange(name, file,  settings)
 
 endfunction
 
-function s:readRange(name, settings)
+function s:readRange(name, settings, keep=0)
   if(b:file_dict->has_key(a:name))
     let file = b:file_dict[a:name]
-    if file.mode != 'in'
+    if file.mode == 'out'  || file.mode == 'error'
       call xrange#deleteInnerRange(a:name, a:settings)
       let range = xrange#getOuterRange(a:settings, a:name)
       let first_line = substitute(getline(range.start), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
@@ -389,8 +389,12 @@ function s:readRange(name, settings)
         endif
       endif
     endif
-    unlet b:file_dict[a:name]
-    call delete(file.path)
+    if  a:keep
+      let file.mode = 'done'
+    else
+      unlet b:file_dict[a:name]
+      call delete(file.path)
+    endif
   endif
 endfunction 
 

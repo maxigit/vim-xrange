@@ -100,15 +100,11 @@ red,#ff000
 blue,#00ff00
 green,#0000ff
 </colors>
-<awk> @colors*w !awk -F, -f @awk< > @:out> ; @:out&; @:out*>
-BEGIN {print "colors=[];" }
-// {printf("colors['%s']='%s'\n",$1,$2)}
+<awk> @colors*w !awk -F, -f @awk< > @:out> ; @:out&* >
+  BEGIN {print "colors=[];" }
+  // {printf("colors['%s']='%s'\n",$1,$2)}
 </awk>
 <awk:out> @awk!
-  colors=[];
-  colors['red']='#ff000'
-  colors['blue']='#00ff00'
-  colors['green']='#0000ff'
 </awk:out>
 
 Note that `@awk:out&; @awk:out_` is only there to indent the result
@@ -134,7 +130,7 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
   better if there is a range under cursor prefill it
   so @> got to current_range output
 - DONE create output range if needed
-- TODO debug AWK
+- DONE debug AWK
 - TODO change +s to +pre and +post +s> +s<
 - TODO expand tags
  - to get mysql parameters for example
