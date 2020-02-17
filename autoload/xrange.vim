@@ -313,7 +313,7 @@ function s:saveRange(name, file,  settings)
     endif
   endif
 
-      echomsg "TAG" tags
+      " echomsg "TAG" tags
   if has_key(tags, 'sw')
     " execute the code and undo it afterward
     if range.end > range.start
@@ -351,6 +351,8 @@ function s:saveRange(name, file,  settings)
 endfunction
 
 function s:readRange(name, settings, keep=0)
+  let file_dict = b:file_dict
+  echo "READ dict" file_dict
   if(b:file_dict->has_key(a:name))
     let file = b:file_dict[a:name]
     if file.mode == 'out'  || file.mode == 'error'
@@ -398,15 +400,21 @@ function s:readRange(name, settings, keep=0)
 
       if file.mode == 'error'
         " load the error and adjust the line number
-        execute "lgetfile " . file.path
+        let efm = &efm
+        if has_key(tags, 'efm')
+          let &efm = join(tags.efm, ',')
+        endif
+        let current_buffer = bufnr('%')
+        execute "lfile" .  file.path
+        let &efm = efm
         if !empty(range)
-          "let offset = range.start
-          "let errors = getloclist(0)
-          "for e in errors
-          "  e.module = a:name
-          "  e.lnum += offset
-          "endfor
-          "call setloclist(0,errors)
+          let errors = getloclist(current_buffer)
+          " echomsg errors
+          for e in errors
+            call s:translateError(a:settings, file_dict, current_buffer, e)
+          endfor
+          " echomsg errors
+          call setloclist(0,errors)
         endif
       endif
     endif
@@ -419,6 +427,40 @@ function s:readRange(name, settings, keep=0)
   endif
 endfunction 
 
+function s:translateError(settings, file_dict,  buf, e)
+  echo "FILE_DICT" a:file_dict
+  " find the input or use the first in file
+  if !a:e.valid  
+    return
+  endif
+
+  let name = ''
+  if a:e.bufnr != 0
+    let bufname = bufname(a:e.bufnr)
+    for k in keys(a:file_dict)
+      let file = a:file_dict[k]
+      if file.path == bufname
+        let name = k
+        break
+      endif
+      if file.mode == 'in'
+        let name = k
+      endif
+    endfor
+    " echomsg "FOUND error range for " bufname " " name
+  else
+    let name = a:settings.ranges[-1]
+  endif
+  " echomsg "Using" name
+
+  let range = xrange#getOuterRange(a:settings, name)
+  if empty(range)
+    return 
+  endif
+  let a:e.bufnr = a:buf
+  let a:e.lnum += range.start
+  let a:e.module = name
+endfunction
 
 function xrange#createRange(settings, name, code='')
   if empty(xrange#getOuterRange(a:settings, a:name, '}'))
