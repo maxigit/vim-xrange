@@ -447,7 +447,7 @@ function xrange#rangeList(settings)
     let last_range = range
     call add(results, range)
   endwhile
-  call setpot('.', pos)
+  call setpos('.', pos)
   return results
 endfunction
 

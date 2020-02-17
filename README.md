@@ -18,6 +18,10 @@ To delete the content of the range just press `<leader>xd`
 </toc>
 
 <ls> !ls -l > @>
+total 16
+drwxr-xr-x 2 max max 4096 Feb 16 22:48 autoload
+drwxr-xr-x 2 max max 4096 Feb 16 22:00 plugin
+-rw-r--r-- 1 max max 5323 Feb 16 22:52 README.md
 </ls>
 
 
@@ -127,18 +131,20 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - DONE extract vim (part of dictionary ?)
    - DONE remove second substitute ?
 - DONE change mapping upper case complete
-- DONE create output range if needed
-- TODO change block in README
   better if there is a range under cursor prefill it
   so @> got to current_range output
-- TODO expand abbreviation
+- DONE create output range if needed
+- TODO change +s to +pre and +post +s> +s<
+- TODO expand tags
  - to get mysql parameters for example
-- TODO custom modeline
-  - add pre hook
+- TODO change block in README
+- TODO check error correct line
+- TODO +keep tag
+- TODO mecanism to authorize and remember auto
+- DONE custom modeline
+  - via add pre hook
 - DONE fix bugs when start regex match end ex <tag> </tag>
 - DONE Chain range operator, example @range-<
-- TODO how to set variable m4 ?
-- TODO block paramters range key=value? (or := ?)
 - TODO doc all mappings
 - TODO disable mapping and autocmd with global settings
 - TODO complete with fzf ?
