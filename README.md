@@ -139,7 +139,7 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - DONE expand tags
  - to get mysql parameters for example
 - DONE merge  tags from initial settings
-- TODO add result tag -- to setup defualt to result
+- DONE add result tag -- to setup defualt to result
 - TODO expand tags recursively
 - TODO check error correct line
 - DONE show tags (in information

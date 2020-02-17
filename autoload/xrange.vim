@@ -118,7 +118,7 @@ function xrange#expandZone(settings, key, token)
         let range = xrange#getOuterRange(a:settings, name)
         if empty(range)
           if matches[2] == '+'
-            call xrange#createRange(a:settings, name)
+            call xrange#createRange(a:settings, name, ' +result+')
             let range = xrange#getOuterRange(a:settings, name)
           else
             throw  "Range not found : " . name
@@ -448,7 +448,7 @@ function xrange#createResultRange(settings)
   let range = xrange#getOuterRange(a:settings, name)
   if !empty(range)
     call setpos('.', [0,range.end,0,0])
-    call xrange#createRange(a:settings, xrange#resultName(a:settings, name), ' @'.name.'!')
+    call xrange#createRange(a:settings, xrange#resultName(a:settings, name), '+result+ @'.name.'!')
   endif
 endfunction
 
