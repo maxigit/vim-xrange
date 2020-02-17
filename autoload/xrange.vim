@@ -9,13 +9,16 @@ let s:macros = {'comment': {'sw': '/^-- //e', 'sr': '/^/-- /e'}}
 " Create a setting object
 function xrange#createSettings(settings={})
   let settings = {'ranges':[]}
-  for v in ['start', 'end', 'result', 'strip', 'macros']
+  for v in ['start', 'end', 'result', 'strip']
     if(has_key(a:settings, v))
       let settings[v] = a:settings[v]
     else
       let settings[v] = get(b:, "xrange_".v, get(g:, "xrange_".v, get(s:, v)))
     endif
   endfor
+  " merge macros
+  let macros =  extend(s:macros, get(g:, "xrange_macros", {}) ,  "force")
+  let settings.macros =  extend(macros, get(b:, "xrange_macros", {}) ,  "force")
   return settings
 endfunction
 

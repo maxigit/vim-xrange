@@ -138,11 +138,13 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - DONE change +s to +pre and +post +s> +s<
 - DONE expand tags
  - to get mysql parameters for example
-- TODO +keep tag
+- DONE merge  tags from initial settings
+- TODO add result tag -- to setup defualt to result
+- TODO expand tags recursively
+- TODO check error correct line
 - DONE show tags (in information
 - DONE +tag- clear it
 - TODO change block in README
-- TODO check error correct line
 - TODO mecanism to authorize and remember auto
 - DONE custom modeline
   - via add pre hook
@@ -154,3 +156,5 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - TODO rename range
 - DONE expand range under cursor
 - TODO autocommand to set option by filetype
+- TODO +keep tag
+  - TODO refactor getRange to return info
