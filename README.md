@@ -15,13 +15,22 @@ To delete the content of the range just press `<leader>xd`
 
 
 <toc> g/^#/t @-}; @*g/./m@^
+# Overview
+# Executing Range
+## Range expension
+## Complexe examples
+### SQL query
+### Awk
+# Default Mappings
+# Todos
 </toc>
 
-<ls> !ls -l > @>
-total 16
-drwxr-xr-x 2 max max 4096 Feb 16 22:48 autoload
-drwxr-xr-x 2 max max 4096 Feb 16 22:00 plugin
--rw-r--r-- 1 max max 5323 Feb 16 22:52 README.md
+<ls> s/a/A/g +exec !ls -l > @>
+totAl 20
+drwxr-xr-x 2 mAx mAx 4096 Feb 17 15:26 AutoloAd
+-rw-r--r-- 1 mAx mAx   85 Feb 17 15:12 @:out
+drwxr-xr-x 2 mAx mAx 4096 Feb 17 14:34 plugin
+-rw-r--r-- 1 mAx mAx 5472 Feb 17 15:21 README.md
 </ls>
 
 
@@ -131,12 +140,14 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
   so @> got to current_range output
 - DONE create output range if needed
 - DONE debug AWK
-- TODO change +s to +pre and +post +s> +s<
+- DONE change +s to +pre and +post +s> +s<
 - TODO expand tags
  - to get mysql parameters for example
+- TODO +keep tag
+- TODO show tags (in information)
+- TODO +tag- clear it
 - TODO change block in README
 - TODO check error correct line
-- TODO +keep tag
 - TODO mecanism to authorize and remember auto
 - DONE custom modeline
   - via add pre hook

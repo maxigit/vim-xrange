@@ -310,12 +310,21 @@ function s:saveRange(name, file,  settings)
   endif
 
       echomsg "TAG" tags
-  if has_key(tags, 's')
+  if has_key(tags, 'sw')
     " execute the code and undo it afterward
     if range.end > range.start
       let do_undo = 1
-      for s in tags.s
+      for s in tags.sw
         execute range.start "," range.end " s" s
+      endfor
+    endif
+  endif
+  if has_key(tags, 'aw') " all
+    " execute the code and undo it afterward
+    if range.end > range.start
+      let do_undo = 1
+      for s in tags.aw
+        execute range.start "," range.end s
       endfor
     endif
   endif
@@ -360,11 +369,19 @@ function s:readRange(name, settings, keep=0)
       endif
       let inner = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
 
-      if has_key(tags, 's')
+      if has_key(tags, 'sr')
         " execute the code and undo it afterward
         if inner.end > inner.start
-          for s in tags.s
+          for s in tags.sr
             execute inner.start "," inner.end " s" s
+          endfor
+        endif
+      endif
+      if has_key(tags, 'ar')
+        " execute the code and undo it afterward
+        if inner.end > inner.start
+          for s in tags.ar
+            execute inner.start "," inner.end s
           endfor
         endif
       endif
