@@ -421,9 +421,13 @@ function xrange#createRange(settings, name, code='')
   if empty(xrange#getOuterRange(a:settings, a:name, '}'))
     " find next space outside a range
     " so that ranges are not nested
+     let last_line = line('$')
      let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
-     while !empty(current_range)
+     while !empty(current_range) 
        execute current_range.end+1
+       if current_range.end == last_line
+         break
+       endif
        let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
      endwhile
       call append(line('.'), [printf(a:settings.start, a:name) . a:code, printf(a:settings.end, a:name)])
