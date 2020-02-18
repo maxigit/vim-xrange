@@ -204,7 +204,9 @@ function xrange#executeRangeByName(name, settings, strip=a:settings.strip, mode=
 endfunction
 
 function xrange#executeLines(settings, start, end, strip=a:settings.strip)
-  return xrange#executeRawLines(a:settings, getline(a:start, a:end), a:strip)
+  if start < end
+    return xrange#executeRawLines(a:settings, getline(a:start, a:end), a:strip)
+  endif
 endfunction
 function xrange#executeRawLines(settings, lines, strip=a:settings.strip)
   let pos = getpos('.')
@@ -214,16 +216,21 @@ function xrange#executeRawLines(settings, lines, strip=a:settings.strip)
     let recursive = 0
     let b:file_dict = {}
   endif
-  for line in a:lines
-    call s:executeLine(a:settings, line, a:strip)
-  endfor
+
+  try 
+    for line in a:lines
+      call s:executeLine(a:settings, line, a:strip)
+    endfor
+  catch /.*/
+    echo "caught" . v:exception
+  endtry
   " update all modified file
   if !recursive
-  for range in keys(b:file_dict)
-    call s:readRange(range, a:settings)
-  endfor
+    for range in keys(b:file_dict)
+      call s:readRange(range, a:settings)
+    endfor
     unlet b:file_dict
-  end
+  endif
   call setpos('.', pos)
 endfunction
 
@@ -357,6 +364,7 @@ function s:saveRange(name, file,  settings)
 endfunction
 
 function s:readRange(name, settings, keep=0)
+  try
   let file_dict = b:file_dict
   if(b:file_dict->has_key(a:name))
     let file = b:file_dict[a:name]
@@ -425,10 +433,10 @@ function s:readRange(name, settings, keep=0)
 
         let current_buffer = bufnr('%')
         if qf == 'loc'
-          execute "lfile" .  file.path
+          execute "lgetfile" .  file.path
           let errors = getloclist(current_buffer)
         else
-          execute "cfile" .  file.path
+          execute "cgetfile" .  file.path
           let errors = getqflist()
         endif
         " restore compiler options
@@ -454,6 +462,9 @@ function s:readRange(name, settings, keep=0)
       call delete(file.path)
     endif
   endif
+  catch /.*/
+    echomsg "caugth" v:exception "while cleaning " a:name
+  endtry
 endfunction 
 
 function s:translateError(settings, file_dict,  buf, e)
