@@ -215,7 +215,7 @@ function xrange#executeRangeByName(name, settings, strip=a:settings.strip, mode=
 endfunction
 
 function xrange#executeLines(settings, start, end, strip=a:settings.strip)
-  if start < end
+  if a:start <= a:end
     return xrange#executeRawLines(a:settings, getline(a:start, a:end), a:strip)
   endif
 endfunction
