@@ -141,22 +141,32 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - DONE merge  tags from initial settings
 - DONE add result tag -- to setup defualt to result
 - DONE macros work with list or string
-- TODO expand tags recursively
-- TODO check error correct line
+
+- TODO +compiler tag
+- TODO +loc +qf add or redo ? open or not ?
+- TODO +keep tag
+- TODO @@ works
+- TODO add +error+ to config
 - TODO escape not working
+- TODO autofolding use maker ?
+ set marker ?
+- TODO add +z fold
+- TODO add +h (head)
+- TODO add +t (tail)
+- TODO expand tags recursively
+- DONE check error correct line
 - DONE show tags (in information
 - DONE +tag- clear it
-- TODO change block in README
-- TODO mecanism to authorize and remember auto
 - DONE custom modeline
   - via add pre hook
 - DONE fix bugs when start regex match end ex <tag> </tag>
 - DONE Chain range operator, example @range-<
+- TODO change block in README
+- TODO mecanism to authorize and remember auto
 - TODO doc all mappings
 - TODO disable mapping and autocmd with global settings
 - TODO complete with fzf ?
 - TODO rename range
 - DONE expand range under cursor
 - TODO autocommand to set option by filetype
-- TODO +keep tag
   - TODO refactor getRange to return info
