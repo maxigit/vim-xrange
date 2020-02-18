@@ -210,11 +210,11 @@ function xrange#executeLines(settings, start, end, strip=a:settings.strip)
 endfunction
 function xrange#executeRawLines(settings, lines, strip=a:settings.strip)
   let pos = getpos('.')
-  if exists('b:file_dict')
+  if has_key(a:settings, 'file_dict')
     let recursive = 1
   else 
     let recursive = 0
-    let b:file_dict = {}
+    let a:settings.file_dict = {}
   endif
 
   try 
@@ -226,10 +226,10 @@ function xrange#executeRawLines(settings, lines, strip=a:settings.strip)
   endtry
   " update all modified file
   if !recursive
-    for range in keys(b:file_dict)
+    for range in keys(a:settings.file_dict)
       call s:readRange(range, a:settings)
     endfor
-    unlet b:file_dict
+    unlet a:settings.file_dict
   endif
   call setpos('.', pos)
 endfunction
@@ -286,8 +286,8 @@ function xrange#deleteInnerRange(name, settings)
 endfunction
 
 function s:createFileForRange(name, settings, mode)
-  if b:file_dict->has_key(a:name)
-    return b:file_dict[a:name].path
+  if a:settings.file_dict->has_key(a:name)
+    return a:settings.file_dict[a:name].path
   else
     if a:settings.create_missing_range
       call xrange#createRange(a:settings, a:name, s:tagsFromName(a:name))
@@ -298,7 +298,7 @@ function s:createFileForRange(name, settings, mode)
       call s:saveRange(a:name, tmp, a:settings)
       " call s:executeLine(a:settings, 'silent @'.a:name.'*w! ' . tmp,"")
     endif
-    let b:file_dict[a:name] = {'path':tmp, 'mode':a:mode}
+    let a:settings.file_dict[a:name] = {'path':tmp, 'mode':a:mode}
     return tmp
   endif
 endfunction
@@ -365,9 +365,9 @@ endfunction
 
 function s:readRange(name, settings, keep=0)
   try
-  let file_dict = b:file_dict
-  if(b:file_dict->has_key(a:name))
-    let file = b:file_dict[a:name]
+  let file_dict = a:settings.file_dict
+  if(a:settings.file_dict->has_key(a:name))
+    let file = a:settings.file_dict[a:name]
     let tags = {}
     if file.mode == 'out'  || file.mode == 'error'
       let range = xrange#deleteInnerRange(a:name, a:settings)
@@ -458,7 +458,7 @@ function s:readRange(name, settings, keep=0)
     if  a:keep || has_key(tags, 'keep')
       let file.mode = 'done'
     else
-      unlet b:file_dict[a:name]
+      unlet a:settings.file_dict[a:name]
       call delete(file.path)
     endif
   endif
