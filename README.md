@@ -142,10 +142,10 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - DONE add result tag -- to setup defualt to result
 - DONE macros work with list or string
 
-- TODO +compiler tag
-- TODO +loc +qf add or redo ? open or not ?
-- TODO +keep tag
-- TODO @@ works
+- DONE +compiler tag
+- DONE +loc +qf add or redo ? open or not ?
+- DONE +keep tag
+- DONE @@ works
 - TODO add +error+ to config
 - TODO escape not working
 - TODO autofolding use maker ?

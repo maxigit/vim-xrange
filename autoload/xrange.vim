@@ -6,11 +6,12 @@ let s:result = '%s:out'
 let s:strip = '\%(^\s*[#*/"!:<>-]\+\s\+\|^\)' " something followed with a space or nothing
 let s:macros = {'comment': {'sw': '/^-- //e', 'sr': '/^/-- /e'}
               \,'error': {'qf': [], 'ar': 'fold'}}
+let s:create_missing_range = 0
 
 " Create a setting object
 function xrange#createSettings(settings={})
   let settings = {'ranges':[]}
-  for v in ['start', 'end', 'result', 'strip']
+  for v in ['start', 'end', 'result', 'strip', 'create_missing_range']
     if(has_key(a:settings, v))
       let settings[v] = a:settings[v]
     else
@@ -281,10 +282,12 @@ function s:createFileForRange(name, settings, mode)
   if b:file_dict->has_key(a:name)
     return b:file_dict[a:name].path
   else
-    call xrange#createRange(a:settings, a:name, '')
+    if settings.create_missing_range
+      call xrange#createRange(a:settings, a:name, '')
+    endif
     let range = xrange#getOuterRange(a:settings, a:name, '}')->xrange#innerRange()
     let tmp = tempname()
-    if a:mode == 'in' " && !empty(range) && range.end >= range.start
+    if a:mode == 'in' && !empty(range) " && range.end >= range.start
       call s:saveRange(a:name, tmp, a:settings)
       " call s:executeLine(a:settings, 'silent @'.a:name.'*w! ' . tmp,"")
     endif
@@ -355,7 +358,6 @@ endfunction
 
 function s:readRange(name, settings, keep=0)
   let file_dict = b:file_dict
-  echo "READ dict" file_dict
   if(b:file_dict->has_key(a:name))
     let file = b:file_dict[a:name]
     let tags = {}
@@ -438,8 +440,10 @@ function s:readRange(name, settings, keep=0)
         endfor
         if qf == 'loc'
           call setloclist(0,errors)
+          lwindow
         else
           call setqflist(errors)
+          cwindow
         endif
       endif
     endif
