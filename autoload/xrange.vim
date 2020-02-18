@@ -7,11 +7,12 @@ let s:strip = '\%(^\s*[#*/"!:<>-]\+\s\+\|^\)' " something followed with a space 
 let s:macros = {'comment': {'sw': '/^-- //e', 'sr': '/^/-- /e'}
               \,'error': {'qf': [], 'ar': 'fold'}}
 let s:create_missing_range = 0
+let s:on_error = 'ask' " silent ask 
 
 " Create a setting object
 function xrange#createSettings(settings={})
   let settings = {'ranges':[]}
-  for v in ['start', 'end', 'result', 'strip', 'create_missing_range']
+  for v in ['start', 'end', 'result', 'strip', 'create_missing_range', 'on_error']
     if(has_key(a:settings, v))
       let settings[v] = a:settings[v]
     else
@@ -84,9 +85,19 @@ function s:executeLine(settings, line, strip)
     let line = substitute(a:line, a:strip, "","")
     let statements = split(line, ';')
     for statement in statements
+      try
       let tokens = xrange#splitRanges(statement)
       call join(map(tokens, function('xrange#expandZone', [a:settings])), " ")
       execute join(tokens, '')
+      catch /.*/
+        if a:settings.on_error != "silent"
+          echo "caught" v:exception "while executing '". statement. "'"
+          if a:settings.on_error == "ask" && input("Continue [y] or stop [n]?") =~ '\y\(es\)\?'
+          else
+            throw v:exception
+          endif
+         endif
+      endtry
     endfor
     return line
   endif
