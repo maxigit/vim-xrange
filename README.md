@@ -15,14 +15,6 @@ To delete the content of the range just press `<leader>xd`
 
 
 <toc> g/^#/t @-}; @*g/./m@^
-# Overview
-# Executing Range
-## Range expension
-## Complexe examples
-### SQL query
-### Awk
-# Default Mappings
-# Todos
 </toc>
 
 <ls> +comment+ +x !ls -l > @>
@@ -146,7 +138,7 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - DONE +loc +qf add or redo ? open or not ?
 - DONE +keep tag
 - DONE @@ works
-- TODO add +error+ to config
+- DONE add +error+ to config
 - TODO escape not working
 - TODO autofolding use maker ?
  set marker ?

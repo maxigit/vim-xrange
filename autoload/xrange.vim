@@ -119,11 +119,11 @@ function xrange#expandZone(settings, key, token)
 
         let range = xrange#getOuterRange(a:settings, name)
         if empty(range)
-          if matches[2] == '+'
-            call xrange#createRange(a:settings, name, ' +result+')
+          if matches[2] == '+' || a:settings.create_missing_range
+            call xrange#createRange(a:settings, name, s:tagsFromName(name))
             let range = xrange#getOuterRange(a:settings, name)
-          elseif mode != '@'
-            " For error file we don't need the range to exists
+          elseif modes != '@'
+            " For error file (and ONLY)  we don't need the range to exists
             throw  "Range <" . name . "> not found when executing "  . a:token
           endif
         endif
@@ -282,8 +282,8 @@ function s:createFileForRange(name, settings, mode)
   if b:file_dict->has_key(a:name)
     return b:file_dict[a:name].path
   else
-    if settings.create_missing_range
-      call xrange#createRange(a:settings, a:name, '')
+    if a:settings.create_missing_range
+      call xrange#createRange(a:settings, a:name, s:tagsFromName(a:name))
     endif
     let range = xrange#getOuterRange(a:settings, a:name, '}')->xrange#innerRange()
     let tmp = tempname()
@@ -662,4 +662,14 @@ function xrange#currentRangeInfo(settings)
     let tags = xrange#extractTags(first_line, a:settings.macros)
     return {'name':name, 'range':range, 'tags':tags}
   endif
+endfunction
+
+" a:out => result a:err error
+function s:tagsFromName(name)
+  let suffix = substitute(a:name, '^[^:]*:', '', '')
+  if suffix == a:name
+    return ''
+  endif
+  let map = {'out': 'result', 'res': 'result',  'err': 'error', 'all': 'result+ +error'}
+  return " +" . get(map, suffix, suffix) . "+"
 endfunction
