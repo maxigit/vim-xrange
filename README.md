@@ -139,13 +139,12 @@ Note that `@awk:out&; @awk:out_` is only there to indent the result
 - DONE +keep tag
 - DONE @@ works
 - DONE add +error+ to config
-- TODO escape not working
-- TODO autofolding use maker ?
+- DONE not working
+- DONE escaping using @'
  set marker ?
-- TODO add +z fold
-- TODO add +h (head)
-- TODO add +t (tail)
 - TODO expand tags recursively
+- TODO motion
+- TODO visual
 - DONE check error correct line
 - DONE show tags (in information
 - DONE +tag- clear it

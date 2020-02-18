@@ -103,9 +103,9 @@ function s:executeLine(settings, line, strip)
   endif
  return ""
 endfunction
-let s:operators = '[$^*%@''<>{}!&-]'
+let s:operators = '[$^*%@<>{}!&-]'
 function xrange#splitRanges(line) 
-  let matches = matchlist(a:line, '\([^@]*\)\(@[a-zA-Z0-9-_:]\{-}+\?'.s:operators.'\+\)\(.*\)')
+  let matches = matchlist(a:line, '\([^@]*\)\(@[a-zA-Z0-9-_:]\{-}[''+]\?'.s:operators.'\+\)\(.*\)')
   if empty(matches)
     return [a:line]
   else
@@ -115,13 +115,17 @@ endfunction
 
 function xrange#expandZone(settings, key, token)
       let current_range = get(a:settings.ranges, 0 , "")
-      let matches = matchlist(a:token, '^@\([a-zA-Z0-9_:<>-]\{-}\)\(+\?\)\('.s:operators.'\+\)$')
+      let matches = matchlist(a:token, '^@\([a-zA-Z0-9_:<>-]\{-}\)\([''+]\?\)\('.s:operators.'\+\)$')
       if empty(matches)
           return a:token
       else
         let name = matches[1]
         let modes = matches[3]
         " expand name if needed
+        if matches[2] == '''' " escape
+          return "@" . name . matches[3]
+        endif
+
         if name[0] == ':'
           let name = current_range . name
         elseif name == ''
@@ -170,8 +174,6 @@ function xrange#expandZone(settings, key, token)
             " update range
             let range = xrange#getOuterRange(a:settings, name)
             let result = range->xrange#innerRange()->xrange#displayRange()
-          elseif mode == '''' 
-            let result = '@'. name
           endif
         endfor
         return result
