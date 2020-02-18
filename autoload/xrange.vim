@@ -4,7 +4,8 @@ let s:start = '<%s>'
 let s:end =   '</%s>'
 let s:result = '%s:out'
 let s:strip = '\%(^\s*[#*/"!:<>-]\+\s\+\|^\)' " something followed with a space or nothing
-let s:macros = {'comment': {'sw': '/^-- //e', 'sr': '/^/-- /e'}}
+let s:macros = {'comment': {'sw': '/^-- //e', 'sr': '/^/-- /e'}
+              \,'error': {'qf': [], 'ar': 'fold'}}
 
 " Create a setting object
 function xrange#createSettings(settings={})
@@ -120,8 +121,9 @@ function xrange#expandZone(settings, key, token)
           if matches[2] == '+'
             call xrange#createRange(a:settings, name, ' +result+')
             let range = xrange#getOuterRange(a:settings, name)
-          else
-            throw  "Range not found : " . name
+          elseif mode != '@'
+            " For error file we don't need the range to exists
+            throw  "Range <" . name . "> not found when executing "  . a:token
           endif
         endif
         let result = ''
@@ -266,12 +268,13 @@ function xrange#findCurrentRange(settings)
 endfunction
       
 function xrange#deleteInnerRange(name, settings)
-  let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
-  if !empty(range) && range.end >= range.start
-    call deletebufline("%",range.start, range.end)
-    return 0
+  let range = xrange#getOuterRange(a:settings, a:name)
+  let inner = range->xrange#innerRange()
+  if !empty(range) && inner.end >= inner.start
+    call deletebufline("%",inner.start, inner.end)
+    let range.end = range.start+1
   end
-  return 1
+  return range
 endfunction
 
 function s:createFileForRange(name, settings, mode)
@@ -355,70 +358,92 @@ function s:readRange(name, settings, keep=0)
   echo "READ dict" file_dict
   if(b:file_dict->has_key(a:name))
     let file = b:file_dict[a:name]
+    let tags = {}
     if file.mode == 'out'  || file.mode == 'error'
-      call xrange#deleteInnerRange(a:name, a:settings)
-      let range = xrange#getOuterRange(a:settings, a:name)
-      let first_line = substitute(getline(range.start), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
-      let tags = xrange#extractTags(first_line, a:settings.macros)
+      let range = xrange#deleteInnerRange(a:name, a:settings)
+      if !empty(range)
+        let first_line = substitute(getline(range.start), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
+        let tags = xrange#extractTags(first_line, a:settings.macros)
 
+        let commands = []
+        if has_key(tags, 'r')
+          for r in tags.r
+            call add(commands, tags.r)
+          endfor
+        endif
+        if empty(commands)
+          call s:executeLine(a:settings, 'silent @'.a:name.'^r ' . file.path, "")
+        else
+          call s:executeLine(a:settings, 'silent @'.a:name.'^r !cat ' . file.path . " | " . join(commands, '|'), "")
+        endif
+        let inner = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
 
-      let commands = []
-      if has_key(tags, 'r')
-        for r in tags.r
-          call add(commands, tags.r)
-        endfor
-      endif
-      if empty(commands)
-        call s:executeLine(a:settings, 'silent @'.a:name.'^r ' . file.path, "")
-      else
-        call s:executeLine(a:settings, 'silent @'.a:name.'^r !cat ' . file.path . " | " . join(commands, '|'), "")
-      endif
-      let inner = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
-
-      if has_key(tags, 'sr')
-        " execute the code and undo it afterward
-        if inner.end > inner.start
-          for s in tags.sr
-            execute inner.start "," inner.end " s" s
+        if has_key(tags, 'sr')
+          " execute the code and undo it afterward
+          if inner.end > inner.start
+            for s in tags.sr
+              execute inner.start "," inner.end " s" s
+            endfor
+          endif
+        endif
+        if has_key(tags, 'ar')
+          " execute the code and undo it afterward
+          if inner.end > inner.start
+            for s in tags.ar
+              execute inner.start "," inner.end s
+            endfor
+          endif
+        endif
+        if has_key(tags, 'post')
+          " execute the code and undo it afterward
+          for post in tags.post
+            call s:executeLine(a:settings, post, '')
           endfor
         endif
       endif
-      if has_key(tags, 'ar')
-        " execute the code and undo it afterward
-        if inner.end > inner.start
-          for s in tags.ar
-            execute inner.start "," inner.end s
-          endfor
-        endif
-      endif
-      if has_key(tags, 'post')
-        " execute the code and undo it afterward
-        for post in tags.post
-          call s:executeLine(a:settings, post, '')
-        endfor
-      endif
 
-      if file.mode == 'error'
+      if has_key(tags, 'qf')
+        let qf = 'qf'
+      elseif has_key(tags, 'loc')
+        let qf = 'loc'
+      else 
+        let qf = ''
+      endif
+      if file.mode == 'error' || !empty(qf)
         " load the error and adjust the line number
-        let efm = &efm
+        " save compiler options
+        let old_efm = &efm
+        let old_makeprg = &makeprg
         if has_key(tags, 'efm')
           let &efm = join(tags.efm, ',')
         endif
+        if has_key(tags, 'compiler')
+          execute "compiler" tags.compiler
+        endif
+
         let current_buffer = bufnr('%')
-        execute "lfile" .  file.path
-        let &efm = efm
-        if !empty(range)
+        if qf == 'loc'
+          execute "lfile" .  file.path
           let errors = getloclist(current_buffer)
-          " echomsg errors
-          for e in errors
-            call s:translateError(a:settings, file_dict, current_buffer, e)
-          endfor
-          " echomsg errors
+        else
+          execute "cfile" .  file.path
+          let errors = getqflist()
+        endif
+        " restore compiler options
+        let &efm = old_efm
+        let &makeprg = old_makeprg
+        " echomsg errors
+        for e in errors
+          call s:translateError(a:settings, file_dict, current_buffer, e)
+        endfor
+        if qf == 'loc'
           call setloclist(0,errors)
+        else
+          call setqflist(errors)
         endif
       endif
     endif
-    if  a:keep
+    if  a:keep || has_key(tags, 'keep')
       let file.mode = 'done'
     else
       unlet b:file_dict[a:name]
@@ -428,7 +453,6 @@ function s:readRange(name, settings, keep=0)
 endfunction 
 
 function s:translateError(settings, file_dict,  buf, e)
-  echo "FILE_DICT" a:file_dict
   " find the input or use the first in file
   if !a:e.valid  
     return
@@ -447,11 +471,9 @@ function s:translateError(settings, file_dict,  buf, e)
         let name = k
       endif
     endfor
-    " echomsg "FOUND error range for " bufname " " name
   else
     let name = a:settings.ranges[-1]
   endif
-  " echomsg "Using" name
 
   let range = xrange#getOuterRange(a:settings, name)
   if empty(range)
