@@ -1,7 +1,5 @@
-let s:start = '#+BEGIN %s'
-let s:end =   '#+END%0.s'
-let s:start = '<%s>'
-let s:end =   '</%s>'
+let s:start = ':%s:'
+let s:end =   '.%s.'
 let s:result = '%s:out'
 let s:strip = '\%(^\s*[#*/"!:<>-]\+\s\+\|^\)' " something followed with a space or nothing
 let s:macros = {'comment': {'sw': '/^-- //e', 'sr': '/^/-- /e'}
