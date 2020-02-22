@@ -32,9 +32,9 @@ function xrange#getOuterRange(settings, name, create_end='')
   let current_line = line('.')
   let block_start = printf(a:settings.start, a:name)
   let block_end = printf(a:settings.end, a:name)
-  let start = search(a:settings.strip.'\M'.block_start, 'cw') " wrap if needed and move cursor
+  let start = search(a:settings.strip.'\M'.block_start . '\%($\|\s\)', 'cw') " wrap if needed and move cursor
   if start > 0
-    let end = search(a:settings.strip.'\M'.block_end, 'nW') " don't wrap, end should be after start
+    let end = search(a:settings.strip.'\M'.block_end . '\%($\|\s\)', 'nW') " don't wrap, end should be after start
     let next_block = search(s:anyStartRegex(a:settings) .'\|'. s:anyEndRegex(a:settings), 'nW')
     if end > 0 && end <= next_block
       return {'start':start, 'end':end}
@@ -137,7 +137,7 @@ function xrange#expandZone(settings, key, token)
             let range = xrange#getOuterRange(a:settings, name)
           elseif modes != '@'
             " For error file (and ONLY)  we don't need the range to exists
-            throw  "Range <" . name . "> not found when executing "  . a:token
+            throw  "Range " . name . " not found when executing "  . a:token
           endif
         endif
         let result = ''
@@ -523,7 +523,12 @@ function xrange#createRange(settings, name, code='')
        endif
        let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
      endwhile
-      call append(line('.'), [printf(a:settings.start, a:name) . a:code, printf(a:settings.end, a:name)])
+     let code = a:code
+     if !empty(code)
+       let code = ' ' . code
+     endif
+
+      call append(line('.'), [printf(a:settings.start, a:name) . code, printf(a:settings.end, a:name)])
   endif
   normal j 
 endfunction
@@ -538,7 +543,7 @@ function xrange#createResultRange(settings)
   let range = xrange#getOuterRange(a:settings, name)
   if !empty(range)
     call setpos('.', [0,range.end,0,0])
-    call xrange#createRange(a:settings, xrange#resultName(a:settings, name), '+result+ @'.name.'!')
+    call xrange#createRange(a:settings, xrange#resultName(a:settings, name), '+result+ +x @'.name.'!')
   endif
 endfunction
 
