@@ -54,7 +54,28 @@ The core idea behing X-Range are ranges. A range associate a name to continous s
 Ranges can be executed, expanded to normal vim range, or read and written from to a temporary file.
 
 ### Range defintions
-TODO
+Ranges are delimited with start and end delimeters. The default start delimiter is a name between `:` and the default end delimited is the range name between `.`. For example `:python:` and `.python.` delimits the `python` range.
+Range delimiters need to start a line or being just after a sequence of non characters followed by a space.
+This allow range to be defined in code comment. Example
+
+```
+:A:
+This is a valid range (A)
+.A.
+# :B:
+This is another valid range (B)
+# .B.
+
+
+#@#$@#---- :C:
+This is another valid range (C)
+Note that the "comment" for the start delimiter don't have to match the one used for the end delimiter.
+.C.
+```
+
+The range delimiters can be customized globally using `g:xrange_start` and `g:xrange_end` or per buffer, using
+`b:xrange_start` and `b:xrange_end`.
+
 ### Range expansion
 TODo
 ### Range execution
