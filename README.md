@@ -122,11 +122,13 @@ $ => 99
 - @range@ creates an 'error' file. An error file is like an out file but is also parsed for error (and fill the quickfix window).
 - @range& load the content of an out file now (without waiting for the end of the block).
 
-### extra operator
+### extra operators
+
 - @range- delete the content of a range
 - @range+ create the range if it doesn't exist
 - @range! execute the range. Can be used to setup dependency
 - @range' expande to `@range` (escape or delay the range expansion)
+
 ### Current Range 
 If no name or a name starting with `:` is expanded, the name of the current range will be used as prefix.
 In the following example, `@:out` is equivalent to `@current:out`.
@@ -134,23 +136,69 @@ In the following example, `@:out` is equivalent to `@current:out`.
 ```
 :current:
   @:out- " delete current:out range
-  call append(@:out} , "@'} =>  @}")
+  call append(@:out} , "@current}  =  @}")
 .current.
 :current:out:
-@} =>  137
+139 =  139
 .current:out.
 ```
+## Default Mappings
+For the following mappings, _current range_ refers to the range containing the cursor, wheras range under cursor refrs to the range which the name is under cursor.
+- `<leader>xi` insert a new range
+- `<leader>xc` close the current range if needed.
+- `<leader>xm` execute the range called `main`
+- `<leader>xx` execute the current range
+- `<leader>xX` execute range under cursor
+- `<leader>xe` execute the current line. Doesn't have to be in a range
+- `<leader>xd` delete the content of the current range
+- `<leader>xD` delete range any range (prefill with range under cursor, completion works)
+- `<leader>xI` echo some debug information relative to the current range
+- `<leader>xg` go to the range under cursor
+- `<leader>xG` go to range any range (prefill with range under cursor, completion works)
+- `<leader>x!` execute range under cursor
+- `<leader>xr` create/go to the result range
+- `<leader>xn` go to next range
+- `<leader>xN` go to previous range
 
-### Range execution
-TODO
+## Range execution
+Executing range (by calling `@range!` or by calling the `:ExecuteRange` command) executes the code
+between the range delimiter, unless there is some code on the start delimiter itself.
+In that case *only* the code on the line will be executed.
+
+For example, executing
+
+```
+:execute_range:
+ g/range/
+.execute_range.
+```
+calls the `:g` command.
+
+```
+:execute_line: echo "g/range/ not executed"
+ g/range/
+.execute_line.
+```
+Doesn't execute `g/range/` but echoes `g/range/ not executed`.
+The ability to execute the first line of a range allows to combine a command (the start line) and it's body (the inner range) in one range.
+
+Example 
+
+``` vimscript
+:python2: !python < @<
+for n in range(10):
+  print(n)
+.python2.
+```
+
+Executing the python2 range executes the code `!python < @< > @:out@` which is equivalent to `!python < @python2<
+
 ## Tags
 ### Tags
 TODO
 ### Tags expansion
 TODO
  
-## Default Mappings
-TODO
 # Configuration
 TODO
 ##  auto exec
