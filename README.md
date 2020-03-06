@@ -77,7 +77,70 @@ The range delimiters can be customized globally using `g:xrange_start` and `g:xr
 `b:xrange_start` and `b:xrange_end`.
 
 ### Range expansion
-TODo
+The character `@` introduces range expansion. The range expansion form is `@`range_operators_.
+If more than one operator is specified the value of the last one will be used.
+#### range operators
+
+- @range% : outer range (including delimiters)
+- @range* : outer range (excluding delimiters)
+- @range^ : first line of the outer range (including 
+- @range$ : last line of the outer range
+- @range{ : first line of the inner range
+- @range} : first line of the inner range
+
+Evaluating
+
+```
+:expansion:
+  @expansion:out*d " delete inner range
+  call append(@expansion:out}, "% => @expansion%")
+  call append(@expansion:out}, "* => @expansion*")
+  call append(@expansion:out}, "^ => @expansion^")
+  call append(@expansion:out}, "$ => @expansion$")
+  call append(@expansion:out}, "{ => @expansion{")
+  call append(@expansion:out}, "} => @expansion}")
+.expansion.
+```
+
+produces
+
+```
+:expansion:out:
+% => 91,99
+* => 92,98
+^ => 91
+$ => 99
+{ => 92
+} => 98
+.expansion:out.
+```
+
+#### file operators
+
+- @range< creates an 'in' temporary file containing the text within the range
+- @range> creates an 'out' temporary file. The content of the out file will be injected in the buffer between the range at the end of execution of the block.
+- @range@ creates an 'error' file. An error file is like an out file but is also parsed for error (and fill the quickfix window).
+- @range& load the content of an out file now (without waiting for the end of the block).
+
+### extra operator
+- @range- delete the content of a range
+- @range+ create the range if it doesn't exist
+- @range! execute the range. Can be used to setup dependency
+- @range' expande to `@range` (escape or delay the range expansion)
+### Current Range 
+If no name or a name starting with `:` is expanded, the name of the current range will be used as prefix.
+In the following example, `@:out` is equivalent to `@current:out`.
+
+```
+:current:
+  @:out- " delete current:out range
+  call append(@:out} , "@'} =>  @}")
+.current.
+:current:out:
+@} =>  137
+.current:out.
+```
+
 ### Range execution
 TODO
 ## Tags
