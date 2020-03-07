@@ -165,6 +165,7 @@ For the following mappings, _current range_ refers to the range containing the c
 Executing range (by calling `@range!` or by calling the `:ExecuteRange` command) executes the code
 between the range delimiter, unless there is some code on the start delimiter itself.
 In that case *only* the code on the line will be executed.
+Before being executed each line is subject to range expansion and split by `;`. This allow multiple commands to be written in one single line.
 
 For example, executing
 
