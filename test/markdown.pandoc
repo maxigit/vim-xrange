@@ -1,0 +1,43 @@
+# Test python
+This is a a python range
+<!-- :python: +aw < +dw ^\~ +x !python < @< > @:out> -->
+
+~~~~ python
+  for i in range(1,4):
+    print ("""This is a 
+  multiline example.
+  This is line #%d.
+  This line shouldn't be indented.
+    But this one should.
+     """ % i)
+~~~~
+
+<!-- .python. -->
+
+
+this is the result
+
+<!-- :python:out: +post call append(@:out^, ['','~~~~']) +post call append(@:out}, ['~~~~','']) --> 
+
+~~~~
+This is a 
+multiline example.
+This is line #1.
+This line shouldn't be indented.
+  But this one should.
+   
+This is a 
+multiline example.
+This is line #2.
+This line shouldn't be indented.
+  But this one should.
+   
+This is a 
+multiline example.
+This is line #3.
+This line shouldn't be indented.
+  But this one should.
+   
+
+~~~~
+<!-- .python:out. -->
