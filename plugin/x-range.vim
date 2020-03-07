@@ -19,7 +19,7 @@ nnoremap <leader>xN ^?<C-R>=xrange#createSettings()->xrange#anyStartRegex()<CR><
 
 function s:executeAuto(name, mode)
   let settings = xrange#createSettings()
-  call xrange#executeRangeByName(a:name, settings, settings.strip, a:mode)
+  call xrange#executeRangeByName(a:name, settings, settings.trim_left, a:mode)
 endfunction
 
 function s:completeRanges(A,L,P)

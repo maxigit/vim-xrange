@@ -1,7 +1,8 @@
 let s:start = ':%s:'
 let s:end =   '.%s.'
 let s:result = '%s:out'
-let s:strip = '\%(^\s*[#*/"!:<>-]\+\s\+\|^\)' " something followed with a space or nothing
+let s:trim_left = '\%(^\s*[#*/"!:<>-]\+\s\+\|^\)' " something followed with a space or nothing
+let s:trim_right = '\%(-->\|\*/\|-}\)\s*$' " basic end of nested comments
 let s:macros = {'comment': {'sw': '/^-- //e', 'sr': '/^/-- /e'}
               \,'error': {'qf': [], 'ar': 'fold'}}
 let s:create_missing_range = 0
@@ -10,7 +11,7 @@ let s:on_error = 'ask' " silent ask
 " Create a setting object
 function xrange#createSettings(settings={})
   let settings = {'ranges':[]}
-  for v in ['start', 'end', 'result', 'strip', 'create_missing_range', 'on_error']
+  for v in ['start', 'end', 'result', 'trim_left', 'trim_right', 'create_missing_range', 'on_error']
     if(has_key(a:settings, v))
       let settings[v] = a:settings[v]
     else
@@ -32,9 +33,9 @@ function xrange#getOuterRange(settings, name, create_end='')
   let current_line = line('.')
   let block_start = printf(a:settings.start, a:name)
   let block_end = printf(a:settings.end, a:name)
-  let start = search(a:settings.strip.'\M'.block_start . '\%($\|\s\)', 'cw') " wrap if needed and move cursor
+  let start = search(a:settings.trim_left.'\M'.block_start . '\%($\|\s\)', 'cw') " wrap if needed and move cursor
   if start > 0
-    let end = search(a:settings.strip.'\M'.block_end . '\%($\|\s\)', 'nW') " don't wrap, end should be after start
+    let end = search(a:settings.trim_left.'\M'.block_end . '\%($\|\s\)', 'nW') " don't wrap, end should be after start
     let next_block = search(s:anyStartRegex(a:settings) .'\|'. s:anyEndRegex(a:settings), 'nW')
     if end > 0 && end <= next_block
       return {'start':start, 'end':end}
@@ -72,15 +73,16 @@ function xrange#displayRange(range)
 endfunction
 
 "
-function xrange#executeLine(settings, line, strip=a:settings.strip)
+function xrange#executeLine(settings, line, trim_left=a:settings.trim_left)
     " remove zone at the begining
     " allows to write tho code on the same line
-  call xrange#executeLines(a:settings, a:line, a:line, a:strip . '\%(' .s:anyStartRegex(a:settings, '') .'\)\?')
+  call xrange#executeLines(a:settings, a:line, a:line, a:trim_left . '\%(' .s:anyStartRegex(a:settings, '') .'\)\?')
 endfunction
 
-function s:executeLine(settings, line, strip)
-  if match(a:line, a:strip) != -1
-    let line = substitute(a:line, a:strip, "","")
+function s:executeLine(settings, line, trim_left)
+  if match(a:line, a:trim_left) != -1
+    let line = substitute(a:line, a:trim_left, "","")
+    let line = substitute(line, a:settings.trim_right, "","")
     let statements = split(line, ';')
     for statement in statements
       try
@@ -193,7 +195,7 @@ endfunction
 "  mode can be
 "    confirm : ask confirmation (implies silent)
 "    silent: don't throw an error if not present
-function xrange#executeRangeByName(name, settings, strip=a:settings.strip, mode='')
+function xrange#executeRangeByName(name, settings, trim_left=a:settings.trim_left, mode='')
   let range = xrange#getOuterRange(a:settings, a:name, '}')
   if empty(range)
     if a:mode == ''
@@ -208,23 +210,24 @@ function xrange#executeRangeByName(name, settings, strip=a:settings.strip, mode=
   endif
   " add range to ranges stack
   call insert(a:settings.ranges, a:name)
-  let first_line = substitute(getline(range.start), a:strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
+  let first_line = substitute(getline(range.start), a:trim_left . s:anyStartRegex(a:settings, '') . '\s*', '', '')
+  let first_line = substitute(first_line, a:settings.trim_right, '', '')
   let tags = xrange#extractTags(first_line, a:settings.macros)
   if tags.x != ''
-    call xrange#executeRawLines(a:settings, [tags.x], a:strip) 
+    call xrange#executeRawLines(a:settings, [tags.x], a:trim_left) 
   else
     let range = xrange#innerRange(range)
-    call xrange#executeLines(a:settings, range.start, range.end, a:strip)
+    call xrange#executeLines(a:settings, range.start, range.end, a:trim_left)
   endif
   call remove(a:settings.ranges,0)
 endfunction
 
-function xrange#executeLines(settings, start, end, strip=a:settings.strip)
+function xrange#executeLines(settings, start, end, trim_left=a:settings.trim_left)
   if a:start <= a:end
-    return xrange#executeRawLines(a:settings, getline(a:start, a:end), a:strip)
+    return xrange#executeRawLines(a:settings, getline(a:start, a:end), a:trim_left)
   endif
 endfunction
-function xrange#executeRawLines(settings, lines, strip=a:settings.strip)
+function xrange#executeRawLines(settings, lines, trim_left=a:settings.trim_left)
   let pos = getpos('.')
   if has_key(a:settings, 'file_dict')
     let recursive = 1
@@ -235,7 +238,7 @@ function xrange#executeRawLines(settings, lines, strip=a:settings.strip)
 
   try 
     for line in a:lines
-      call s:executeLine(a:settings, line, a:strip)
+      call s:executeLine(a:settings, line, a:trim_left)
     endfor
   catch /.*/
     echo "caught" . v:exception
@@ -265,14 +268,14 @@ endfunction
 function xrange#anyStartRegex(settings)
   return s:anyStartRegex(a:settings)
 endfunction
-function s:anyStartRegex(settings, start=a:settings.strip)
+function s:anyStartRegex(settings, start=a:settings.trim_left)
   return a:start . '\M'. printf(a:settings.start,'\m\([a-zA-Z0-9_.:-]*\>\)\M') . '\m'
 endfunction
 
 function xrange#anyEndRegex(settings) 
   return s:anyEndRegex(a:settings)
 endfunction
-function s:anyEndRegex(settings, start=a:settings.strip) 
+function s:anyEndRegex(settings, start=a:settings.trim_left) 
   return a:start . '\M'. printf(a:settings.end,'\m\([a-zA-Z0-9_.:-]*\>\)\M') . '\m'
 endfunction
 
@@ -328,14 +331,13 @@ function s:saveRange(name, file,  settings)
   if empty(range)
     return 
   endif
-  let line = substitute(getline(range.start-1), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
+  let line = substitute(getline(range.start-1), a:settings.trim_left . s:anyStartRegex(a:settings, '') . '\s*', '', '')
   let tags = xrange#extractTags(line, a:settings.macros)
 
   let undo_pos = undotree().seq_cur
   try
     if has_key(tags, 'pre')
       " execute the code and undo it afterward
-        let do_undo = 1
         for pre in tags.pre
           call s:executeLine(a:settings, pre, '')
           let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
@@ -347,7 +349,6 @@ function s:saveRange(name, file,  settings)
       " execute the code and undo it afterward
       for s in tags.sw
         if !empty(range) && range.end >= range.start
-        let do_undo = 1
           execute range.start "," range.end " s" s
           let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
         endif
@@ -358,7 +359,6 @@ function s:saveRange(name, file,  settings)
       " execute the code and undo it afterward
       for s in tags.aw
         if !empty(range) && range.end >= range.start
-        let do_undo = 1
           execute range.start "," range.end s
           let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
         endif
@@ -369,7 +369,6 @@ function s:saveRange(name, file,  settings)
       " execute the code and undo it afterward
       for regex in tags.dw
         if !empty(range) && range.end >= range.start
-        let do_undo = 1
           execute range.start "," range.end "g/".regex."/d"
           let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
         endif
@@ -388,9 +387,7 @@ function s:saveRange(name, file,  settings)
     "call s:executeLine(a:settings, command, '')
     execute l:command
   finally
-    if do_undo
-      execute "undo" undo_pos
-    endif
+    execute "undo" undo_pos
   endtry
 
 endfunction
@@ -404,7 +401,7 @@ function s:readRange(name, settings, keep=0)
     if file.mode == 'out'  || file.mode == 'error'
       let range = xrange#deleteInnerRange(a:name, a:settings)
       if !empty(range)
-        let first_line = substitute(getline(range.start), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
+        let first_line = substitute(getline(range.start), a:settings.trim_left . s:anyStartRegex(a:settings, '') . '\s*', '', '')
         let tags = xrange#extractTags(first_line, a:settings.macros)
 
         let commands = []
@@ -706,7 +703,8 @@ function xrange#currentRangeInfo(settings)
   let name = xrange#findCurrentRange(a:settings)
   let range= xrange#getOuterRange(a:settings, name)
   if !empty(range)
-    let first_line = substitute(getline(range.start), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
+    let first_line = substitute(getline(range.start), a:settings.trim_left . s:anyStartRegex(a:settings, '') . '\s*', '', '')
+    let first_line = substitute(first_line, a:settings.trim_right, '', '')
     let tags = xrange#extractTags(first_line, a:settings.macros)
     return {'name':name, 'range':range, 'tags':tags}
   endif

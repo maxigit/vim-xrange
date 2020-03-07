@@ -333,10 +333,11 @@ TODO create empty line if out file is empty
 DONE explain ; in execution
 TODO add tag evaluation in command usind t: same with b: and g:
 TODO multi line delimiter
-TODO extract range from comment , see g:xrange_strip 
+DONE extract range from comment , see g:xrange_trim_left
 TODO add offset/start limit(with negative value)
 TODO create range within comment
 TODO ADD @range[1,-1] notation
-TODO add custom end delimiter using tags ?
+DONE add custom end delimiter using tags ?
 TODO add conditionnal @range?
 TODO modeline
+TODO doc trim_left and trim_right
