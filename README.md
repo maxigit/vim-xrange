@@ -81,12 +81,12 @@ The character `@` introduces range expansion. The range expansion form is `@`ran
 If more than one operator is specified the value of the last one will be used.
 #### range operators
 
-- @range% : outer range (including delimiters)
-- @range* : outer range (excluding delimiters)
-- @range^ : first line of the outer range (including 
-- @range$ : last line of the outer range
-- @range{ : first line of the inner range
-- @range} : first line of the inner range
+- `@range%` : outer range (including delimiters)
+- `@range*` : outer range (excluding delimiters)
+- `@range^` : first line of the outer range (including 
+- `@range$` : last line of the outer range
+- `@range{` : first line of the inner range
+- `@range}` : first line of the inner range
 
 Evaluating
 
@@ -245,17 +245,17 @@ fails, because we send `    print "hello"` to the python interpreter. This gener
 
 `@* <` is just the shift command applied to the current inner range. The `+x` is need to close the `pre` tag and set code to execute.
 
-- 'post' code to execute after copy the range to an out file. The opposite of `pre`.
-- 'sw' execute substitue  on each line of the inner range before writting the out file. Equivalent to `+pre @* s`
-- 'sr' execute substitue  on each line of the inner range after readin the in file.
-- 'aw' execute the given command to all line of the inner range before writting the out file. Short for `+pre @*`
-- 'ar' execute the given command to all line of the inner range after reading the in file. Short for `+post @*`
-- 'w' shell command to pipe the range through before writting it. Multiple  values will be pipe together.
-- 'qf' if present the out file will parse the errors in the quickfix list.
-- 'loc' if present the out file will parse the errors in the location list.
-- 'efm' set the `errorformat` when parsing error. can be used multiple time
-- 'compiler' set the `compiler` when parsing error.
-- 'keep' done remove the temporty file from the disk.
+- `post` code to execute after copy the range to an out file. The opposite of `pre`.
+- `sw` execute substitue  on each line of the inner range before writting the out file. Equivalent to `+pre @* s`
+- `sr` execute substitue  on each line of the inner range after readin the in file.
+- `aw` execute the given command to all line of the inner range before writting the out file. Short for `+pre @*`
+- `ar` execute the given command to all line of the inner range after reading the in file. Short for `+post @*`
+- `w` shell command to pipe the range through before writting it. Multiple  values will be pipe together.
+- `qf` if present the out file will parse the errors in the quickfix list.
+- `loc` if present the out file will parse the errors in the location list.
+- `efm` set the `errorformat` when parsing error. can be used multiple time
+- `compiler` set the `compiler` when parsing error.
+- `keep` done remove the temporty file from the disk.
 
 Example
 
