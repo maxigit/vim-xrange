@@ -269,13 +269,69 @@ print("hello")
 should print "HellO".
 
 - 'r' shell command to pipe through when reading an out file.
-### Tags
-TODO
-### Tags expansion
-TODO
-### user defined macro
- 
-# Configuration
-TODO
+
+### Macro expansion
+Setting all those tags can be cumbersome, so x-range provides a way to define a set of tags and reuse it : macros.
+Tag ending with a `+` are macros. They are replaced with the tags defined in  `g:xrange_macros` and `b:xange_macros`.
+
+Example, we would like to execute python code with automatic unindenting of the range and automatic indenting of the result.
+This could be done this way
+
+``` vimscript
+:full_python: +aw < +x !clear;  !python < @<  > @:out+> ; @:out&* >
+  for i in range(1,10):
+    print("I should be indented : %d " % i)
+.full_python.
+```
+
+However, we could create a `+python+` by adding an entry to `b:xrange_macros`.
+
+``` vimscript
+   let b:xrange_macros = {"python': {'aw' : '<', 'x': '!clear;  !python < @<  > @:out+> ; @:out&* >'} }
+```
+
+Note that executing this line with `<leader>xe` will not work because x-range will try to escape the ranges.
+To be able to execute this line in our buffer we need to escape all the ranges reference with `@'`.
+`;` are also escaped by x-range so we needed instead to provide a list of commands.
+
+``` vimscript
+   let b:xrange_macros = {"python": {"aw" : "<", "x": ["!clear", "!python < @'<  > @':out+>", "@':out&* >"]} }
+```
+
+We can use it this way
+
+``` vimscript
+:python_with_macro: +python+
+  for i in range(1,10):
+    print("I should be indented : %d " % i)
+.python_with_macro.
+```
+:python_with_macro:out:  +result+
+  I should be indented : 1 
+  I should be indented : 2 
+  I should be indented : 3 
+  I should be indented : 4 
+  I should be indented : 5 
+  I should be indented : 6 
+  I should be indented : 7 
+  I should be indented : 8 
+  I should be indented : 9 
+.python_with_macro:out.
+
+
 ##  auto exec
 ## main
+
+
+# Todos
+TODO replace by saving lines or having a save point ?
+TODO create empty line if out file is empty
+TODO explain ; in execution
+TODO add tag evaluation in command usind t: same with b: and g:
+TODO multi line delimiter
+TODO extract range from comment , see g:xrange_strip 
+TODO add offset to range (using tags ?)
+TODO ADD @range[1,-1] notation
+TODO add custom end delimiter using tags ?
+TODO add conditionnal @range?
+TODO modeline
