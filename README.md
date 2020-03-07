@@ -319,9 +319,11 @@ We can use it this way
 .python_with_macro:out.
 
 
-##  auto exec
-## main
-
+### Special range
+3 ranges name have a special meaning.
+- `main` can be executed using the `<leader>xm` mapping.
+- `auto` this range will be executed automaticaly when the buffer is loaded. Disabled until we found a correct thrust mecanism.
+- `auto-confirm` this range will be executed automaticaly when the buffer is loaded but will ask the user for confirmation before using it.
 
 # Todos
 TODO replace by saving lines or having a save point ?
