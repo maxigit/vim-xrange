@@ -370,7 +370,7 @@ function s:saveRange(name, file,  settings)
       for regex in tags.dw
         if !empty(range) && range.end >= range.start
         let do_undo = 1
-          execute range.start "," range.end "g/" regex "/d"
+          execute range.start "," range.end "g/".regex."/d"
           let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
         endif
       endfor
