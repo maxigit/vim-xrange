@@ -329,7 +329,7 @@ function s:saveRange(name, file,  settings)
   let do_undo = 0
   if has_key(tags, 'pre')
     " execute the code and undo it afterward
-    if range.end > range.start
+    if range.end >= range.start
       let do_undo = 1
       for pre in tags.pre
         call s:executeLine(a:settings, pre, '')
@@ -340,7 +340,7 @@ function s:saveRange(name, file,  settings)
       " echomsg "TAG" tags
   if has_key(tags, 'sw')
     " execute the code and undo it afterward
-    if range.end > range.start
+    if range.end >= range.start
       let do_undo = 1
       for s in tags.sw
         execute range.start "," range.end " s" s
@@ -349,7 +349,7 @@ function s:saveRange(name, file,  settings)
   endif
   if has_key(tags, 'aw') " all
     " execute the code and undo it afterward
-    if range.end > range.start
+    if range.end >= range.start
       let do_undo = 1
       for s in tags.aw
         execute range.start "," range.end s
