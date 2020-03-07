@@ -303,11 +303,9 @@ To be able to execute this line in our buffer we need to escape all the ranges r
 We can use it this way
 
 ``` vimscript
-:python_with_macro: +python+ +aw g/^\~/d
-  ``` python
+:python_with_macro: +python+
   for i in range(1,10):
     print("I should be indented : %d " % i)
-  ```
 .python_with_macro.
 ```
 :python_with_macro:out:  +result+
@@ -338,7 +336,6 @@ TODO multi line delimiter
 TODO extract range from comment , see g:xrange_strip 
 TODO add offset/start limit(with negative value)
 TODO create range within comment
-TODO add offset to range (using tags ?)
 TODO ADD @range[1,-1] notation
 TODO add custom end delimiter using tags ?
 TODO add conditionnal @range?
