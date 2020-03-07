@@ -191,13 +191,84 @@ for n in range(10):
 .python2.
 ```
 
-Executing the python2 range executes the code `!python < @< > @:out@` which is equivalent to `!python < @python2<
+Executing the python2 range executes the code `!python < @<` which is equivalent to `!python < @python2<
 
 ## Tags
+Code on the start line can contains tags. Tags start with a `+` and need to be before the code to execute (if any). 
+Can be used to modify the way a range is executed or to define macro.
+
+Example
+
+``` vimscript
+:with_tag: +a +b
+.with_tag.
+```
+
+The range `with_tag` has the tag `a` and `b`.
+Tags can also have values. Everything after a tags is a value of this tags.
+If a tag is used many times the tag will have as many value
+The actual tags of a range can be checked using `<leader>xI`.
+
+Example 
+
+``` vimscript
+:tag_with_value: +a  1 +b 2 3 +c 4 +c 5
+.tag_with_value.
+```
+
+associates `[1]` to `a` , `['2 3']` to `b` (1 value) and `c` to `[4, 5]`(2 values).
+
+### predefined tags
+Some tags have a special value and modify the way a range is executed. For example the tag `x` contains the code on the start line. `:range: some code` is equivalent to `:range: +x some code`.
+
+- 'pre' code to execute before copy the range to an out file. 
+For example, the following range
+
+```
+:pre_fail: !python <  @<
+
+  print("hello")
+
+.pre_fail.
+```
+
+fails, because we send `    print "hello"` to the python interpreter. This generate an error because the code is indented. We have two solutions either not indent the range in our buffer, or leave the code indented but find a way to unindent before sending to python. This can be achive by doing
+
+```
+:pre_ok: +pre @* < +x !python <  @<
+
+  print("hello")
+
+.pre_ok.
+```
+
+`@* <` is just the shift command applied to the current inner range. The `+x` is need to close the `pre` tag and set code to execute.
+
+- 'post' code to execute after copy the range to an out file. The opposite of `pre`.
+- 'sw' execute substitue  on each line of the inner range before writting the out file. Equivalent to `+pre @* s`
+- 'sr' execute substitue  on each line of the inner range after readin the in file.
+- 'aw' execute the given command to all line of the inner range
+- 'aw' execute the given command to all line of the inner range before writting the out file. Short for `+pre @*`
+- 'ar' execute the given command to all line of the inner range after reading the in file. Short for `+post @*`
+- 'w' shell command to pipe the range through before writting it. Multiple  values will be pipe together.
+
+Example
+
+
+``` vimscript
+:w: +w tr h H +w tr o O   +x !python < @<
+print("hello")
+.w.
+```
+
+should print "HellO".
+
+- 'r' shell command to pipe through when reading an out file.
 ### Tags
 TODO
 ### Tags expansion
 TODO
+### user defined macro
  
 # Configuration
 TODO
