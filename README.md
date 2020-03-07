@@ -251,6 +251,7 @@ fails, because we send `    print "hello"` to the python interpreter. This gener
 - `sr` execute substitue  on each line of the inner range after readin the in file.
 - `aw` execute the given command to all line of the inner range before writting the out file. Short for `+pre @*`
 - `ar` execute the given command to all line of the inner range after reading the in file. Short for `+post @*`
+- `dw` delete lines the matching the given regular expression
 - `w` shell command to pipe the range through before writting it. Multiple  values will be pipe together.
 - `qf` if present the out file will parse the errors in the quickfix list.
 - `loc` if present the out file will parse the errors in the location list.

@@ -343,7 +343,7 @@ function s:saveRange(name, file,  settings)
     endif
 
         " echomsg "TAG" tags
-    if has_key(tags, 'sw')
+    if has_key(tags, 'sw') " substitute
       " execute the code and undo it afterward
       for s in tags.sw
         if !empty(range) && range.end >= range.start
@@ -353,12 +353,24 @@ function s:saveRange(name, file,  settings)
         endif
       endfor
     endif
+
     if has_key(tags, 'aw') " all
       " execute the code and undo it afterward
       for s in tags.aw
         if !empty(range) && range.end >= range.start
         let do_undo = 1
           execute range.start "," range.end s
+          let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
+        endif
+      endfor
+    endif
+
+    if has_key(tags, 'dw') " delete
+      " execute the code and undo it afterward
+      for regex in tags.dw
+        if !empty(range) && range.end >= range.start
+        let do_undo = 1
+          execute range.start "," range.end "g/" regex "/d"
           let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
         endif
       endfor
