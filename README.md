@@ -127,7 +127,8 @@ $ => 99
 - @range- delete the content of a range
 - @range+ create the range if it doesn't exist
 - @range! execute the range. Can be used to setup dependency
-- @range' expande to `@range` (escape or delay the range expansion)
+- @range' expand the full range name see (current range)
+- @'... escape the @
 
 ### Current Range 
 If no name or a name starting with `:` is expanded, the name of the current range will be used as prefix.
@@ -247,10 +248,14 @@ fails, because we send `    print "hello"` to the python interpreter. This gener
 - 'post' code to execute after copy the range to an out file. The opposite of `pre`.
 - 'sw' execute substitue  on each line of the inner range before writting the out file. Equivalent to `+pre @* s`
 - 'sr' execute substitue  on each line of the inner range after readin the in file.
-- 'aw' execute the given command to all line of the inner range
 - 'aw' execute the given command to all line of the inner range before writting the out file. Short for `+pre @*`
 - 'ar' execute the given command to all line of the inner range after reading the in file. Short for `+post @*`
 - 'w' shell command to pipe the range through before writting it. Multiple  values will be pipe together.
+- 'qf' if present the out file will parse the errors in the quickfix list.
+- 'loc' if present the out file will parse the errors in the location list.
+- 'efm' set the `errorformat` when parsing error. can be used multiple time
+- 'compiler' set the `compiler` when parsing error.
+- 'keep' done remove the temporty file from the disk.
 
 Example
 

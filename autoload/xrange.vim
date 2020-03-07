@@ -103,7 +103,7 @@ function s:executeLine(settings, line, strip)
 endfunction
 let s:operators = '[$^*%@<>{}!&-]'
 function xrange#splitRanges(line) 
-  let matches = matchlist(a:line, '\([^@]*\)\(@[a-zA-Z0-9-_:]\{-}[''+]\?'.s:operators.'\+\)\(.*\)')
+  let matches = matchlist(a:line, '\([^@]*\)\(@''\?[a-zA-Z0-9-_:]\{-}[''+]\?'.s:operators.'\+\)\(.*\)')
   if empty(matches)
     return [a:line]
   else
@@ -113,6 +113,11 @@ endfunction
 
 function xrange#expandZone(settings, key, token)
       let current_range = get(a:settings.ranges, 0 , "")
+      let matches = matchlist(a:token, '^@''\(.*\)$')
+      if !empty(matches)
+        " full escape
+        return "@" . matches[1]
+      endif
       let matches = matchlist(a:token, '^@\([a-zA-Z0-9_:<>-]\{-}\)\([''+]\?\)\('.s:operators.'\+\)$')
       if empty(matches)
           return a:token
