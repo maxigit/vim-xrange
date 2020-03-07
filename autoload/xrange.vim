@@ -331,51 +331,55 @@ function s:saveRange(name, file,  settings)
   let line = substitute(getline(range.start-1), a:settings.strip . s:anyStartRegex(a:settings, '') . '\s*', '', '')
   let tags = xrange#extractTags(line, a:settings.macros)
 
-  let do_undo = 0
-  if has_key(tags, 'pre')
-    " execute the code and undo it afterward
-    if range.end >= range.start
-      let do_undo = 1
-      for pre in tags.pre
-        call s:executeLine(a:settings, pre, '')
-      endfor
+  let undo_pos = undotree().seq_cur
+  try
+    if has_key(tags, 'pre')
+      " execute the code and undo it afterward
+        let do_undo = 1
+        for pre in tags.pre
+          call s:executeLine(a:settings, pre, '')
+          let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
+        endfor
     endif
-  endif
 
-      " echomsg "TAG" tags
-  if has_key(tags, 'sw')
-    " execute the code and undo it afterward
-    if range.end >= range.start
-      let do_undo = 1
+        " echomsg "TAG" tags
+    if has_key(tags, 'sw')
+      " execute the code and undo it afterward
       for s in tags.sw
-        execute range.start "," range.end " s" s
+        if !empty(range) && range.end >= range.start
+        let do_undo = 1
+          execute range.start "," range.end " s" s
+          let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
+        endif
       endfor
     endif
-  endif
-  if has_key(tags, 'aw') " all
-    " execute the code and undo it afterward
-    if range.end >= range.start
-      let do_undo = 1
+    if has_key(tags, 'aw') " all
+      " execute the code and undo it afterward
       for s in tags.aw
-        execute range.start "," range.end s
+        if !empty(range) && range.end >= range.start
+        let do_undo = 1
+          execute range.start "," range.end s
+          let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
+        endif
       endfor
     endif
-  endif
 
-  let commands = ['cat']
-  if has_key(tags, 'w')
-    for w in tags.w
-      call add(commands, w)
-    endfor
-  endif
+    let commands = ['cat']
+    if has_key(tags, 'w')
+      for w in tags.w
+        call add(commands, w)
+      endfor
+    endif
 
-  let command = printf("silent %d,%dw !%s > %s", range.start, range.end, join(commands, ' | '), a:file)
+    let command = printf("silent %d,%dw !%s > %s", range.start, range.end, join(commands, ' | '), a:file)
 
-  "call s:executeLine(a:settings, command, '')
-  execute l:command
-  if do_undo
-    undo
-  endif
+    "call s:executeLine(a:settings, command, '')
+    execute l:command
+  finally
+    if do_undo
+      execute "undo" undo_pos
+    endif
+  endtry
 
 endfunction
 
