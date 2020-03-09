@@ -9,7 +9,7 @@ let s:create_missing_range = 0
 let s:on_error = 'ask' " silent ask 
 
 " Create a setting object
-function xrange#createSettings(settings={})
+function xrange#createSettings(settings)
   let settings = {'ranges':[]}
   for v in ['start', 'end', 'result', 'trim_left', 'trim_right', 'create_missing_range', 'on_error']
     if(has_key(a:settings, v))
@@ -29,14 +29,14 @@ endfunction
 " or '}' just after beginin
 " or '.' current line
 " or '' don't create
-function xrange#getOuterRange(settings, name, create_end='')
+function xrange#getOuterRange(settings, name, create_end)
   let current_line = line('.')
   let block_start = printf(a:settings.start, a:name)
   let block_end = printf(a:settings.end, a:name)
   let start = search(a:settings.trim_left.'\M'.block_start . '\%($\|\s\)', 'cw') " wrap if needed and move cursor
   if start > 0
     let end = search(a:settings.trim_left.'\M'.block_end . '\%($\|\s\)', 'nW') " don't wrap, end should be after start
-    let next_block = search(s:anyStartRegex(a:settings) .'\|'. s:anyEndRegex(a:settings), 'nW')
+    let next_block = search(xrange#anyStartRegex(a:settings) .'\|'. xrange#anyEndRegex(a:settings), 'nW')
     if end > 0 && end <= next_block
       return {'start':start, 'end':end}
     elseif a:create_end != ''
@@ -73,10 +73,15 @@ function xrange#displayRange(range)
 endfunction
 
 "
-function xrange#executeLine(settings, line, trim_left=a:settings.trim_left)
+function xrange#executeLine(settings, line, trim_left)
     " remove zone at the begining
     " allows to write tho code on the same line
-  call xrange#executeLines(a:settings, a:line, a:line, a:trim_left . '\%(' .s:anyStartRegex(a:settings, '') .'\)\?')
+  if a:trim_left == 0
+     let trim_left = a:settings.trim_left
+   else
+     let trim_left = a:trim_left
+   endif
+  call xrange#executeLines(a:settings, a:line, a:line, trim_left . '\%(' .s:anyStartRegex(a:settings, '') .'\)\?')
 endfunction
 
 function s:executeLine(settings, line, trim_left)
@@ -137,11 +142,11 @@ function xrange#expandZone(settings, key, token)
           let name = current_range
         endif
 
-        let range = xrange#getOuterRange(a:settings, name)
+        let range = xrange#getOuterRange(a:settings, name, '')
         if empty(range)
           if matches[2] == '+' || a:settings.create_missing_range
             call xrange#createRange(a:settings, name, s:tagsFromName(name))
-            let range = xrange#getOuterRange(a:settings, name)
+            let range = xrange#getOuterRange(a:settings, name,'')
           elseif modes != '@'
             " For error file (and ONLY)  we don't need the range to exists
             throw  "Range " . name . " not found when executing "  . a:token
@@ -158,9 +163,10 @@ function xrange#expandZone(settings, key, token)
           elseif mode == '}'
             let result = range.end-1
           elseif mode == '*'
-            let result = range->xrange#innerRange()->xrange#displayRange()
+            let inner = xrange#innerRange(range)
+            let result = xrange#displayRange(inner)
           elseif mode == '%'
-            let result = range->xrange#displayRange()
+            let result = xrange#displayRange(range)
           elseif mode == '<'
             let result = s:createFileForRange(name, a:settings,  'in')
           elseif mode == '>'
@@ -168,17 +174,18 @@ function xrange#expandZone(settings, key, token)
           elseif mode == '@'
             let result = s:createFileForRange(name, a:settings,  'error')
           elseif mode == '&'
-            call s:readRange(name, a:settings) " synchronize 
+            call s:readRange(name, a:settings, 0) " synchronize 
             let range = xrange#getOuterRange(a:settings, name, 1)
             let result = ""
           elseif mode == '!'
             " let result = "call xrange#executeRangeByName('".name."')"
-            let result = xrange#executeRangeByName(name, a:settings)
+            let result = xrange#executeRangeByName(name, a:settings, 0, '')
           elseif mode == '-'
             call xrange#deleteInnerRange(name, a:settings)
             " update range
-            let range = xrange#getOuterRange(a:settings, name)
-            let result = range->xrange#innerRange()->xrange#displayRange()
+            let range = xrange#getOuterRange(a:settings, name,'')
+            let inner = xrange#innerRange(range)
+            let result = xrange#displayRange(range)
           endif
         endfor
         return result
@@ -195,7 +202,12 @@ endfunction
 "  mode can be
 "    confirm : ask confirmation (implies silent)
 "    silent: don't throw an error if not present
-function xrange#executeRangeByName(name, settings, trim_left=a:settings.trim_left, mode='')
+function xrange#executeRangeByName(name, settings, trim_left, mode)
+  if a:trim_left == 0
+     let trim_left = a:settings.trim_left
+   else
+     let trim_left = a:trim_left
+   endif
   let range = xrange#getOuterRange(a:settings, a:name, '}')
   if empty(range)
     if a:mode == ''
@@ -210,24 +222,24 @@ function xrange#executeRangeByName(name, settings, trim_left=a:settings.trim_lef
   endif
   " add range to ranges stack
   call insert(a:settings.ranges, a:name)
-  let first_line = substitute(getline(range.start), a:trim_left . s:anyStartRegex(a:settings, '') . '\s*', '', '')
+  let first_line = substitute(getline(range.start), trim_left . s:anyStartRegex(a:settings, '') . '\s*', '', '')
   let first_line = substitute(first_line, a:settings.trim_right, '', '')
   let tags = xrange#extractTags(first_line, a:settings.macros)
   if tags.x != ''
-    call xrange#executeRawLines(a:settings, [tags.x], a:trim_left) 
+    call xrange#executeRawLines(a:settings, [tags.x], trim_left) 
   else
     let range = xrange#innerRange(range)
-    call xrange#executeLines(a:settings, range.start, range.end, a:trim_left)
+    call xrange#executeLines(a:settings, range.start, range.end, trim_left)
   endif
   call remove(a:settings.ranges,0)
 endfunction
 
-function xrange#executeLines(settings, start, end, trim_left=a:settings.trim_left)
+function xrange#executeLines(settings, start, end, trim_left)
   if a:start <= a:end
     return xrange#executeRawLines(a:settings, getline(a:start, a:end), a:trim_left)
   endif
 endfunction
-function xrange#executeRawLines(settings, lines, trim_left=a:settings.trim_left)
+function xrange#executeRawLines(settings, lines, trim_left)
   let pos = getpos('.')
   if has_key(a:settings, 'file_dict')
     let recursive = 1
@@ -246,7 +258,7 @@ function xrange#executeRawLines(settings, lines, trim_left=a:settings.trim_left)
   " update all modified file
   if !recursive
     for range in keys(a:settings.file_dict)
-      call s:readRange(range, a:settings)
+      call s:readRange(range, a:settings, 0)
     endfor
     unlet a:settings.file_dict
   endif
@@ -254,11 +266,13 @@ function xrange#executeRawLines(settings, lines, trim_left=a:settings.trim_left)
 endfunction
 
 function xrange#executeCurrentRange(settings)
-  call xrange#findCurrentRange(a:settings)->xrange#executeRangeByName(a:settings)
+  let range=xrange#findCurrentRange(a:settings)
+  call xrange#executeRangeByName(range, a:settings, 0, '')
 endfunction
 
 function xrange#deleteCurrentRange(settings)
-  call xrange#findCurrentRange(a:settings)->xrange#deleteInnerRange(a:settings)
+  let range = xrange#findCurrentRange(a:settings)
+  call xrange#deleteInnerRange(range, a:settings)
 endfunction
 
 function xrange#deleteRangeUnderCursor(settings)
@@ -266,37 +280,37 @@ function xrange#deleteRangeUnderCursor(settings)
 endfunction
 
 function xrange#anyStartRegex(settings)
-  return s:anyStartRegex(a:settings)
+  return s:anyStartRegex(a:settings, a:settings.trim_left)
 endfunction
-function s:anyStartRegex(settings, start=a:settings.trim_left)
+function s:anyStartRegex(settings, start)
   return a:start . '\M'. printf(a:settings.start,'\m\([a-zA-Z0-9_.:-]*\>\)\M') . '\m'
 endfunction
 
 function xrange#anyEndRegex(settings) 
-  return s:anyEndRegex(a:settings)
+  return s:anyEndRegex(a:settings, a:settings.trim_left)
 endfunction
-function s:anyEndRegex(settings, start=a:settings.trim_left) 
+function s:anyEndRegex(settings, start) 
   return a:start . '\M'. printf(a:settings.end,'\m\([a-zA-Z0-9_.:-]*\>\)\M') . '\m'
 endfunction
 
 
 function xrange#findCurrentRange(settings)
   let current_line = line('.')
-  let start = search(s:anyStartRegex(a:settings), "nbWc") " don't move, backaward, no wrap accept curors
-  let end = search(s:anyEndRegex(a:settings), "nbW")
+  let start = search(xrange#anyStartRegex(a:settings), "nbWc") " don't move, backaward, no wrap accept curors
+  let end = search(xrange#anyEndRegex(a:settings), "nbW")
   if start == 0
     return ""
   elseif end != 0 && start < end " we are not within a range
     " the start we found has an end we are outside
     return ""
   end
-  let matches = matchlist(getline(start),s:anyStartRegex(a:settings))
+  let matches = matchlist(getline(start),xrange#anyStartRegex(a:settings))
   return matches[1]
 endfunction
       
 function xrange#deleteInnerRange(name, settings)
-  let range = xrange#getOuterRange(a:settings, a:name)
-  let inner = range->xrange#innerRange()
+  let range = xrange#getOuterRange(a:settings, a:name,'')
+  let inner = xrange#innerRange(range)
   if !empty(range) && inner.end >= inner.start
     call deletebufline("%",inner.start, inner.end)
     let range.end = range.start+1
@@ -305,13 +319,13 @@ function xrange#deleteInnerRange(name, settings)
 endfunction
 
 function s:createFileForRange(name, settings, mode)
-  if a:settings.file_dict->has_key(a:name)
+  if has_key(a:settings.file_dict, a:name)
     return a:settings.file_dict[a:name].path
   else
     if a:settings.create_missing_range
       call xrange#createRange(a:settings, a:name, s:tagsFromName(a:name))
     endif
-    let range = xrange#getOuterRange(a:settings, a:name, '}')->xrange#innerRange()
+    let range = xrange#innerRange(xrange#getOuterRange(a:settings, a:name, '}'))
     let tmp = tempname()
     if a:mode == 'in' && !empty(range) " && range.end >= range.start
       call s:saveRange(a:name, tmp, a:settings)
@@ -327,7 +341,7 @@ endfunction
 " pre: vim code to execute first
 " shell: shell command to run through
 function s:saveRange(name, file,  settings)
-  let range = xrange#getOuterRange(a:settings, a:name, '}')->xrange#innerRange()
+  let range = xrange#innerRange(xrange#getOuterRange(a:settings, a:name, '}'))
   if empty(range)
     return 
   endif
@@ -340,7 +354,7 @@ function s:saveRange(name, file,  settings)
       " execute the code and undo it afterward
         for pre in tags.pre
           call s:executeLine(a:settings, pre, '')
-          let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
+          let range = xrange#innerRange(xrange#getOuterRange(a:settings, a:name, ''))
         endfor
     endif
 
@@ -350,7 +364,7 @@ function s:saveRange(name, file,  settings)
       for s in tags.sw
         if !empty(range) && range.end >= range.start
           execute range.start "," range.end " s" s
-          let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
+          let range = xrange#innerRange(xrange#getOuterRange(a:settings, a:name, ''))
         endif
       endfor
     endif
@@ -360,7 +374,7 @@ function s:saveRange(name, file,  settings)
       for s in tags.aw
         if !empty(range) && range.end >= range.start
           execute range.start "," range.end s
-          let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
+          let range = xrange#innerRange(xrange#getOuterRange(a:settings, a:name, ''))
         endif
       endfor
     endif
@@ -370,7 +384,7 @@ function s:saveRange(name, file,  settings)
       for regex in tags.dw
         if !empty(range) && range.end >= range.start
           execute range.start "," range.end "g/".regex."/d"
-          let range = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
+          let range = xrange#innerRange(xrange#getOuterRange(a:settings, a:name, ''))
         endif
       endfor
     endif
@@ -392,10 +406,10 @@ function s:saveRange(name, file,  settings)
 
 endfunction
 
-function s:readRange(name, settings, keep=0)
+function s:readRange(name, settings, keep)
   try
   let file_dict = a:settings.file_dict
-  if(a:settings.file_dict->has_key(a:name))
+  if has_key(a:settings.file_dict, a:name)
     let file = a:settings.file_dict[a:name]
     let tags = {}
     if file.mode == 'out'  || file.mode == 'error'
@@ -415,7 +429,7 @@ function s:readRange(name, settings, keep=0)
         else
           call s:executeLine(a:settings, 'silent @'.a:name.'^r !cat ' . file.path . " | " . join(commands, '|'), "")
         endif
-        let inner = xrange#getOuterRange(a:settings, a:name)->xrange#innerRange()
+        let inner = xrange#innerRange(xrange#getOuterRange(a:settings, a:name, ''))
 
         if has_key(tags, 'sr')
           " execute the code and undo it afterward
@@ -519,7 +533,7 @@ function s:translateError(settings, file_dict,  buf, e)
     let name = a:settings.ranges[-1]
   endif
 
-  let range = xrange#getOuterRange(a:settings, name)
+  let range = xrange#getOuterRange(a:settings, name, '')
   if empty(range)
     return 
   endif
@@ -528,18 +542,18 @@ function s:translateError(settings, file_dict,  buf, e)
   let a:e.module = name
 endfunction
 
-function xrange#createRange(settings, name, code='')
+function xrange#createRange(settings, name, code)
   if empty(xrange#getOuterRange(a:settings, a:name, '}'))
     " find next space outside a range
     " so that ranges are not nested
      let last_line = line('$')
-     let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
+     let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings),  '')
      while !empty(current_range) 
        execute current_range.end+1
        if current_range.end == last_line
          break
        endif
-       let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings))
+       let current_range = xrange#getOuterRange(a:settings, xrange#findCurrentRange(a:settings), '')
      endwhile
      let code = a:code
      if !empty(code)
@@ -552,13 +566,13 @@ function xrange#createRange(settings, name, code='')
 endfunction
 
 function xrange#createNewRange(settings)
-  call xrange#createRange(a:settings, input("Range? "))
+  call xrange#createRange(a:settings, input("Range? "),'')
 endfunction
 
 
 function xrange#createResultRange(settings)
   let name = xrange#findCurrentRange(a:settings)
-  let range = xrange#getOuterRange(a:settings, name)
+  let range = xrange#getOuterRange(a:settings, name,'')
   if !empty(range)
     call setpos('.', [0,range.end,0,0])
     call xrange#createRange(a:settings, xrange#resultName(a:settings, name), '+result+ +x @'.name.'!')
@@ -596,7 +610,7 @@ endfunction
 
 " check if word under cursor is a valid range and 
 " expand it if necessary
-function xrange#rangeUnderCursor(settings, check=1)
+function xrange#rangeUnderCursor(settings)
   let pos = getpos('.')
   let full_word = expand('<cWORD>')
   let word = expand('<cword>')
@@ -610,9 +624,9 @@ function xrange#rangeUnderCursor(settings, check=1)
   "clean  end
   let range = substitute(range_name, s:operators.'.*$', '', '')
   " check the range exists
-  if a:check && empty(xrange#getOuterRange(a:settings, range))
+  if empty(xrange#getOuterRange(a:settings, range,''))
     let range = word
-    if empty(xrange#getOuterRange(a:settings, range))
+    if empty(xrange#getOuterRange(a:settings, range, ''))
       let range = ''
     endif
   endif
@@ -625,7 +639,7 @@ function xrange#gotoUnderCursor(settings)
   if empty(range)
     return
   endif
-  execute xrange#getOuterRange(a:settings, range).start
+  execute xrange#getOuterRange(a:settings, range,'').start
 endfunction
 
 function xrange#executeUnderCursor(settings)
@@ -633,7 +647,7 @@ function xrange#executeUnderCursor(settings)
   if empty(range)
     return
   endif
-  execute xrange#executeRangeByName(range, a:settings)
+  execute xrange#executeRangeByName(range, a:settings, 0, '')
 endfunction
 
 " Extracts a dictionary of tag starting with +
@@ -701,7 +715,7 @@ endfunction
 
 function xrange#currentRangeInfo(settings)
   let name = xrange#findCurrentRange(a:settings)
-  let range= xrange#getOuterRange(a:settings, name)
+  let range= xrange#getOuterRange(a:settings, name,'')
   if !empty(range)
     let first_line = substitute(getline(range.start), a:settings.trim_left . s:anyStartRegex(a:settings, '') . '\s*', '', '')
     let first_line = substitute(first_line, a:settings.trim_right, '', '')
