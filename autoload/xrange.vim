@@ -737,7 +737,7 @@ endfunction
 
 function xrange#currentRangeInfo(settings)
   let name = xrange#findCurrentRange(a:settings)
-  return xrange#rangeFino(settings, name)
+  return xrange#rangeInfo(a:settings, name)
 endfunction
 
 function xrange#rangeInfo(settings, name)
@@ -770,7 +770,10 @@ function s:loadSyntax(syntax)
     unlet b:current_syntax
   endif
   let group = "XR".a:syntax
-  execute "syntax include @". group ." syntax/" . a:syntax .".vim"
+  if !hlexists(group)
+    execute "syntax include @". group ." syntax/" . a:syntax .".vim"
+  else
+  endif
   if old_syntax != ''
     let b:current_syntax = old_syntax
   endif
@@ -778,18 +781,27 @@ function s:loadSyntax(syntax)
 endfunction
 
 
-function xrange#linkSyntax(start, end, syntax)
-   let group = s:loadSyntax(a:syntax)
-   execute "syntax region " . group . " start=" . a:start ." end="  . a:end . " contains=@" . group
+function xrange#linkSyntax(start, end, syntax, group)
+   let group = "XR". a:group
+   if !hlexists(group)
+     let syntax = s:loadSyntax(a:syntax)
+     execute "syntax region " . group . " start=" . a:start ." end="  . a:end . " contains=@" . syntax
+   else
+   endif
 endfunction
 
 function xrange#refreshSyntax(settings)
+  let pos = getpos('.')
   let ranges = xrange#rangeList(a:settings)
   for range in ranges
     let syntax = s:syntaxForRange(a:settings, range)
+    echo "INSTALL SYNTAX" syntax "for range" range
     call xrange#installSyntax(a:settings, syntax, '')
   endfor
-  return xrange#syntaxFromMacros(a:settings)
+
+  " xrange#syntaxFromMacros(a:settings)
+  call setpos('.', pos)
+
 endfunction
 
 function xrange#installSyntax(settings, syntax, tag)
@@ -798,11 +810,13 @@ function xrange#installSyntax(settings, syntax, tag)
     endif
     if a:tag == ''
       let start = '/+syntax ' . a:syntax . '\>.*/hs=e+1'
+      let group = a:syntax
     else
       let start = '/+' . a:tag . '\>.*/hs=e+1'
+      let group = a:tag
     end
     let end =  '/'. xrange#anyEndRegex(a:settings) .'/he=s-1'
-    return xrange#linkSyntax(start, end, a:syntax)
+    return xrange#linkSyntax(start, end, a:syntax, group)
 endfunction
 
 function s:syntaxForRange(settings, name)
