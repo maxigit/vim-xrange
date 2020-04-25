@@ -795,11 +795,10 @@ function xrange#refreshSyntax(settings)
   let ranges = xrange#rangeList(a:settings)
   for range in ranges
     let syntax = s:syntaxForRange(a:settings, range)
-    echo "INSTALL SYNTAX" syntax "for range" range
     call xrange#installSyntax(a:settings, syntax, '')
   endfor
 
-  " xrange#syntaxFromMacros(a:settings)
+  call xrange#syntaxFromMacros(a:settings)
   call setpos('.', pos)
 
 endfunction
@@ -809,7 +808,7 @@ function xrange#installSyntax(settings, syntax, tag)
       return
     endif
     if a:tag == ''
-      let start = '/+syntax ' . a:syntax . '\>.*/hs=e+1'
+      let start = '/\<'. a:syntax . '\>.*/hs=e+1'
       let group = a:syntax
     else
       let start = '/+' . a:tag . '\>.*/hs=e+1'
@@ -821,7 +820,19 @@ endfunction
 
 function s:syntaxForRange(settings, name)
   let info = xrange#rangeInfo(a:settings, a:name)
-  return join(get(info.tags, 'syntax', ['vim']),'')
+  let syntaxes = get(info.tags, 'syntax', [])
+  " chech the executable
+  if empty(syntaxes)
+    let command = get(info.tags, 'x' )
+    let syntax = matchstr(command, '\<\zs\('. s:filetypes().'\)\>')
+    if empty(syntax)
+      " let syntaxes = ['vim']
+    else
+      let syntaxes = [syntax]
+    endif
+  endif
+  return join(syntaxes, '')
+  
 endfunction
 
 " Extract syntax for macro and set the syntax region accordingy
@@ -837,3 +848,10 @@ function xrange#syntaxFromMacros(settings)
   endfor
 endfunction
 
+function s:filetypes()
+  if !exists("s:xrange_filetypes_regexp")
+    let xrange_filetypes = (map(split(globpath(&rtp, 'syntax/*.vim'), '\n'), 'fnamemodify(v:val, ":t:r")'))
+    let s:xrange_filetypes_regexp = join(xrange_filetypes, '\|')
+  endif
+  return s:xrange_filetypes_regexp
+endfunction
