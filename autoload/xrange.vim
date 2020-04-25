@@ -855,3 +855,25 @@ function s:filetypes()
   endif
   return s:xrange_filetypes_regexp
 endfunction
+
+
+function Test()
+  return xrange#setupHighlight(xrange#createSettings({}))
+endfunction
+function xrange#setupHighlight(settings)
+  hi link XRangeInTag Identifier
+  hi link XRangeInRange CursorLine
+  hi link XRangeEnd CursorLine
+  hi link XRangeStart MatchParent
+  hi link XRangeInRef Special
+  let startMatch = xrange#anyStartRegex(a:settings)
+  execute "syntax match XRangeStart /.*". startMatch .".*/ contains=XRangeIn.* transparent"
+  execute "syntax match XRangeInRange /". startMatch ."/ contained"
+  let endMatch = xrange#anyEndRegex(a:settings)
+  execute "syntax match XRangeEnd /.*". endMatch .".*/" 
+
+  syntax match XRangeInTag /+\i\+\>/ contained
+  let rangeMatch = '\(@''\?[a-zA-Z0-9-_:]\{-}[''+]\?'.s:operators.'\+\)'
+  echo rangeMatch
+  execute "syntax match XRangeInRef /". rangeMatch ."/ contained"
+endfunction 
