@@ -344,3 +344,5 @@ DONE add custom end delimiter using tags ?
 TODO add conditionnal @range?
 TODO modeline
 TODO doc trim_left and trim_right
+TODO doc syntax
+TODO doc createNewRange
