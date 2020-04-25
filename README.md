@@ -328,6 +328,9 @@ We can use it this way
 - `auto-confirm` this range will be executed automaticaly when the buffer is loaded but will ask the user for confirmation before using it.
 
 # Todos
+DONE create automatic name if empty
+DONE syntax highligting
+DONE make syntaxk hi works with macro
 DONE replace by saving lines or having a save point ?
 TODO create empty line if out file is empty
 DONE explain ; in execution

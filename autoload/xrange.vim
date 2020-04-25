@@ -566,7 +566,11 @@ function xrange#createRange(settings, name, code)
 endfunction
 
 function xrange#createNewRange(settings)
-  call xrange#createRange(a:settings, input("Range? "),'')
+  let name = input("Range name ?")
+  if name == ""
+    let name = "range" . len(xrange#rangeList(a:settings))
+  endif
+  call xrange#createRange(a:settings, name,'')
 endfunction
 
 
@@ -715,12 +719,16 @@ endfunction
 
 function xrange#currentRangeInfo(settings)
   let name = xrange#findCurrentRange(a:settings)
-  let range= xrange#getOuterRange(a:settings, name,'')
+  return xrange#rangeFino(settings, name)
+endfunction
+
+function xrange#rangeInfo(settings, name)
+  let range= xrange#getOuterRange(a:settings, a:name,'')
   if !empty(range)
     let first_line = substitute(getline(range.start), a:settings.trim_left . s:anyStartRegex(a:settings, '') . '\s*', '', '')
     let first_line = substitute(first_line, a:settings.trim_right, '', '')
     let tags = xrange#extractTags(first_line, a:settings.macros)
-    return {'name':name, 'range':range, 'tags':tags}
+    return {'name':a:name, 'range':range, 'tags':tags}
   endif
 endfunction
 
@@ -733,3 +741,67 @@ function s:tagsFromName(name)
   let map = {'out': 'result', 'res': 'result',  'err': 'error', 'all': 'result+ +error'}
   return " +" . get(map, suffix, suffix) . "+"
 endfunction
+
+""""""""""""""""""""""""""""""""""""""""""""""""""
+" syntax
+function s:loadSyntax(syntax)
+  " TODO load only once
+  let old_syntax = get(b:,"current_syntax","")
+  " unset the current syntax otherwise some syntax file won't be loaded
+  if exists("b:current_syntax")
+    unlet b:current_syntax
+  endif
+  let group = "XR".a:syntax
+  execute "syntax include @". group ." syntax/" . a:syntax .".vim"
+  if old_syntax != ''
+    let b:current_syntax = old_syntax
+  endif
+  return  group
+endfunction
+
+
+function xrange#linkSyntax(start, end, syntax)
+   let group = s:loadSyntax(a:syntax)
+   execute "syntax region " . group . " start=" . a:start ." end="  . a:end . " contains=@" . group
+endfunction
+
+function xrange#refreshSyntax(settings)
+  let ranges = xrange#rangeList(a:settings)
+  for range in ranges
+    let syntax = s:syntaxForRange(a:settings, range)
+    call xrange#installSyntax(a:settings, syntax, '')
+  endfor
+  return xrange#syntaxFromMacros(a:settings)
+endfunction
+
+function xrange#installSyntax(settings, syntax, tag)
+    if a:syntax == ''
+      return
+    endif
+    if a:tag == ''
+      let start = '/+syntax ' . a:syntax . '\>.*/hs=e+1'
+    else
+      let start = '/+' . a:tag . '\>.*/hs=e+1'
+    end
+    let end =  '/'. xrange#anyEndRegex(a:settings) .'/he=s-1'
+    return xrange#linkSyntax(start, end, a:syntax)
+endfunction
+
+function s:syntaxForRange(settings, name)
+  let info = xrange#rangeInfo(a:settings, a:name)
+  return join(get(info.tags, 'syntax', ['vim']),'')
+endfunction
+
+" Extract syntax for macro and set the syntax region accordingy
+" for example if prodsql define +sql
+" we need to install sql but use +prodsql instead of +sql for the syntax
+function xrange#syntaxFromMacros(settings)
+  for macro in keys(a:settings.macros)
+    let tags =  a:settings.macros[macro]
+    let syntax = get(tags, 'syntax', '')
+    if !empty(syntax)
+      call xrange#installSyntax(a:settings, syntax, macro)
+    endif
+  endfor
+endfunction
+

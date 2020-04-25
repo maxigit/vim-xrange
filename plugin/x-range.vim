@@ -17,6 +17,7 @@ nnoremap <leader>xr :call xrange#createResultRange(xrange#createSettings({}))<CR
 nnoremap <leader>xn ^/<C-R>=xrange#anyStartRegex(xrange#createSettings({}))<CR><CR>
 nnoremap <leader>xN ^?<C-R>=xrange#anyStartRegex(xrange#createSettings({}))<CR><CR>
 
+nnoremap <leader>xH :call xrange#refreshSyntax(xrange#createSettings({}))<CR>
 function s:executeAuto(name, mode)
   let settings = xrange#createSettings({})
   call xrange#executeRangeByName(a:name, settings, settings.trim_left, a:mode)
