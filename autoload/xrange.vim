@@ -560,19 +560,37 @@ function xrange#createRange(settings, name, code)
        let code = ' ' . code
      endif
 
-      call append(line('.'), [printf(a:settings.start, a:name) . code, printf(a:settings.end, a:name)])
+      call append(line('.'), ['', printf(a:settings.start, a:name) . code, printf(a:settings.end, a:name), ''])
   endif
   normal j 
 endfunction
 
 function xrange#createNewRange(settings)
-  let name = input("Range name ?")
+  call s:initCompleteNewRange(a:settings)
+  let ranges = xrange#rangeList(a:settings)
+  let name = input("Range name ?",'', 'customlist,xrange#completeNewRange')
+  let tag = ''
   if name == ""
-    let name = "range" . len(xrange#rangeList(a:settings))
+    let name = "range" 
+  elseif name[0] =='+'
+    let tag = name . '+'
+    let name = name[1:]
   endif
-  call xrange#createRange(a:settings, name,'')
+  if index(ranges,name) >= 0
+    " already exist
+    let name = name . '_' . len(ranges)
+  endif
+  call xrange#createRange(a:settings, name,tag)
 endfunction
 
+function xrange#completeNewRange(A,L,P)
+  return filter(b:xrange_complete_new_range, {_, val -> val =~ a:A})
+endfunction
+
+function s:initCompleteNewRange(settings)
+  let macros = keys(a:settings.macros)
+  let b:xrange_complete_new_range =  map(macros, {i -> '+'.macros[i]})
+endfunction
 
 function xrange#createResultRange(settings)
   let name = xrange#findCurrentRange(a:settings)
