@@ -40,6 +40,7 @@ nnoremap <leader>xo :echo xrange#rangeUnderCursor(xrange#createSettings({}))<CR>
 augroup xrange
   au BufReadPost * call s:executeAuto("auto", "silent")
   au BufReadPost * call s:executeAuto("auto-confirm", "confirm")
+  au BufReadPost * call xrange#refreshSyntax(xrange#createSettings({}))
 augroup END
 finish
 <data>
