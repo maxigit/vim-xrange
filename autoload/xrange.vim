@@ -763,6 +763,10 @@ endfunction
 """"""""""""""""""""""""""""""""""""""""""""""""""
 " syntax
 function s:loadSyntax(syntax)
+  if a:syntax == "sh"
+    return s:loadSyntax('zsh')
+    " ^ for some reason sh breaks everything
+  endif
   " TODO load only once
   let old_syntax = get(b:,"current_syntax","")
   " unset the current syntax otherwise some syntax file won't be loaded
@@ -785,7 +789,7 @@ function xrange#linkSyntax(start, end, syntax, group)
    let group = "XR". a:group
    if !hlexists(group)
      let syntax = s:loadSyntax(a:syntax)
-     execute "syntax region " . group . " start=" . a:start ." end="  . a:end . " contains=@" . syntax
+     execute "syntax region " . group . " matchgroup=Underlined start=" . a:start ." end="  . a:end . " contains=@" . syntax ." keepend transparent"
    else
    endif
 endfunction
@@ -799,6 +803,7 @@ function xrange#refreshSyntax(settings)
   endfor
 
   call xrange#syntaxFromMacros(a:settings)
+  call xrange#setupHighlight(a:settings)
   call setpos('.', pos)
 
 endfunction
@@ -808,14 +813,14 @@ function xrange#installSyntax(settings, syntax, tag)
       return
     endif
     if a:tag == ''
-      let start = '/\<'. a:syntax . '\>.*/hs=e+1'
+      let start = '\<'. a:syntax . '\>.*\n/rs=e,hs=e'
       let group = a:syntax
     else
-      let start = '/+' . a:tag . '\>.*/hs=e+1'
+      let start = '+' . a:tag . '\>.*\n/rs=e,hs=e'
       let group = a:tag
     end
-    let end =  '/'. xrange#anyEndRegex(a:settings) .'/he=s-1'
-    return xrange#linkSyntax(start, end, a:syntax, group)
+    let end =  '/'. xrange#anyEndRegex(a:settings) .'/re=s'
+    return xrange#linkSyntax('/'. xrange#anyStartRegex(a:settings) . '.*'. start, end, a:syntax, group)
 endfunction
 
 function s:syntaxForRange(settings, name)
@@ -857,23 +862,27 @@ function s:filetypes()
 endfunction
 
 
-function Test()
-  return xrange#setupHighlight(xrange#createSettings({}))
-endfunction
 function xrange#setupHighlight(settings)
-  hi link XRangeInTag Identifier
-  hi link XRangeInRange CursorLine
-  hi link XRangeEnd CursorLine
-  hi link XRangeStart MatchParent
-  hi link XRangeInRef Special
+  if !hlexists("XRangeTag")
+    hi link XRangeTag Identifier
+    hi link XRangeEnd TabLine " CursorLine
+    hi link XRangeStart CursorLine
+    hi link XRangeRef Statement
+  endif
+  if exists("b:xrange_matches")
+    return
+  endif
+  let matches = []
   let startMatch = xrange#anyStartRegex(a:settings)
-  execute "syntax match XRangeStart /.*". startMatch .".*/ contains=XRangeIn.* transparent"
-  execute "syntax match XRangeInRange /". startMatch ."/ contained"
   let endMatch = xrange#anyEndRegex(a:settings)
-  execute "syntax match XRangeEnd /.*". endMatch .".*/" 
-
-  syntax match XRangeInTag /+\i\+\>/ contained
   let rangeMatch = '\(@''\?[a-zA-Z0-9-_:]\{-}[''+]\?'.s:operators.'\+\)'
-  echo rangeMatch
-  execute "syntax match XRangeInRef /". rangeMatch ."/ contained"
+
+  " we use matchadd instead of :syntax because syntax interferred with
+  " language syntax. It is hard to not have range tag and language block not
+  " overloading
+  call add(matches, matchadd("XRangeStart", startMatch))
+  call add(matches, matchadd("XRangeEnd", endMatch))
+  " call add(matches, matchadd("XRangeTag", '+\i\+'))
+  call add(matches, matchadd("XRangeRef", rangeMatch))
+  let b:xrange_bathces = matches
 endfunction 
