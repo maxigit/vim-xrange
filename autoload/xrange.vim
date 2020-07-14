@@ -825,6 +825,10 @@ endfunction
 
 function s:syntaxForRange(settings, name)
   let info = xrange#rangeInfo(a:settings, a:name)
+  if empty(info)
+    " Doesn't raise an error in case the range is malformatted
+    return ""
+  endif
   let syntaxes = get(info.tags, 'syntax', [])
   " chech the executable
   if empty(syntaxes)
