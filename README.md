@@ -117,17 +117,17 @@ $ => 99
 
 #### file operators
 
-- @range< creates an 'in' temporary file containing the text within the range
-- @range> creates an 'out' temporary file. The content of the out file will be injected in the buffer between the range at the end of execution of the block.
-- @range@ creates an 'error' file. An error file is like an out file but is also parsed for error (and fill the quickfix window).
-- @range& load the content of an out file now (without waiting for the end of the block).
+- `@range<` creates an 'in' temporary file containing the text within the range
+- `@range>` creates an 'out' temporary file. The content of the out file will be injected in the buffer between the range at the end of execution of the block.
+- `@range@` creates an 'error' file. An error file is like an out file but is also parsed for error (and fill the quickfix window).
+- `@range&` load the content of an out file now (without waiting for the end of the block).
 
 ### extra operators
 
-- @range- delete the content of a range
-- @range+ create the range if it doesn't exist
-- @range! execute the range. Can be used to setup dependency
-- @range' expand the full range name see (current range)
+- `@range-` delete the content of a range
+- `@range+` create the range if it doesn't exist
+- `@range!` execute the range. Can be used to setup dependency
+- `@range'` expand the full range name see (current range)
 - @'... escape the @
 
 ### Current Range 
