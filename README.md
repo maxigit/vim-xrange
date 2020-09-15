@@ -124,10 +124,10 @@ $ => 99
 
 ### extra operators
 
-- `@range-` delete the content of a range
-- `@range+` create the range if it doesn't exist
-- `@range!` execute the range. Can be used to setup dependency
-- `@range'` expand the full range name see (current range)
+- `@range- delete the content of a range
+- `@range+ create the range if it doesn't exist
+- `@range! execute the range. Can be used to setup dependency
+- `@range' expand the full range name see (current range)
 - @'... escape the @
 
 ### Current Range 
@@ -142,6 +142,17 @@ In the following example, `@:out` is equivalent to `@current:out`.
 :current:out:
 139 =  139
 .current:out.
+
+### Tags value
+- `@range.tag` expand to tag value. 
+
+``` vimscript
+:example_var: +name Bilbo +x !echo @.name > @>
+Bilbo
+.example_var.
+```
+
+
 ```
 ## Default Mappings
 For the following mappings, _current range_ refers to the range containing the cursor, wheras range under cursor refrs to the range which the name is under cursor.

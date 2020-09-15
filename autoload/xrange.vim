@@ -110,11 +110,11 @@ function s:executeLine(settings, line, trim_left)
 endfunction
 let s:operators = '[$^*%@<>{}!&-]'
 function xrange#splitRanges(line) 
-  let matches = matchlist(a:line, '\([^@]*\)\(@''\?[a-zA-Z0-9-_:]\{-}[''+]\?'.s:operators.'\+\)\(.*\)')
+  let matches = matchlist(a:line, '\([^@]*\)\(@''\?[a-zA-Z0-9-_:]\{-}[''+]\?\('.s:operators.'\+\|\.\i\+\)\)\(.*\)')
   if empty(matches)
     return [a:line]
   else
-    return [matches[1], matches[2]]+xrange#splitRanges(matches[3])
+    return [matches[1], matches[2]]+xrange#splitRanges(matches[4])
   end
 endfunction
 
@@ -125,7 +125,7 @@ function xrange#expandZone(settings, key, token)
         " full escape
         return "@" . matches[1]
       endif
-      let matches = matchlist(a:token, '^@\([a-zA-Z0-9_:<>-]\{-}\)\([''+]\?\)\('.s:operators.'\+\)$')
+      let matches = matchlist(a:token, '^@\([a-zA-Z0-9_:<>-]\{-}\)\([''+]\?\)\('.s:operators.'\+\|\.\(\i\+\)\)$')
       if empty(matches)
           return a:token
       else
@@ -180,6 +180,15 @@ function xrange#expandZone(settings, key, token)
           elseif mode == '!'
             " let result = "call xrange#executeRangeByName('".name."')"
             let result = xrange#executeRangeByName(name, a:settings, 0, '')
+          elseif len(matches[4])>0
+            let r = xrange#rangeInfo(a:settings, name)
+            echomsg "RANGE" r
+            let value = get(r.tags, matches[4], [])
+            if value == []
+              throw "variable ".matches[4] . " is not defined in range @" . name
+            else
+              let result = join(value)
+            endif
           elseif mode == '-'
             call xrange#deleteInnerRange(name, a:settings)
             " update range
@@ -363,7 +372,9 @@ function s:saveRange(name, file,  settings)
       " execute the code and undo it afterward
       for s in tags.sw
         if !empty(range) && range.end >= range.start
-          execute range.start "," range.end " s" s
+          " execute range.start "," range.end " s" s
+          " We need to call execute Line to expand range variable
+          call s:executeLine(a:settings, '@* s'.s,'')
           let range = xrange#innerRange(xrange#getOuterRange(a:settings, a:name, ''))
         endif
       endfor
@@ -373,7 +384,8 @@ function s:saveRange(name, file,  settings)
       " execute the code and undo it afterward
       for s in tags.aw
         if !empty(range) && range.end >= range.start
-          execute range.start "," range.end s
+          "execute range.start "," range.end s
+          call s:executeLine(a:settings, '@* '.s,'')
           let range = xrange#innerRange(xrange#getOuterRange(a:settings, a:name, ''))
         endif
       endfor
