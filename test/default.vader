@@ -7,6 +7,6 @@ Given :
   :range2:
   .range2.
 Execute (find first range):
-  AssertEqual 2,b:settings.find_start('c')
+  AssertEqual 2,b:settings.search_start('c')
 Then (find next range):
-  AssertEqual 4,b:settings.find_start('')
+  AssertEqual 4,b:settings.search_start('')
