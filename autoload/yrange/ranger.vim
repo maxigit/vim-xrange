@@ -43,3 +43,38 @@ function! yrange#ranger#default()
   " --------------------------------------------------
   return ranger
 endfunction
+
+" --------------------------------------------------
+"       Ormode
+"
+function! yrange#ranger#org_header()
+  let start_regexp_builder = '^\(\*\+\) \(%s\)'
+  let valid_name = '\S[^:]*'
+  let end_regexp_builder = '\%(\n\*\{,%d} \|\%%$\)'
+  "                                  ^        ^^     end of file
+  "                                  |        +--   double % for printf
+  "                                  +              higher level
+  let ranger = {}
+
+  " --------------------------------------------------
+  function ranger.search_start(search_flag,name=valid_name) closure
+    let start_regexp = printf(start_regexp_builder, a:name)
+    let start = search(start_regexp, a:search_flag)
+    if start == 0
+      return {}
+    endif
+    let m = matchlist(getline(start), start_regexp) 
+    let name = m[2]
+    let level = len(m[1])
+    let result = {'start':start, 'name':name}
+    function result.search_end(search_flag) closure
+      let end_regexp = printf(end_regexp_builder, level)
+      return search(end_regexp,a:search_flag)
+    endfunction
+
+    return result
+    
+  endfunction
+  " --------------------------------------------------
+  return ranger
+endfunction

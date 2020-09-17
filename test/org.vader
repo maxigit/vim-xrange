@@ -1,0 +1,18 @@
+Before:
+  let b:ranger = yrange#ranger#org_header()
+Given (Org mode two headingstwo) :
+  * Heading 1
+  ** Heading 1.1
+  end of  heading 1.1
+  ** Heading 1.2
+  endof Heading 1 and Heading 1.2
+Execute (find next range):
+  let range =  b:ranger.search_start('c')
+  AssertEqual [1,'Heading 1'] , [range.start, range.name]
+
+  let range2 = b:ranger.search_start('')
+  AssertEqual [2, 'Heading 1.1'] ,  [range2.start, range2.name]
+  AssertEqual 3            , range2.search_end('')
+  normal gg
+  AssertEqual 5            , range.search_end('')
+
