@@ -10,3 +10,4 @@ Execute (find first range):
   AssertEqual 2,b:ranger.search_start('c')
 Then (find next range):
   AssertEqual 4,b:ranger.search_start('')
+  AssertEqual 5,b:ranger.search_end('')
