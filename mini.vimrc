@@ -1,5 +1,5 @@
 filetype off
 packadd vader.vim
-set rtp+=~/.vim/pack/mine/opt/vim-xrange/
+set rtp+=.
 filetype plugin indent on
 syntax enable
