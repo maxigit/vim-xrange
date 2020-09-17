@@ -1,5 +1,5 @@
 Before:
-  let b:settings = yrange#settings#default()
+  let b:ranger = yrange#ranger#default()
 Given :
   Nothing
   :range1:
@@ -7,6 +7,6 @@ Given :
   :range2:
   .range2.
 Execute (find first range):
-  AssertEqual 2,b:settings.search_start('c')
+  AssertEqual 2,b:ranger.search_start('c')
 Then (find next range):
-  AssertEqual 4,b:settings.search_start('')
+  AssertEqual 4,b:ranger.search_start('')
