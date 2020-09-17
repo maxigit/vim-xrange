@@ -1,0 +1,11 @@
+Before:
+  let b:settings = yrange#settings#default()
+Given :
+  Nothing
+  :range1:
+  .range1:
+  :range2:
+  .range2.
+Execute (find first range):
+  AssertEqual 2,b:settings.find_start('c')
+  AssertEqual 4,b:settings.find_start('')
