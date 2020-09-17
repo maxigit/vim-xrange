@@ -1,6 +1,6 @@
 function! yrange#ranger#default()
   let start_regexp = '^:\S*:'
-  let start_regexp = '^.\S*.'
+  let end_regexp = '^\.\S*\.'
   let ranger = {}
 
   " --------------------------------------------------

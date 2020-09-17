@@ -3,11 +3,10 @@ Before:
 Given :
   Nothing
   :range1:
-  .range1:
+  .range1.
   :range2:
   .range2.
-Execute (find first range):
+Execute (find next range):
   AssertEqual 2,b:ranger.search_start('c')
-Then (find next range):
   AssertEqual 4,b:ranger.search_start('')
   AssertEqual 5,b:ranger.search_end('')
