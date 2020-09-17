@@ -1,11 +1,17 @@
 function! yrange#ranger#default()
-  let start_regexp = '^:\S*:'
+  let start_regexp = '^:\(\S*\):'
   let end_regexp = '^\.\S*\.'
   let ranger = {}
 
   " --------------------------------------------------
   function! ranger.search_start(search_flag) closure
-    return search(start_regexp, a:search_flag)
+    let start = search(start_regexp, a:search_flag)
+    if start == 0
+      return {}
+    endif
+    let m = matchlist(getline(start), start_regexp) 
+    return {'start':start, 'name':m[1]}
+    
   endfunction
 
   " --------------------------------------------------
