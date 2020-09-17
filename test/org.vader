@@ -12,6 +12,7 @@ Execute (find next range):
 
   let range2 = b:ranger.search_start('')
   AssertEqual [2, 'Heading 1.1'] ,  [range2.start, range2.name]
+  AssertEqual 3, range2.subranger.level 
   AssertEqual 3            , range2.search_end('')
   normal gg
   AssertEqual 5            , range.search_end('')

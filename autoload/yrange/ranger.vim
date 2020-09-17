@@ -9,7 +9,7 @@
 " - name : name of the range
 " - search_end function to search for the end
 
-function! yrange#ranger#default()
+function! yrange#ranger#default(nestable=1)
   let start_regexp_builder = '^:\(%s\):'
   let valid_name = '\S*'
   let end_regexp_builder = '^\.%s\.'
@@ -25,6 +25,10 @@ function! yrange#ranger#default()
     let m = matchlist(getline(start), start_regexp) 
     let name = m[1]
     let result = {'start':start, 'name':name}
+    if a:nestable 
+      let result.subranger = yrange#ranger#default(a:nestable)
+    endif
+    
     function result.search_end(search_flag) closure
       let end_regexp = printf(end_regexp_builder, name)
       return search(end_regexp,a:search_flag)
@@ -53,8 +57,8 @@ function! yrange#ranger#org_header(start_level=1)
   let end_regexp_builder = '\%(\n\*\{,%d} \|\%%$\)'
   "                                  ^        ^^     end of file
   "                                  |        +--   double % for printf
-  "                                  +              higher level
-  let ranger = {}
+  "                                  +-----------   higher level
+  let ranger = {'level':a:start_level}
 
   " --------------------------------------------------
   function ranger.search_start(search_flag,name=valid_name) closure
