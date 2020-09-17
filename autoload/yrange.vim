@@ -8,7 +8,7 @@
 " allowing range syntax to change depending on the contect
 " a settings is a dict which must contains the following field
 " - find_start
-" - find_current
+" - find_current/ find_by_name/any
 " - find_end
 " - insert_start 
 " - insert_end
@@ -16,12 +16,12 @@
 
 " Create settings from buffer or global settings
 function! yrange#create_setting()
-  return {}
+  return yrange#settings#default()
 endfunction
 
 " create settings if necessary
 function! yrange#get_settings(settings)
-  if a:settings == {} or a:settings 
+  if a:settings == {} 
     return yrange#create_setting()
   else
     return a:settings
@@ -47,7 +47,11 @@ endfunction
 " - nestable ???
 " - syntax
 " - settings (if any) 
-function! yrange#find_first(settings={})
+"
+"   If no range is found {} is return
+function! yrange#find_current(settings={})
   let settings = yrange#get_settings(a:settings)
+
+  return settings.find_start('cnW')
 endfunction
 
