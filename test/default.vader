@@ -10,6 +10,9 @@ Execute (find next range):
   AssertEqual {'start':2, 'name':'range1'} ,b:ranger.search_start('c')
   AssertEqual {'start':4, 'name':'range2'} ,b:ranger.search_start('')
   AssertEqual 5,b:ranger.search_end('')
+Execute (find by name):
+  AssertEqual {'start':4, 'name':'range2'}, b:ranger.search_start('n','range2')
+  AssertEqual {'start':2, 'name':'range1'}, b:ranger.search_start('','range1')
 
 Given (find current range if cursor not at the beginning):
   :range:
