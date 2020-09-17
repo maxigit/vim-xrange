@@ -1,18 +1,23 @@
 Before:
   let b:ranger = yrange#ranger#default()
-Given :
+Given (two ranges) :
   Nothing
   :range1:
   .range1.
   :range2:
   .range2.
 Execute (find next range):
-  AssertEqual {'start':2, 'name':'range1'} ,b:ranger.search_start('c')
-  AssertEqual {'start':4, 'name':'range2'} ,b:ranger.search_start('')
-  AssertEqual 5,b:ranger.search_end('')
+  let range =  b:ranger.search_start('c')
+  AssertEqual [2,'range1'] , [range.start, range.name]
+
+  let range2 = b:ranger.search_start('')
+  AssertEqual [4, 'range2'] ,  [range2.start, range2.name]
+  AssertEqual 5            , range2.search_end()
 Execute (find by name):
-  AssertEqual {'start':4, 'name':'range2'}, b:ranger.search_start('n','range2')
-  AssertEqual {'start':2, 'name':'range1'}, b:ranger.search_start('','range1')
+  let range =  b:ranger.search_start('n','range2')
+  AssertEqual [4, 'range2'], [range.start, range.name]
+  let range = b:ranger.search_start('','range1')
+  AssertEqual [2, 'range1'], [range.start, range.name]
 
 Given (find current range if cursor not at the beginning):
   :range:
@@ -20,5 +25,5 @@ Given (find current range if cursor not at the beginning):
 Do:
   $
 Execute:
-  AssertEqual {'start':1, 'name':'range'}, b:ranger.search_start('c')
+-- AssertEqual {'start':1, 'name':'range'}, b:ranger.search_start('c')
 

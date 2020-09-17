@@ -5,14 +5,22 @@ function! yrange#ranger#default()
   let ranger = {}
 
   " --------------------------------------------------
-  function! ranger.search_start(search_flag,name=valid_name) closure
+  function ranger.search_start(search_flag,name=valid_name) closure
     let start_regexp = printf(start_regexp_builder, a:name)
     let start = search(start_regexp, a:search_flag)
     if start == 0
       return {}
     endif
     let m = matchlist(getline(start), start_regexp) 
-    return {'start':start, 'name':m[1]}
+    let name = m[1]
+    let result = {'start':start, 'name':name}
+    function result.search_end() closure
+      let end_regexp = printf(end_regexp_builder, name)
+      call setpos('.', [0, start, 0,0] )
+      return search(end_regexp,'n')
+    endfunction
+
+    return result
     
   endfunction
 
