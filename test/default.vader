@@ -8,4 +8,5 @@ Given :
   .range2.
 Execute (find first range):
   AssertEqual 2,b:settings.find_start('c')
+Then (find next range):
   AssertEqual 4,b:settings.find_start('')
