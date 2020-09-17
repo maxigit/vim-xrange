@@ -1,4 +1,5 @@
-Before:
+Include: common.vader
+Execute (setup):
   let b:ranger = yrange#ranger#org_header()
 Given (Org mode two headingstwo) :
   * Heading 1
@@ -9,6 +10,7 @@ Given (Org mode two headingstwo) :
 Execute (find next range):
   let range =  b:ranger.search_start('c')
   AssertEqual [1,'Heading 1'] , [range.start, range.name]
+  AssertIn {'start':1,'name':'Heading 1'} , range
 
   let range2 = b:ranger.search_start('')
   AssertEqual [2, 'Heading 1.1'] ,  [range2.start, range2.name]
