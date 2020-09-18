@@ -55,9 +55,9 @@ function! yrange#ranger#org_header(start_level=1)
   let ranger = {'level':a:start_level}
 
   " --------------------------------------------------
-  function ranger.search_start(search_flag,name=valid_name) closure
+  function ranger.search_start(search_flag,name=valid_name,stopline=v:none) closure
     let start_regexp = printf(start_regexp_builder, a:start_level, a:name)
-    let start = search(start_regexp, a:search_flag)
+    let start = search(start_regexp, a:search_flag, a:stopline)
     if start == 0
       return {}
     endif
@@ -65,9 +65,9 @@ function! yrange#ranger#org_header(start_level=1)
     let name = m[2]
     let level = len(m[1])
     let result = {'start':start, 'name':name, 'subranger':yrange#ranger#org_header(level+1)}
-    function result.search_end(search_flag) closure
+    function result.search_end(search_flag, stopline=v:none) closure
       let end_regexp = printf(end_regexp_builder, level)
-      return search(end_regexp,a:search_flag)
+      return search(end_regexp,a:search_flag, a:stopline)
     endfunction
 
     return result

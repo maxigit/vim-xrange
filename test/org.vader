@@ -18,4 +18,13 @@ Execute (find next range):
   AssertEqual 3            , range2.search_end('')
   normal gg
   AssertEqual 5            , range.search_end('')
+Execute (find ends):
+  let range = yrange#ranger#search_range(b:ranger,'cW')
+  AssertIn {'start':1, 'end':5}, range
+  call cursor(2,0)
+  let range = yrange#ranger#search_range(b:ranger,'cW')
+  AssertIn {'start':2, 'end':3}, range
+  call cursor(3,0)
+  let range = yrange#ranger#search_range(b:ranger,'cW')
+  AssertIn {'start':4, 'end':5}, range
 
