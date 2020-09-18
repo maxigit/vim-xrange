@@ -7,16 +7,12 @@
 " settings can be nested
 " allowing range syntax to change depending on the contect
 " a settings is a dict which must contains the following field
-" - find_start
-" - find_current/ find_by_name/any
-" - find_end
-" - insert_start 
-" - insert_end
+" - ranger
 "
 
 " Create settings from buffer or global settings
 function! yrange#create_setting()
-  return yrange#settings#default()
+  return {ranger.yrange#ranger#default()}
 endfunction
 
 " create settings if necessary

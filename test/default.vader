@@ -41,3 +41,47 @@ Execute (find boths ranges):
   let range =  b:ranger.search_start('c')
   AssertEqual [4,'range'] , [range.start, range.name]
 
+
+Given (one range):
+  :range:
+  1
+  2
+  3
+  .range.
+Execute (it finds end):
+  let range = yrange#ranger#search_range(b:ranger,'cW')
+  AssertIn {'start':1,'end':5}, range
+
+Given (two non nested ranges):
+  :range:
+  1
+  2
+  3
+  .range.
+  :range:
+  1
+  2
+  3
+  .range.
+Execute (it finds end):
+  let range = yrange#ranger#search_range(b:ranger,'c')
+  AssertIn {'start':1,'end':5}, range
+  let range2 = yrange#ranger#search_range(b:ranger,'W')
+  AssertIn {'start':6,'end':10}, range2
+Given (two nested ranges with the same name):
+  :range:
+  1
+  2
+  3
+  :range:
+  1
+  2
+  .range.
+  4
+  .range.
+Execute (it finds end):
+  let range = yrange#ranger#search_range(b:ranger,'c')
+  AssertIn {'start':1,'end':10}, range
+  call cursor(2,0)
+  let range2 = yrange#ranger#search_range(b:ranger,'W')
+  AssertIn {'start':5,'end':8}, range2
