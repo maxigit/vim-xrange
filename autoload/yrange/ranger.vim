@@ -130,9 +130,8 @@ function yrange#ranger#current_range(ranger,stopline=v:none)
        if range.end >= current_line
          " found, check for nested range
          call setpos('.', save_cursor)
-         if 0
-           " has_key(range, 'subranger')
-           let sub = yrange#ranger#current_range(range.subranger,v:none,range.start+1)
+         if has_key(range, 'subranger')
+           let sub = yrange#ranger#current_range(range.subranger,range.start+1)
            if !empty(sub)
              let range= sub
            endif

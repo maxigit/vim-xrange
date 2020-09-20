@@ -30,4 +30,14 @@ Execute (find ends):
 Execute (find by name):
   let range = yrange#ranger#search_range(b:ranger,'c','\MHeading 1.1\m')
   AssertIn {'start':2, 'end':3}, range
+Execute (find current):
+  let range = yrange#ranger#current_range(b:ranger)
+  AssertIn {'start':1, 'end':5}, range
+  call cursor(3,0)
+  let range = yrange#ranger#current_range(b:ranger)
+  AssertIn {'start':2, 'end':3}, range
+Execute (find current at the end):
+  call cursor(5,0)
+  let range = yrange#ranger#current_range(b:ranger)
+  AssertIn {'start':4, 'end':5}, range
 
