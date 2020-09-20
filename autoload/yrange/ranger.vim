@@ -127,7 +127,7 @@ function yrange#ranger#current_range(ranger,stopline=v:none)
       break
     endif
     if has_key(range,'end')
-       if range.end > current_line
+       if range.end >= current_line
          " found, check for nested range
          call setpos('.', save_cursor)
          if 0
@@ -142,7 +142,7 @@ function yrange#ranger#current_range(ranger,stopline=v:none)
          " start searching above it
          if range.start>1
            call cursor(range.start-1,0)
-           let range = yrange#ranger#search_range(a:ranger,'bW',v:none,a:stopline)
+           let range = yrange#ranger#search_range(a:ranger,'cbW',v:none,a:stopline)
          else " can't go up give up
            let range={}
            break

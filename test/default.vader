@@ -95,11 +95,11 @@ Execute (it find current on cursor and skip children):
   call cursor(9,0)
   let range = yrange#ranger#current_range(b:ranger)
   AssertIn {'start':1, 'end':10}, range
+Execute (A):
   call cursor(10,0)
   let range = yrange#ranger#current_range(b:ranger)
   AssertIn {'start':1, 'end':10}, range
 Execute (it find current nested):
   call cursor(5,0)
-  AssertEqual 6, line('.')
   let range = yrange#ranger#current_range(b:ranger)
   AssertIn {'start':5, 'end':8}, range
