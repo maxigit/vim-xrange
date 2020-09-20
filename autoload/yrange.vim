@@ -69,3 +69,24 @@ function! yrange#moveTo(range, key)
     call cursor(lnum,0)
   endif
 endfunction
+
+function! yrange#current_or_parent_range(settings={})
+    let save_cursor = getcurpos()
+    let ranger = yrange#get_settings(a:settings).ranger
+    let current = yrange#ranger#current_range(ranger)
+    if empty(current)
+      return current
+    endif
+    let lnum = save_cursor[1]
+    if current.start ==  lnum || get(current,'end',0) == lnum
+      let parent = yrange#ranger#parent_range(ranger)
+      if empty(parent)
+        call setpos ('.', save_cursor)
+        return {}
+      else
+        return parent
+      endif
+    endif
+    " check  if current line is on the edge
+    return current
+endfunction

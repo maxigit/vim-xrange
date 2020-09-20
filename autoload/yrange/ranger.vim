@@ -118,9 +118,8 @@ endfunction
 
 
 " Find the most nested range under cursor
-function yrange#ranger#current_range(ranger,stopline=v:none)
+function yrange#ranger#current_range(ranger,stopline=v:none,current_line=line('.'))
   let save_cursor = getcurpos()
-  let current_line = save_cursor[1]
   let range=  yrange#ranger#search_range(a:ranger,'cbW',v:none, a:stopline)
   "                                         ^  backward, match cursor
   while 1
@@ -128,11 +127,11 @@ function yrange#ranger#current_range(ranger,stopline=v:none)
       break
     endif
     if has_key(range,'end')
-       if range.end >= current_line
+       if range.end >= a:current_line
          " found, check for nested range
          call setpos('.', save_cursor)
          if has_key(range, 'subranger')
-           let sub = yrange#ranger#current_range(range.subranger,range.start+1)
+           let sub = yrange#ranger#current_range(range.subranger,range.start+1,a:current_line)
            if !empty(sub)
              let range= sub
            endif
@@ -156,6 +155,20 @@ function yrange#ranger#current_range(ranger,stopline=v:none)
 
   call setpos('.', save_cursor)
   return range
+endfunction
+
+function yrange#ranger#parent_range(ranger,stopline=v:none)
+  let current = yrange#ranger#current_range(a:ranger,a:stopline)
+  if empty(current)
+    return {}
+  endif
+
+  let lnum = current.start
+  if lnum==1
+    return {}
+  else
+  call cursor(lnum-1,0)
+  return yrange#ranger#current_range(a:ranger, a:stopline, lnum)
 endfunction
 
 " Find next most nested range next to cursor

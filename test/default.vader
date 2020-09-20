@@ -109,4 +109,10 @@ Execute (it finds next):
   " wrap
   let range =yrange#ranger#next_range(b:ranger)
   AssertIn {'start':1, 'end':10}, range
+Execute (it finds parent):
+  let range =yrange#ranger#parent_range(b:ranger)
+  AssertEqual {}, range
+  call cursor (6,0)
+  let range =yrange#ranger#parent_range(b:ranger)
+  AssertIn {'start':1, 'end':10}, range
 
