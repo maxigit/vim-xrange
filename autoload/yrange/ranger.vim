@@ -117,6 +117,7 @@ function yrange#ranger#search_range(ranger, search_flag, name=v:none,stopline=v:
 endfunction
 
 
+" Find the most nested range under cursor
 function yrange#ranger#current_range(ranger,stopline=v:none)
   let save_cursor = getcurpos()
   let current_line = save_cursor[1]
@@ -155,4 +156,31 @@ function yrange#ranger#current_range(ranger,stopline=v:none)
 
   call setpos('.', save_cursor)
   return range
+endfunction
+
+" Find next most nested range next to cursor
+function yrange#ranger#next_range(ranger, search_nested=1)
+  let save_cursor = getcurpos()
+  let next = yrange#ranger#search_range(a:ranger,'w') " wrap if necessary
+  " check if there is a nested one
+  if a:search_nested 
+    " set to 0 avoid infinite recursion. We only search one nested
+    let current = yrange#ranger#current_range(a:ranger)
+    if has_key(current,'subranger')
+      call setpos('.',save_cursor)
+      let next_sub = yrange#ranger#next_range(current.subranger, 0)
+      " check if the next sub if before or after then next one
+      if has_key(next_sub, 'start')
+        if next_sub.start < next.start || next.start < save_cursor[1]
+          "                                wrapped so in theory after
+          let next  = next_sub
+        endif
+      endif
+    endif
+  endif
+  return next
+endfunction
+
+function yrange#ranger#previous_range(ranger)
+  throw "not implemented"
 endfunction

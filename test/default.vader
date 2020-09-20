@@ -85,13 +85,13 @@ Execute (it finds end):
   call cursor(2,0)
   let range2 = yrange#ranger#search_range(b:ranger,'W')
   AssertIn {'start':5,'end':8}, range2
-Execute (it find current on cursor):
+Execute (it finds current on cursor):
   let range = yrange#ranger#current_range(b:ranger)
   AssertIn {'start':1, 'end':10}, range
   call cursor(2,0)
   let range = yrange#ranger#current_range(b:ranger)
   AssertIn {'start':1, 'end':10}, range
-Execute (it find current on cursor and skip children):
+Execute (it finds current on cursor and skip children):
   call cursor(9,0)
   let range = yrange#ranger#current_range(b:ranger)
   AssertIn {'start':1, 'end':10}, range
@@ -99,7 +99,14 @@ Execute (A):
   call cursor(10,0)
   let range = yrange#ranger#current_range(b:ranger)
   AssertIn {'start':1, 'end':10}, range
-Execute (it find current nested):
+Execute (it finds current nested):
   call cursor(5,0)
   let range = yrange#ranger#current_range(b:ranger)
   AssertIn {'start':5, 'end':8}, range
+Execute (it finds next):
+  let range =yrange#ranger#next_range(b:ranger)
+  AssertIn {'start':5, 'end':8}, range
+  " wrap
+  let range =yrange#ranger#next_range(b:ranger)
+  AssertIn {'start':1, 'end':10}, range
+

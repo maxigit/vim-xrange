@@ -47,6 +47,20 @@ endfunction
 "   If no range is found {} is return
 function! yrange#current_range(settings={})
   let settings = yrange#get_settings(a:settings)
-  return yrange#rangex#current_range(settings.ranger)
+  return yrange#ranger#current_range(settings.ranger)
 endfunction
 
+
+function! yrange#next_range(settings={})
+  let range = yrange#ranger#next_range(yrange#get_settings(a:settings).ranger)
+  call yrange#moveTo(range, 'start')
+endfunction
+
+function! yrange#moveTo(range, key)
+  let lnum = get(a:range, a:key, 0)
+  if empty(lnum)
+    return
+  else
+    call cursor(lnum,0)
+  endif
+endfunction
