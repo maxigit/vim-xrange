@@ -161,7 +161,7 @@ endfunction
 " Find next most nested range next to cursor
 function yrange#ranger#next_range(ranger, search_nested=1)
   let save_cursor = getcurpos()
-  let next = yrange#ranger#search_range(a:ranger,'w') " wrap if necessary
+  let next = yrange#ranger#search_range(a:ranger,'') " use default wrapscan options
   " check if there is a nested one
   if a:search_nested 
     " set to 0 avoid infinite recursion. We only search one nested
