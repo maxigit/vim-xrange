@@ -12,7 +12,7 @@
 
 " Create settings from buffer or global settings
 function! yrange#create_setting()
-  return {ranger.yrange#ranger#default()}
+  return {'ranger':yrange#ranger#default()}
 endfunction
 
 " create settings if necessary
@@ -45,9 +45,8 @@ endfunction
 " - settings (if any) 
 "
 "   If no range is found {} is return
-function! yrange#find_current(settings={})
+function! yrange#current_range(settings={})
   let settings = yrange#get_settings(a:settings)
-
-  return settings.find_start('cnW')
+  return yrange#rangex#current_range(settings.ranger)
 endfunction
 
