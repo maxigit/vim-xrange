@@ -70,14 +70,14 @@ Execute (it finds end):
   AssertIn {'start':6,'end':10}, range2
 Given (two nested ranges with the same name):
   :range:
-  1
   2
   3
-  :range:
-  1
-  2
-  .range.
   4
+  :range:
+  6
+  7
+  .range.
+  9
   .range.
 Execute (it finds end):
   let range = yrange#ranger#search_range(b:ranger,'c')
@@ -85,3 +85,21 @@ Execute (it finds end):
   call cursor(2,0)
   let range2 = yrange#ranger#search_range(b:ranger,'W')
   AssertIn {'start':5,'end':8}, range2
+Execute (it find current on cursor):
+  let range = yrange#ranger#current_range(b:ranger)
+  AssertIn {'start':1, 'end':10}, range
+  call cursor(2,0)
+  let range = yrange#ranger#current_range(b:ranger)
+  AssertIn {'start':1, 'end':10}, range
+Execute (it find current on cursor and skip children):
+  call cursor(9,0)
+  let range = yrange#ranger#current_range(b:ranger)
+  AssertIn {'start':1, 'end':10}, range
+  call cursor(10,0)
+  let range = yrange#ranger#current_range(b:ranger)
+  AssertIn {'start':1, 'end':10}, range
+Execute (it find current nested):
+  call cursor(5,0)
+  AssertEqual 6, line('.')
+  let range = yrange#ranger#current_range(b:ranger)
+  AssertIn {'start':5, 'end':8}, range

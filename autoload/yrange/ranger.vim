@@ -82,7 +82,7 @@ endfunction
 "  Find a range, its start and end if possible
 function yrange#ranger#search_range(ranger, search_flag, name=v:none,stopline=v:none)
   let start = a:ranger.search_start(a:search_flag,a:name,a:stopline)
-  if start == {}
+  if empty(start)
     return {}
   endif
   " Look for the end
@@ -94,7 +94,7 @@ function yrange#ranger#search_range(ranger, search_flag, name=v:none,stopline=v:
   " try next sibling
   call cursor(start.start+1,0)
   let next = yrange#ranger#search_range(a:ranger,'Wn', v:none, end_line)
-  if next == {}
+  if empty(next)
     let start.end = end_line
     return start
   endif
@@ -117,3 +117,43 @@ function yrange#ranger#search_range(ranger, search_flag, name=v:none,stopline=v:
 endfunction
 
 
+function yrange#ranger#current_range(ranger,stopline=v:none)
+  let save_cursor = getcurpos()
+  let current_line = save_cursor[1]
+  let range=  yrange#ranger#search_range(a:ranger,'cbW',v:none, a:stopline)
+  "                                         ^  backward, match cursor
+  while 1
+    if empty(range)
+      break
+    endif
+    if has_key(range,'end')
+       if range.end > current_line
+         " found, check for nested range
+         call setpos('.', save_cursor)
+         if 0
+           " has_key(range, 'subranger')
+           let sub = yrange#ranger#current_range(range.subranger,v:none,range.start+1)
+           if !empty(sub)
+             let range= sub
+           endif
+         endif
+         break
+       else " range too small
+         " start searching above it
+         if range.start>1
+           call cursor(range.start-1,0)
+           let range = yrange#ranger#search_range(a:ranger,'bW',v:none,a:stopline)
+         else " can't go up give up
+           let range={}
+           break
+         endif
+       endif
+    else " not found search for parent
+       let range={}
+       break
+    endif
+  endwhile
+
+  call setpos('.', save_cursor)
+  return range
+endfunction
