@@ -82,7 +82,7 @@ function! yrange#current_or_parent_range(settings={})
       let parent = yrange#ranger#parent_range(ranger)
       if empty(parent)
         call setpos ('.', save_cursor)
-        return {}
+        return current
       else
         return parent
       endif
