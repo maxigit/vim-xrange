@@ -181,6 +181,24 @@ function yrange#ranger#next_range(ranger, search_nested=1)
   return next
 endfunction
 
-function yrange#ranger#previous_range(ranger)
-  throw "not implemented"
+function yrange#ranger#previous_range(ranger, search_nested=1)
+  let save_cursor = getcurpos()
+  let previous = yrange#ranger#search_range(a:ranger,'b') " use default wrapscan options
+  " check if there is a nested one
+  if a:search_nested 
+    " set to 0 avoid infinite recursion. We only search one nested
+    let current = yrange#ranger#current_range(a:ranger)
+    if has_key(current,'subranger')
+      call setpos('.',save_cursor)
+      let previous_sub = yrange#ranger#previous_range(current.subranger, 0)
+      " check if the previous sub if before or after then previous one
+      if has_key(previous_sub, 'start')
+        if previous_sub.start > previous.start || previous.start > save_cursor[1]
+          "                                wrapped so in theory after
+          let previous  = previous_sub
+        endif
+      endif
+    endif
+  endif
+  return previous
 endfunction

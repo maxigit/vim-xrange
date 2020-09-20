@@ -56,6 +56,11 @@ function! yrange#next_range(settings={})
   call yrange#moveTo(range, 'start')
 endfunction
 
+function! yrange#previous_range(settings={})
+  let range = yrange#ranger#previous_range(yrange#get_settings(a:settings).ranger)
+  call yrange#moveTo(range, 'start')
+endfunction
+
 function! yrange#moveTo(range, key)
   let lnum = get(a:range, a:key, 0)
   if empty(lnum)
