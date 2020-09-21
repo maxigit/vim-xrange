@@ -10,7 +10,7 @@
 " - search_end function to search for the end
 
 function! yrange#ranger#default(nestable=1)
-  let start_regexp_builder = '^:\(%s\):'
+  let start_regexp_builder = '^:\(%s\):\%%( \+\(.*\)\)\?'
   let valid_name = '\S*'
   let end_regexp_builder = '^\.%s\.'
   let ranger = {}
@@ -24,7 +24,8 @@ function! yrange#ranger#default(nestable=1)
     endif
     let m = matchlist(getline(start), start_regexp) 
     let name = m[1]
-    let result = {'start':start, 'name':name}
+    let headline = m[2]
+    let result = {'start':start, 'name':name,'headline':headline}
     if a:nestable 
       let result.subranger = yrange#ranger#default(a:nestable)
     endif
@@ -34,6 +35,14 @@ function! yrange#ranger#default(nestable=1)
       return search(end_regexp,a:search_flag, a:stopline)
     endfunction
 
+    function result._header() closure
+      let header_info = yrange#header#default(start, headline)
+      if !empty(header_info )
+        let result.header = header_info.header
+        let result.body_start = header_info.end+1
+        return result.header
+      else return []
+    endfunction
     return result
     
   endfunction
