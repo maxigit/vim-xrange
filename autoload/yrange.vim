@@ -61,14 +61,6 @@ function! yrange#previous_range(settings={})
   call yrange#moveTo(range, 'start')
 endfunction
 
-function! yrange#moveTo(range, key)
-  let lnum = get(a:range, a:key, 0)
-  if empty(lnum)
-    return
-  else
-    call cursor(lnum,0)
-  endif
-endfunction
 
 function! yrange#current_or_parent_range(settings={})
     let save_cursor = getcurpos()
@@ -89,4 +81,39 @@ function! yrange#current_or_parent_range(settings={})
     endif
     " check  if current line is on the edge
     return current
+endfunction
+" ================================================== 
+"  Operation on range
+" ================================================== 
+function! yrange#moveTo(range, key)
+  let lnum = get(a:range, a:key, 0)
+  if empty(lnum)
+    return
+  else
+    call cursor(lnum,0)
+  endif
+endfunction
+
+function yrange#select(range)
+  if !empty(a:range)
+    call setpos("'<", [0, a:range.start, 0, 0])
+    call setpos("'>", [0, a:range.end, len(getline(a:range.end)), 0])
+    normal! gv
+  endif
+endfunction
+
+" return a range corresponding to the body of a range
+"
+function yrange#body(range)
+  if empty(a:range)
+    return {}
+  endif
+  let r = copy(a:range)
+  let r.start = a:range.start+1
+  let r.end = a:range.end-1
+  if r.start > r.end
+    return {}
+  else
+    return r
+  endif
 endfunction
