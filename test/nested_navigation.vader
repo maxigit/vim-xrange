@@ -1,0 +1,44 @@
+Include: common.vader
+Before:
+  let b:ranger = yrange#ranger#default()
+  " nested : .. * .. +
+  command! -nargs=1 IsNext :AssertIn {'name':<args>}, yrange#ranger#next_range(b:ranger)
+  command! -nargs=1 IsPrevious :AssertIn {'name':<args>}, yrange#ranger#previous_range(b:ranger)
+
+
+Given (some nested ranges):
+  :A:
+  *a*
+  +i+
+  .i.
+  +ii+
+  .ii.
+  .a.
+  *b*
+  +i+
+  .i.
+  +ii+
+  .ii.
+  .b.
+  .A.
+Execute (find next range):
+  IsNext 'a'
+  IsNext 'i'
+  IsNext 'ii'
+  IsNext 'a'
+  IsNext 'b'
+  IsNext 'i'
+  IsNext 'ii'
+  " wrappinp
+  IsNext 'A'
+Execute (find previous range):
+  " wrappinp
+  IsPrevious 'ii'
+  IsPrevious 'i'
+  IsPrevious 'b'
+  IsPrevious 'a'
+  IsPrevious 'ii'
+  IsPrevious 'i'
+  IsPrevious 'a'
+  IsPrevious 'A'
+  
