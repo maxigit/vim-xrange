@@ -5,8 +5,8 @@
 :baboou:
 before nested
 :nested:
+
 I am 
-a nested
 range
 .nested.
 after nested
@@ -18,3 +18,11 @@ after nested
 This is part of baboo
 .baboo.
 
+
+:pablo: +sql+
+|stock_id=ML13-AD1
+| comment: Bonjour, je m'appele bilbo
+| +s =
+select * from table
+where stock_id=@{stock_id}
+.pablo.

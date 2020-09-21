@@ -28,7 +28,7 @@ Execute (find ends):
   let range = yrange#ranger#search_range(b:ranger,'cW')
   AssertIn {'start':4, 'end':5}, range
 Execute (find by name):
-  let range = yrange#ranger#search_range(b:ranger,'c','\MHeading 1.1\m')
+  let range = yrange#ranger#search_range(b:ranger,'c','Heading 1.1')
   AssertIn {'start':2, 'end':3}, range
 Execute (find current):
   let range = yrange#ranger#current_range(b:ranger)

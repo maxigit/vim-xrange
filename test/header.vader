@@ -13,8 +13,13 @@ Given  (a range with a header):
   :range: This is the headline
   | This is the second line of the header
   This is the body
-  .range
+  .range.
 Execute (find headline):
   let range = yrange#ranger#search_range(b:ranger,'c')
   call range._header()
   AssertIn {'name':'range', 'header':['This is the headline', 'This is the second line of the header']}, range
+Execute (find body start):
+  let range = yrange#ranger#search_range(b:ranger,'c')
+  let body = yrange#body(range)
+  AssertIn {'start':3}, body
+

@@ -108,9 +108,12 @@ function yrange#body(range)
   if empty(a:range)
     return {}
   endif
+  if !has_key(a:range, 'body_start') && has_key(a:range,'_header')
+    call a:range._header()
+  endif
   let r = copy(a:range)
-  let r.start = a:range.start+1
-  let r.end = a:range.end-1
+  let r.start = get(a:range, 'body_start', a:range.start+1)
+  let r.end = a:range.end - 1
   if r.start > r.end
     return {}
   else
