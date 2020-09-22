@@ -10,41 +10,40 @@
 " - search_end function to search for the end
 
 function! yrange#ranger#default(nestable=1)
-  let start_regexp_builder = '^:\(%s\):\%%( \+\(.*\)\)\?'
-  let valid_name = '\S*'
-  let end_regexp_builder = '^\.%s\.'
-  let ranger = {}
+  let params = { 'valid_name': '\S*' } " empty names are allowed }
+  function  params.start_regexp_builder(args)
+    return printf('^:\(%s\):\%%( \+\(.*\)\)\?', a:args.name)
+  endfunction
+  function params.end_regexp_builder(args)
+    return printf('^\.%s\.',a:args.name)
+  endfunction
+  return yrange#ranger#make_from_pattern(params)
+endfunction
 
+function! yrange#ranger#make_from_pattern(args)
+  let ranger = {}
   " --------------------------------------------------
-  function ranger.search_start(search_flag,name=valid_name, stopline=v:none) closure
-    let start_regexp = printf(start_regexp_builder, a:name)
+  function ranger.search_start(search_flag,name=a:args.valid_name, stopline=v:none) closure
+    let params = {'name': a:name }
+    let start_regexp = a:args.start_regexp_builder(params)
     let start = search(start_regexp, a:search_flag,a:stopline)
     if start == 0
       return {}
     endif
     let m = matchlist(getline(start), start_regexp) 
-    let name = m[1]
-    let headline = m[2]
+    let name = m[get(a:args, 'name_index',1)]
+    let headline = m[get(a:args, 'header_index',2)]
     let result = {'start':start, 'name':name,'headline':headline}
-    if a:nestable 
-      let result.subranger = yrange#ranger#default(a:nestable)
-    endif
+    " if a:nestable 
+    "   let result.subranger = yrange#ranger#default(a:nestable)
+    " endif
     
     function result.search_end(search_flag, stopline=v:none) closure
-      let end_regexp = printf(end_regexp_builder, name)
+      let end_params = {'name': name, 'start':start}
+      let end_regexp = a:args.end_regexp_builder(end_params)
       return search(end_regexp,a:search_flag, a:stopline)
     endfunction
-
-    function result._header() closure
-      let header_info = yrange#header#default(start, headline)
-      if !empty(header_info )
-        let result.header = header_info.header
-        let result.body_start = header_info.end+1
-        return result.header
-      else return []
-    endfunction
     return result
-    
   endfunction
 
   " --------------------------------------------------

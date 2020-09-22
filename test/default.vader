@@ -8,10 +8,12 @@ Given (two ranges) :
   .range2.
 Execute (find next range):
   let range =  b:ranger.search_start('c')
-  AssertEqual [2,'range1'] , [range.start, range.name]
+  AssertIn {'start':2, 'name':'range1'}, range
+  " AssertEqual [2,'range1'] , [range.start, range.name]
 
   let range2 = b:ranger.search_start('')
-  AssertEqual [4, 'range2'] ,  [range2.start, range2.name]
+  AssertIn {'start':4, 'name':'range2'}, range2
+  " AssertEqual [4, 'range2'] ,  [range2.start, range2.name]
   AssertEqual 5            , range2.search_end('')
 Execute (find by name):
   let range =  b:ranger.search_start('n','range2')

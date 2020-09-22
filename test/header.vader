@@ -14,7 +14,7 @@ Given  (a range with a header):
   | This is the second line of the header
   This is the body
   .range.
-Execute (find headline):
+Execute (FIXME find headline):
   let range = yrange#ranger#search_range(b:ranger,'c')
   call range._header()
   AssertIn {'name':'range', 'header':['This is the headline', 'This is the second line of the header']}, range
