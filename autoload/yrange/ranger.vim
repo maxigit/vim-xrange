@@ -17,6 +17,9 @@ function! yrange#ranger#default(nestable=1)
   function params.end_regexp_builder(args)
     return printf('^\.%s\.',a:args.name)
   endfunction
+  if a:nestable
+    let params.subranger='self'
+  endif
   return yrange#ranger#make_from_pattern(params)
 endfunction
 
@@ -34,10 +37,16 @@ function! yrange#ranger#make_from_pattern(args)
     let name = m[get(a:args, 'name_index',1)]
     let headline = m[get(a:args, 'header_index',2)]
     let result = {'start':start, 'name':name,'headline':headline}
-    " if a:nestable 
-    "   let result.subranger = yrange#ranger#default(a:nestable)
-    " endif
-    
+
+    let subranger = get(a:args, 'subranger', {})
+    if !empty(subranger)
+      if subranger == 'self'
+        let result.subranger = ranger
+      else
+        let result.subranger = subranger(result)
+      endif
+    endif
+
     function result.search_end(search_flag, stopline=v:none) closure
       let end_params = {'name': name, 'start':start}
       let end_regexp = a:args.end_regexp_builder(end_params)
