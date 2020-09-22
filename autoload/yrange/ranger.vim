@@ -38,12 +38,12 @@ function! yrange#ranger#make_from_pattern(args)
     let headline = m[get(a:args, 'header_index',2)]
     let result = {'start':start, 'name':name,'headline':headline}
 
-    let subranger = get(a:args, 'subranger', {})
-    if !empty(subranger)
-      if subranger == 'self'
+    if has_key(a:args, 'subranger')
+      let subranger = a:args.subranger
+      if type(subranger) == type('') && subranger == 'self'
         let result.subranger = ranger
       else
-        let result.subranger = subranger(result)
+        let result.subranger = subranger " (result)
       endif
     endif
 

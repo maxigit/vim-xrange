@@ -1,44 +1,61 @@
 Include: common.vader
 Before:
-  let b:ranger = yrange#ranger#default()
+  let first = {'valid_name': '[A-Z]'}
+  function first.start_regexp_builder(args)
+    return printf('^\s*:\(%s\):\(.*\)',a:args.name)
+  endfunction
+  function first.end_regexp_builder(args)
+    return printf('^\s*.\(%s\).\(.*\)',a:args.name)
+  endfunction
+  let second = extend({'valid_name':'[a-z]'},first, 'keep')
+  let third = extend({'valid_name':'[0-9]'},first, 'keep')
+  " throw string(third)
+  let second.subranger = yrange#ranger#make_from_pattern(third)
+  let first.subranger = yrange#ranger#make_from_pattern(second)
+  let b:ranger = yrange#ranger#make_from_pattern(first)
   " nested : .. * .. +
+
   command! -nargs=1 IsNext :AssertIn {'name':<args>}, yrange#ranger#next_range(b:ranger)
   command! -nargs=1 IsPrevious :AssertIn {'name':<args>}, yrange#ranger#previous_range(b:ranger)
 
 
 Given (some nested ranges):
   :A:
-  *a*
-  +i+
-  .i.
-  +ii+
-  .ii.
-  .a.
-  *b*
-  +i+
-  .i.
-  +ii+
-  .ii.
-  .b.
+    :a:
+      :1:
+      .1.
+      body
+      +2+
+      body 2
+      .2.
+    .a.
+    :b:
+      +1+
+      body
+      .1.
+      +2+
+      body 2
+      .2.
+    .b.
   .A.
-Execute (FIXME find next range):
+Execute (find next range):
   IsNext 'a'
-  IsNext 'i'
-  IsNext 'ii'
+  IsNext '1'
+  IsNext '2'
   IsNext 'a'
   IsNext 'b'
-  IsNext 'i'
-  IsNext 'ii'
+  IsNext '1'
+  IsNext '2'
   " wrappinp
   IsNext 'A'
-Execute (FIXME find previous range):
+Execute (find previous range):
   " wrappinp
-  IsPrevious 'ii'
-  IsPrevious 'i'
+  IsPrevious '2'
+  IsPrevious '1'
   IsPrevious 'b'
   IsPrevious 'a'
-  IsPrevious 'ii'
-  IsPrevious 'i'
+  IsPrevious '2'
+  IsPrevious '1'
   IsPrevious 'a'
   IsPrevious 'A'
   
