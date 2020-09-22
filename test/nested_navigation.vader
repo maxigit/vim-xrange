@@ -21,7 +21,7 @@ Given (some nested ranges):
   .ii.
   .b.
   .A.
-Execute (find next range):
+Execute (FIXME find next range):
   IsNext 'a'
   IsNext 'i'
   IsNext 'ii'
@@ -31,7 +31,7 @@ Execute (find next range):
   IsNext 'ii'
   " wrappinp
   IsNext 'A'
-Execute (find previous range):
+Execute (FIXME find previous range):
   " wrappinp
   IsPrevious 'ii'
   IsPrevious 'i'
