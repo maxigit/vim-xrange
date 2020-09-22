@@ -23,18 +23,18 @@ Given (some nested ranges):
   :A:
     :a:
       :1:
+        body
       .1.
-      body
       +2+
-      body 2
+        body 2
       .2.
     .a.
     :b:
       +1+
-      body
+        body
       .1.
       +2+
-      body 2
+        body 2
       .2.
     .b.
   .A.
