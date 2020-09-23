@@ -3,3 +3,8 @@ function! AssertIn(small, big)
   AssertEqual a:small , filter(copy(a:big),{key->has_key(a:small,key)})
 endfunction
 command! -nargs=+ AssertIn :call AssertIn(<args>)
+
+function! MoveTo(range, key)
+  call yrange#moveTo(a:range, a:key)
+  return a:range
+endfunction

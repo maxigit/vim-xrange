@@ -15,10 +15,6 @@ Before:
   let b:ranger = yrange#ranger#make_from_pattern(first)
   " nested : .. * .. :
 
-  function! MoveTo(range, key)
-    call yrange#moveTo(a:range, a:key)
-    return a:range
-  endfunction
 
   command! -nargs=1 IsNext :AssertIn {'name':<args>}, yrange#ranger#next_range(b:ranger)->MoveTo('start')
   command! -nargs=1 IsPrevious :AssertIn {'name':<args>}, yrange#ranger#previous_range(b:ranger)->MoveTo('start')

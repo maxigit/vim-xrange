@@ -1,5 +1,7 @@
+Include: common.vader
 Before:
   let b:ranger = yrange#ranger#default()
+  command! -nargs=1 IsNext :AssertIn {'start':<args>}, yrange#ranger#next_range(b:ranger)->MoveTo('start')
 Given (two ranges) :
   Nothing
   :range1:
@@ -106,11 +108,9 @@ Execute (it finds current nested):
   let range = yrange#ranger#current_range(b:ranger)
   AssertIn {'start':5, 'end':8}, range
 Execute (it finds next):
-  let range =yrange#ranger#next_range(b:ranger)
-  AssertIn {'start':5, 'end':8}, range
+  IsNext 5
   " wrap
-  let range =yrange#ranger#next_range(b:ranger)
-  AssertIn {'start':1, 'end':10}, range
+  IsNext 1
 Execute (it finds parent):
   let range =yrange#ranger#parent_range(b:ranger)
   AssertEqual {}, range
