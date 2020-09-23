@@ -5,7 +5,7 @@ Before:
     return printf('^\s*:\(%s\):\(.*\)',a:args.name)
   endfunction
   function first.end_regexp_builder(args)
-    return printf('^\s*.\(%s\).\(.*\)',a:args.name)
+    return printf('^\s*\.\(%s\)\.\(.*\)',a:args.name)
   endfunction
   let second = extend({'valid_name':'[a-z]'},first, 'keep')
   let third = extend({'valid_name':'[0-9]'},first, 'keep')
@@ -13,10 +13,16 @@ Before:
   let second.subranger = yrange#ranger#make_from_pattern(third)
   let first.subranger = yrange#ranger#make_from_pattern(second)
   let b:ranger = yrange#ranger#make_from_pattern(first)
-  " nested : .. * .. +
+  " nested : .. * .. :
 
-  command! -nargs=1 IsNext :AssertIn {'name':<args>}, yrange#ranger#next_range(b:ranger)
-  command! -nargs=1 IsPrevious :AssertIn {'name':<args>}, yrange#ranger#previous_range(b:ranger)
+  function! MoveTo(range, key)
+    call yrange#moveTo(a:range, a:key)
+    return a:range
+  endfunction
+
+  command! -nargs=1 IsNext :AssertIn {'name':<args>}, yrange#ranger#next_range(b:ranger)->MoveTo('start')
+  command! -nargs=1 IsPrevious :AssertIn {'name':<args>}, yrange#ranger#previous_range(b:ranger)->MoveTo('start')
+
 
 
 Given (some nested ranges):
@@ -25,15 +31,15 @@ Given (some nested ranges):
       :1:
         body
       .1.
-      +2+
+      :2:
         body 2
       .2.
     .a.
     :b:
-      +1+
+      :1:
         body
       .1.
-      +2+
+      :2:
         body 2
       .2.
     .b.
@@ -42,13 +48,12 @@ Execute (find next range):
   IsNext 'a'
   IsNext '1'
   IsNext '2'
-  IsNext 'a'
   IsNext 'b'
   IsNext '1'
   IsNext '2'
   " wrappinp
   IsNext 'A'
-Execute (find previous range):
+Execute (FIXME find previous range):
   " wrappinp
   IsPrevious '2'
   IsPrevious '1'
