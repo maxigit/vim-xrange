@@ -199,18 +199,18 @@ function yrange#ranger#next_range(ranger,stopline=v:none, search_nested=1)
     " the beginning nesting region.
     call setpos('.',save_cursor)
     let current = yrange#ranger#current_range(a:ranger)
-    let last = {}
+    let last = []
     let stack = []
     while !empty(current)
       call add(stack,[current.name, current.start, line('.')])
       if len(stack) > 10 " || current.start == next.start  " current.name == next.name
         throw string([stack, next.name])
       endif
-      if has_key(current,'subranger') && current.subranger != last
+      if has_key(current,'subranger') && [current.subranger, current.end] != last
         "                                  ^ avoid infinite loop when getting
         "                                  the subranger of the parent
         call setpos('.',save_cursor)
-        let last = current.subranger
+        let last = [current.subranger, current.end]
         let next_sub = yrange#ranger#next_range(current.subranger, get(current,'end', v:none), 0)
         " throw string([save_cursor[1], current,  current.name, current.end, next_sub ])
         " check if the next sub if before or after then next one
