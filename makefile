@@ -7,3 +7,8 @@ v:
 		vim --noplugin -Nu mini.vimrc -c 'Vader test/*'
 c:
 		vim --noplugin -Nu mini.vimrc -c 'Vader test/default.vader'
+
+always:
+.PHONY: always 
+%.vader: always
+		vim --noplugin -Nu mini.vimrc -c 'Vader! $@'
