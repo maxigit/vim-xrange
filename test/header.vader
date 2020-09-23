@@ -18,7 +18,7 @@ Execute (FIXME find headline):
   let range = yrange#ranger#search_range(b:ranger,'c')
   call range._header()
   AssertIn {'name':'range', 'header':['This is the headline', 'This is the second line of the header']}, range
-Execute (find body start):
+Execute (FIXME find body start):
   let range = yrange#ranger#search_range(b:ranger,'c')
   let body = yrange#body(range)
   AssertIn {'start':3}, body
