@@ -14,3 +14,19 @@ onoremap <silent> Ax :call yrange#select(yrange#current_or_parent_range())<CR>
 onoremap <silent> ix :call yrange#select(yrange#body(yrange#current_range()))<CR>
 
 
+function! Ranger(nestable=1)
+  let first = {'valid_name': '[A-Z]'}
+  function first.start_regexp_builder(args)
+    return printf('^\s*:\(%s\):\(.*\)',a:args.name)
+  endfunction
+  function first.end_regexp_builder(args)
+    return printf('^\s*.\(%s\).\(.*\)',a:args.name)
+  endfunction
+  let second = extend({'valid_name':'[a-z]'},first, 'keep')
+  let third = extend({'valid_name':'[0-9]'},first, 'keep')
+  " throw string(third)
+  let second.subranger = yrange#ranger#make_from_pattern(third)
+  let first.subranger = yrange#ranger#make_from_pattern(second)
+   return yrange#ranger#make_from_pattern(first)
+endfunction
+" nested : .. * .. +
