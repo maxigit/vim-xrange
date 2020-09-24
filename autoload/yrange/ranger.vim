@@ -97,11 +97,13 @@ endfunction
 " --------------------------------------------------
 "  Common ranger function
 "  Find a range, its start and end if possible
+"  Don't look within subranger
 function yrange#ranger#search_range(ranger, search_flag, name=v:none,stopline=v:none)
   let start = a:ranger.search_start(a:search_flag,a:name,a:stopline)
   if empty(start)
     return {}
   endif
+  let start.ranger = a:ranger
   " Look for the end
   let end_line = start.search_end('Wn')
   if end_line == 0
@@ -150,6 +152,7 @@ function yrange#ranger#current_range(ranger,stopline=v:none,current_line=line('.
          if has_key(range, 'subranger')
            let sub = yrange#ranger#current_range(range.subranger,range.start+1,a:current_line)
            if !empty(sub)
+             let sub.parent = range
              let range= sub
            endif
          endif
@@ -187,6 +190,7 @@ function yrange#ranger#parent_range(ranger,stopline=v:none)
   call cursor(lnum-1,0)
   return yrange#ranger#current_range(a:ranger, a:stopline, lnum)
 endfunction
+
 
 " Find next most nested range next to cursor
 function yrange#ranger#next_range(ranger,stopline=v:none, search_nested=1)
