@@ -27,6 +27,8 @@ function! Ranger(nestable=1)
   " throw string(third)
   let second.subranger = yrange#ranger#make_from_pattern(third)
   let first.subranger = yrange#ranger#make_from_pattern(second)
+  let second.subranger.ranger_name = "third"
+  let first.subranger.ranger_name = "second"
    return yrange#ranger#make_from_pattern(first)
 endfunction
 " nested : .. * .. +
