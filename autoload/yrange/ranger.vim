@@ -152,7 +152,11 @@ function yrange#ranger#current_range(ranger,stopline=v:none,current_line=line('.
          if has_key(range, 'subranger')
            let sub = yrange#ranger#current_range(range.subranger,range.start+1,a:current_line)
            if !empty(sub)
-             let sub.parent = range
+             if !has_key(sub, 'parent')
+               let sub.parent = range
+             else
+               let sub.parent.parent = range
+             endif
              let range= sub
            endif
          endif
@@ -229,7 +233,11 @@ function yrange#ranger#next_range(ranger,stopline=v:none, search_nested=1)
       " look for parent
       call cursor(current.start, 0)
       call add(stack,['parent from ' , current.start, line('.')])
-      let parent = yrange#ranger#parent_range(a:ranger)
+      let parent = yrange#range#parent_range(current)
+      let other_parent = yrange#ranger#parent_range(a:ranger)
+      if other_parent != parent
+        " echoe [next.name, parent.name, other_parent.name,current]
+      endif
       if current.start == 1
         " throw string([parent, stack])
       endif

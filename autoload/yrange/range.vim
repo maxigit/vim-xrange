@@ -10,7 +10,10 @@ endfunction
 
 function yrange#range#parent_range(range)
   if !has_key(a:range, 'parent')
-    call cursor(range.start,0)
+    call cursor(a:range.start,0)
+    " we know the range has been found through a chain
+    " of nested ranger
+    " so the actual ranger should be the top one
     let a:range.parent = yrange#ranger#parent_range(a:range.ranger)
   endif
   return a:range.parent
