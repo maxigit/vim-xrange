@@ -1,120 +1,60 @@
 Include: common.vader
 Before:
-  let b:ranger = yrange#ranger#default()
-  command! -nargs=1 IsNext :AssertIn {'start':<args>}, yrange#ranger#next_range(b:ranger)->MoveTo('start')
-Given (two ranges) :
-  Nothing
-  :range1:
-  .range1.
-  :range2:
-  .range2.
+  let first = {'valid_name': '[A-Z]'}
+  function first.start_regexp_builder(args)
+    return printf('^\s*:\(%s\):\(.*\)',a:args.name)
+  endfunction
+  function first.end_regexp_builder(args)
+    return printf('^\s*\.\(%s\)\.\(.*\)',a:args.name)
+  endfunction
+  let second = extend({'valid_name':'[a-z]'},first, 'keep')
+  let third = extend({'valid_name':'[0-9]'},first, 'keep')
+  " throw string(third)
+  let second.subranger = yrange#ranger#make_from_pattern(third)
+  let first.subranger = yrange#ranger#make_from_pattern(second)
+  let b:ranger = yrange#ranger#make_from_pattern(first)
+  let second.subranger.ranger_name = "third"
+  let first.subranger.ranger_name = "second"
+  " nested : .. * .. :
+
+
+  command! -nargs=1 IsNext :AssertIn {'name':<args>}, yrange#ranger#next_range(b:ranger)->MoveTo('start')
+  command! -nargs=1 IsPrevious :AssertIn {'name':<args>}, yrange#ranger#previous_range(b:ranger)->MoveTo('start')
+
+
+
+Given (some nested ranges):
+  :A:
+    :a:
+      :1:
+        body
+      .1.
+      :2:
+        body 2
+      .2.
+    .a.
+    :b:
+      :1:
+        body
+      .1.
+      :2:
+        body 2
+      .2.
+    .b.
+  .A.
 Execute (find next range):
-  let range =  b:ranger.search_start('c')
-  AssertIn {'start':2, 'name':'range1'}, range
-  " AssertEqual [2,'range1'] , [range.start, range.name]
-
-  let range2 = b:ranger.search_start('')
-  AssertIn {'start':4, 'name':'range2'}, range2
-  " AssertEqual [4, 'range2'] ,  [range2.start, range2.name]
-  AssertEqual 5            , range2.search_end('')
-Execute (find by name):
-  let range =  b:ranger.search_start('n','range2')
-  AssertEqual [4, 'range2'], [range.start, range.name]
-  let range = b:ranger.search_start('','range1')
-  AssertEqual [2, 'range1'], [range.start, range.name]
-
-Given (find current range if cursor not at the beginning):
-  :range:
-  .range.
-Do:
-  $
-Execute:
-  AssertEqual 'range' , b:ranger.search_start('c').name
-
---------------------------------------------------
-Given (two ranges with same name) :
-  Nothing
-  :range:
-  .range.
-  :range:
-  .range.
-Execute (find boths ranges):
-  let range =  b:ranger.search_start('c')
-  AssertEqual [2,'range'] , [range.start, range.name]
-  normal j " next line
-  let range =  b:ranger.search_start('c')
-  AssertEqual [4,'range'] , [range.start, range.name]
-
-
-Given (one range):
-  :range:
-  1
-  2
-  3
-  .range.
-Execute (it finds end):
-  let range = yrange#ranger#search_range(b:ranger,'cW')
-  AssertIn {'start':1,'end':5}, range
-
-Given (two non nested ranges):
-  :range:
-  1
-  2
-  3
-  .range.
-  :range:
-  1
-  2
-  3
-  .range.
-Execute (it finds end):
-  let range = yrange#ranger#search_range(b:ranger,'c')
-  AssertIn {'start':1,'end':5}, range
-  let range2 = yrange#ranger#search_range(b:ranger,'W')
-  AssertIn {'start':6,'end':10}, range2
-Given (two nested ranges with the same name):
-  :range:
-  2
-  3
-  4
-  :range:
-  6
-  7
-  .range.
-  9
-  .range.
-Execute (it finds end):
-  let range = yrange#ranger#search_range(b:ranger,'c')
-  AssertIn {'start':1,'end':10}, range
-  call cursor(2,0)
-  let range2 = yrange#ranger#search_range(b:ranger,'W')
-  AssertIn {'start':5,'end':8}, range2
-Execute (it finds current on cursor):
-  let range = yrange#ranger#current_range(b:ranger)
-  AssertIn {'start':1, 'end':10}, range
-  call cursor(2,0)
-  let range = yrange#ranger#current_range(b:ranger)
-  AssertIn {'start':1, 'end':10}, range
-Execute (it finds current on cursor and skip children):
-  call cursor(9,0)
-  let range = yrange#ranger#current_range(b:ranger)
-  AssertIn {'start':1, 'end':10}, range
-Execute (A):
-  call cursor(10,0)
-  let range = yrange#ranger#current_range(b:ranger)
-  AssertIn {'start':1, 'end':10}, range
-Execute (it finds current nested):
-  call cursor(5,0)
-  let range = yrange#ranger#current_range(b:ranger)
-  AssertIn {'start':5, 'end':8}, range
-Execute (it finds next):
-  IsNext 5
-  " wrap
-  IsNext 1
-Execute (it finds parent):
-  let range =yrange#ranger#parent_range(b:ranger)
-  AssertEqual {}, range
-  call cursor (6,0)
-  let range =yrange#ranger#parent_range(b:ranger)
-  AssertIn {'start':1, 'end':10}, range
-
+  call cursor(6,0)
+  "echoe yrange#ranger#current_range(b:ranger)->yrange#range#parent_range().parent
+  "echoe yrange#ranger#current_range(b:ranger)->yrange#range#parent_range().ranger->yrange#ranger#parent_range()
+  "echoe yrange#ranger#current_range(b:ranger)->yrange#range#parent_range()->yrange#range#parent_range()
+  IsNext 'b'
+  call cursor(1,0)
+Then:
+  IsNext 'a'
+  IsNext '1'
+  IsNext '2'
+  IsNext 'b'
+  IsNext '1'
+  IsNext '2'
+  " wrappinp
+  IsNext 'A'

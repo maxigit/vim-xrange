@@ -152,11 +152,15 @@ function yrange#ranger#current_range(ranger,stopline=v:none,current_line=line('.
          if has_key(range, 'subranger')
            let sub = yrange#ranger#current_range(range.subranger,range.start+1,a:current_line)
            if !empty(sub)
-             if !has_key(sub, 'parent')
-               let sub.parent = range
-             else
-               let sub.parent.parent = range
-             endif
+             " The sub range can be deeply nested
+             " so we can't not just set its parent
+             "  we need to find instead the direct child
+             "  of the current ranger
+             let top_sub = sub
+             while has_key(top_sub,'parent')
+               let top_sub = top_sub.parent
+             endwhile
+             let top_sub.parent = range
              let range= sub
            endif
          endif
