@@ -10,7 +10,7 @@ endfunction
 
 function yrange#range#parent_range(range)
   if !has_key(a:range, 'parent')
-    let cursor(range.start,0)
+    call cursor(range.start,0)
     let a:range.parent = yrange#ranger#parent_range(a:range.ranger)
   endif
   return a:range.parent
