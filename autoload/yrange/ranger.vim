@@ -1,4 +1,4 @@
-" A ranger is a dictonary whith functions
+" A ranger is a dictonary with functions
 " to find a create new range. Rangers can be combined
 " to be nested or used as alternative.
 " - search_start
