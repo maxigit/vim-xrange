@@ -211,41 +211,19 @@ function yrange#ranger#next_range(ranger,stopline=v:none, search_nested=1)
     " the beginning nesting region.
     call setpos('.',save_cursor)
     let current = yrange#ranger#current_range(a:ranger)
-    let last = []
-    let stack = []
     while !empty(current)
-      call add(stack,[current.name, current.start, line('.')])
-      if len(stack) > 10 " || current.start == next.start  " current.name == next.name
-        throw string([stack, next.name])
-      endif
-      if has_key(current,'subranger') && [current.subranger, current.end] != last
-        "                                  ^ avoid infinite loop when getting
-        "                                  the subranger of the parent
+      if has_key(current,'subranger') 
         call setpos('.',save_cursor)
-        let last = [current.subranger, current.end]
         let next_sub = yrange#ranger#next_range(current.subranger, get(current,'end', v:none), 0)
-        " throw string([save_cursor[1], current,  current.name, current.end, next_sub ])
         " check if the next sub if before or after then next one
         if has_key(next_sub, 'start')
-          call add(stack, next_sub.start)
           if next_sub.start < next.start || next.start <= save_cursor[1]
             "                                wrapped so in theory after
             return next_sub
           endif
         endif
       endif
-      " look for parent
-      call cursor(current.start, 0)
-      call add(stack,['parent from ' , current.start, line('.')])
-      let parent = yrange#range#parent_range(current)
-      let other_parent = yrange#ranger#parent_range(a:ranger)
-      if other_parent != parent
-        " echoe [next.name, parent.name, other_parent.name,current]
-      endif
-      if current.start == 1
-        " throw string([parent, stack])
-      endif
-      let current = parent
+      let current = yrange#range#parent_range(current)
     endwhile
   endif
   return next
