@@ -49,12 +49,11 @@ Execute (find next range):
   IsNext '2'
   " wrappinp
   IsNext 'A'
-Execute (FIXME find previous range):
+Execute (find previous range):
   " wrappinp
   IsPrevious '2'
   IsPrevious '1'
   IsPrevious 'b'
-  IsPrevious 'a'
   IsPrevious '2'
   IsPrevious '1'
   IsPrevious 'a'

@@ -229,25 +229,43 @@ function yrange#ranger#next_range(ranger,stopline=v:none, search_nested=1)
   return next
 endfunction
 
-function yrange#ranger#previous_range(ranger, search_nested=1)
+function yrange#ranger#previous_range(ranger, stopline=v:none, search_nested=1)
   let save_cursor = getcurpos()
-  let previous = yrange#ranger#search_range(a:ranger,'b') " use default wrapscan options
+  let previous = yrange#ranger#search_range(a:ranger,'b',v:none, a:stopline,) " use default wrapscan options
+
   " check if there is a nested one
-  if a:search_nested 
-    " set to 0 avoid infinite recursion. We only search one nested
-    let current = yrange#ranger#current_range(a:ranger)
-    if has_key(current,'subranger')
-      call setpos('.',save_cursor)
-      let previous_sub = yrange#ranger#previous_range(current.subranger, 0)
-      " check if the previous sub if before or after then previous one
-      if has_key(previous_sub, 'start')
-        if previous_sub.start > previous.start || previous.start > save_cursor[1]
-          "                                wrapped so in theory after
-          let previous  = previous_sub
-        endif
-      endif
-    endif
+  if !empty(previous) 
+    " && previous.start < save_cursor[1] " not wrapped
+    let previous_is_wrapped = previous.start >= save_cursor[1]
+    let ranger = previous
+  else
+    let wrapped = 1
+    let ranger ={}
   endif
+  while has_key(ranger,'subranger')
+    let ranger = ranger.subranger
+    call setpos('.', save_cursor)
+    let stop= previous.start+1
+    if previous_is_wrapped 
+      let stop = v:none
+    end
+    let next_nested = yrange#ranger#previous_range(ranger,stop)
+    " echoe ranger save_cursor next_nested
+    if empty(next_nested)
+      break
+    endif
+    let nest_is_wrapped = next_nested.start >= save_cursor[1] 
+    "    nested/previous | not wrapped | wrapped
+    "    --------------------------------------
+    "    not wrapped     | greatest    | nested
+    "    wrapped         | previous    | greatest
+    "    gerates is always nested, so previous
+    "    is only use in not_wrapped wrapped
+    "
+    if previous_is_wrapped || !nest_is_wrapped
+      let previous = next_nested
+    endif
+  endwhile
   return previous
 endfunction
 
