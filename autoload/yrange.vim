@@ -9,7 +9,7 @@ def s:endRg(): string
   return b:xblock_prefix .. '}'
 enddef
 
-# !!#sh
+# !!!ls
 # Search the next command. Start on next line
 # to avoid finding the current line
 def SearchNextCommandLine(): number
@@ -31,17 +31,17 @@ def SearchPreviousCommandLine(): number
 enddef
 
 # Doesn't check that the line 
-def CommandFromLineUnsafe(line: number): dict<number>
+def CommandFromLineUnsafe(line: number): dict<any>
   const cursorPos = getcurpos()
   cursor(line, 1)
-  var result = {}
   # check if the command is multiline
-  const opening = matchstr(getline(line), b:xblock_prefix .. '\f*[!#:=]\?\zs{\?')
+  const [_,name,opening;_] = matchlist(getline(line), b:xblock_prefix .. '\(\f*\)[!:=]\?\({\)\?')
+  var result: dict<any> = {name: name}
     # on line
   if opening == "{"
     const endLine = SearchEndOfCurrentCommandLine()
     if endLine > 0
-      result = {startLine: line, endLine: endLine}
+      result->extend({startLine: line, endLine: endLine})
     endif
   else
       result = {startLine: line, endLine: line}
@@ -59,7 +59,7 @@ enddef
 #      Not this !! but this
 #      Not this !! but this !!# and not that
 #      This !!# but not that
-def s:extractCommandText(range: dict<number>): string
+def s:extractCommandText(range: dict<any>): string
   const lines = getline(range.startLine, range.endLine)
   var results = []
   for l in lines
@@ -101,6 +101,7 @@ enddef
 :2
 echomsg line('.') "==>" SearchNextCommandLine()
 echomsg "Range" line('.') "==>" SearchNextCommandLine()->CommandFromLineUnsafe()
+echomsg "Text" line('.') "==>" SearchNextCommandLine()->CommandFromLineUnsafe()->s:extractCommandText()
 :20
 echomsg line('.') "==>" SearchNextCommandLine()
 echomsg "Range" line('.') "==>" SearchNextCommandLine()->CommandFromLineUnsafe()
