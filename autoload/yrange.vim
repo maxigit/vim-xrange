@@ -9,6 +9,7 @@ def s:endRg(): string
   return b:xblock_prefix .. '}'
 enddef
 
+const s:props = ["syntax", "<", ">"]->join('\|')
 # !!!ls
 # Search the next command. Start on next line
 # to avoid finding the current line
@@ -32,6 +33,9 @@ enddef
 
 # Doesn't check that the line 
 def CommandFromLineUnsafe(line: number): dict<any>
+  if line == 0
+    return {}
+  endif
   const cursorPos = getcurpos()
   cursor(line, 1)
   # check if the command is multiline
@@ -74,6 +78,73 @@ def s:extractCommandText(range: dict<any>): string
   return results->join(' ')
 enddef
 
+# Parses and extract variable/properties declaration from command
+# a command should have have the following format
+# stmt ::= [bindings ] command
+# bindings ::= binding [ ' ' bindings ]
+# binding ::= dict | var=value + prop:value
+def s:parseCommand(command: string): dict<any>
+  # split on space (but not '\ '
+  const words = split(command, '[^\\]\zs\s\+')
+  var vars: dict<string> = {} # variables
+  var env: dict<string> = {} # env variables
+  var r: dict<any> = {vars: vars, env: env}
+  var coms = []
+  for w in words 
+    echomsg "Word" w
+    const word = substitute(w, '\ ', ' ', 'g')
+    # if the command itself is started to be parsed
+    # skip the binding parsing
+    if coms != []
+      coms->add(word)
+    else
+      var match = matchlist(word, '\(\$\?\)\(\i\+\)=\(.*\)')
+      echomsg "match" match
+      if match != []
+        const [_,isEnv,name,value;_] = match
+        if isEnv == '$'
+          env[name] = value
+        else
+          vars[name] = value
+        endif
+      else
+        match = matchlist(word, '\(' .. s:props .. '\):\(.*\)')
+        echomsg "match" match
+        if match != []
+          const [_,prop,value;_] = match
+          r[prop] = value
+        else
+          match = matchlist(word, '&\(\f\+\)')
+          echomsg "match" match
+          if match != []
+            # lookup 
+            var com2 = FindCommandByName(match[1])
+            echomsg "LOOKUP" match[1] FindCommandByName(match[1]) r
+            r->extend(FindCommandByName(match[1]))
+            vars->extend(com2.vars)
+            env->extend(com2.env)
+            r->extend(com2)
+            r->extend({vars: vars, env: env})
+           else # command
+             coms->add(word)
+           endif
+        endif
+      endif
+    endif
+  endfor
+  if coms != []
+    r.command = coms->join(' ')
+  endif
+  return r
+enddef
+
+def SearchCommandByName(name: string): number
+   return s:search(b:xblock_prefix .. name .. '=', 'cwn')
+enddef
+
+def FindCommandByName(name: string): dict<any>
+  return SearchCommandByName(name)->CommandFromLineUnsafe()->s:extractCommandText()->s:parseCommand()
+enddef
 # !!main={
 # !! This  (1)
 # before comment (2)!!#  Not that
@@ -106,4 +177,13 @@ echomsg "Text" line('.') "==>" SearchNextCommandLine()->CommandFromLineUnsafe()-
 echomsg line('.') "==>" SearchNextCommandLine()
 echomsg "Range" line('.') "==>" SearchNextCommandLine()->CommandFromLineUnsafe()
 echomsg "Text" line('.') "==>" SearchNextCommandLine()->CommandFromLineUnsafe()->s:extractCommandText()
+
+echomsg "MYNAMAE" s:parseCommand('a=b  &myname &hello <::main:,.main.')
+
+
+
+#  !!myname= f=value g=$toto $user=max !ls
+#  !!hello= hello=word
+
+
 defcompile
