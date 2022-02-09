@@ -1,20 +1,20 @@
-vim9script 
+vim9script  autoload
 b:xblock_prefix = '!!' # TODO remove, set by autocommand
-def s:startRg(): string
+def StartRg(): string
   return b:xblock_prefix .. '\f*[!:={]'
 enddef
 
 
-def s:endRg(): string
+def EndRg(): string
   return b:xblock_prefix .. '}'
 enddef
 
-const s:props = ["syntax", "<", ">"]->join('\|')
+const Props = ["syntax", "<", ">"]->join('\|')
 # !!!ls
 # Search the next command. Start on next line
 # to avoid finding the current line
-def SearchNextCommandLine(): number
-  return s:search('\n\zs.*' .. s:startRg(), 'Wn')
+export def SearchNextCommandLine(): number
+  return Search('\n\zs.*' .. StartRg(), 'Wn')
   #                ^  ^
   #                |  |
   #                |  +------ return the line number of startRg ex
@@ -24,11 +24,11 @@ enddef
 
 # assume we are on the line of the command itself
 def SearchEndOfCurrentCommandLine(): number
-  return s:search(s:endRg(), 'Wnc', SearchNextCommandLine())
+  return Search(EndRg(), 'Wnc', SearchNextCommandLine())
 enddef
 
 def SearchPreviousCommandLine(): number
-  return s:search(s:startRg(), 'Wnbc')
+  return Search(StartRg(), 'Wnbc')
 enddef
 
 # Doesn't check that the line 
@@ -97,7 +97,6 @@ def TextToDict(command: string): dict<any>
   var r: dict<any> = {vars: vars, env: env}
   var coms = []
   for w in words 
-    echomsg "Word" w
     const word = substitute(w, '\ ', ' ', 'g')
     # if the command itself is started to be parsed
     # skip the binding parsing
@@ -105,7 +104,6 @@ def TextToDict(command: string): dict<any>
       coms->add(word)
     else
       var match = matchlist(word, '\(\$\?\)\(\i\+\)=\(.*\)')
-      echomsg "match" match
       if match != []
         const [_,isEnv,name,value;_] = match
         if isEnv == '$'
@@ -114,18 +112,15 @@ def TextToDict(command: string): dict<any>
           vars[name] = value
         endif
       else
-        match = matchlist(word, '\(' .. s:props .. '\):\(.*\)')
-        echomsg "match" match
+        match = matchlist(word, '\(' .. Props .. '\):\(.*\)')
         if match != []
           const [_,prop,value;_] = match
           r[prop] = value
         else
           match = matchlist(word, '&\(\f\+\)')
-          echomsg "match" match
           if match != []
             # lookup 
             var com2 = FindCommandByName(match[1])
-            echomsg "LOOKUP" match[1] FindCommandByName(match[1]) r
             r->extend(FindCommandByName(match[1]))
             vars->extend(com2.vars)
             env->extend(com2.env)
@@ -145,7 +140,7 @@ def TextToDict(command: string): dict<any>
 enddef
 
 def FindCommandLine(name: string): number
-   return s:search(b:xblock_prefix .. name .. '=', 'cwn')
+   return Search(b:xblock_prefix .. name .. '=', 'cwn')
 enddef
 
 def FindCommandByName(name: string): dict<any>
@@ -167,7 +162,7 @@ enddef
 # !!}
 
 # Like search but make sure the search ignore user and fold settings
-def s:search(...args: list<any>): number
+def Search(...args: list<any>): number
   const ignorecase = &ignorecase
   const smartcase = &smartcase
   const magic = &magic
@@ -183,22 +178,4 @@ def s:search(...args: list<any>): number
   &foldenable = foldenable
   return l
 enddef
-
-:2
-echomsg line('.') "==>" SearchNextCommandLine()
-echomsg "Range" line('.') "==>" SearchNextCommandLine()->CommandRangeFromLine_unsafe()
-echomsg "Text" line('.') "==>" SearchNextCommandLine()->CommandRangeFromLine_unsafe()->RangeToCommand()
-:20
-echomsg line('.') "==>" SearchNextCommandLine()
-echomsg "Range" line('.') "==>" SearchNextCommandLine()->CommandRangeFromLine_unsafe()
-echomsg "Text" line('.') "==>" SearchNextCommandLine()->CommandRangeFromLine_unsafe()->RangeToText()
-
-echomsg "MYNAMAE" TextToDict('a=b  &myname &hello <::main:,.main.')
-
-
-
-#  !!myname= f=value g=$toto $user=max !ls
-#  !!hello= hello=word
-
-
 defcompile

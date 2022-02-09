@@ -1,0 +1,12 @@
+Given:
+  First line, not a range
+  !!: echo "a"
+  !!: echo "b"
+  !!named={ !!# This is a multiline command
+  var1=value1
+  var2=ignoreme !! var2=value2 !!# var=ignoreme
+  var4=value4!!}
+Execute (find first range):
+  AssertEqual yrange#SearchNextCommandLine(), 2
+  
+  
