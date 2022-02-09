@@ -17,12 +17,17 @@ Given (a buffer with some commands):
   !!! echo "a shell command"
 Execute (find start and end):
   AssertEqual {g:s}SearchNextCommandLine(), 2
-  AssertEqual {g:s}SearchEndOfCurrentCommandLine(), 2
   2
-  AssertEqual {g:s}SearchNextCrmmandLine(), 4
+  AssertEqual {g:s}SearchEndOfCurrentCommandLine(), 0
+Execute (find multiline):
+  2
+  AssertEqual {g:s}SearchNextCommandLine(), 5
+  5
   AssertEqual {g:s}SearchEndOfCurrentCommandLine(), 8
-  4
+Execute (find across a multiline):
+  5
   AssertEqual {g:s}SearchNextCommandLine(), 11
-  AssertEqual {g:s}SearchEndOfCurrentCommandLine(), 11
+  11
+  AssertEqual {g:s}SearchEndOfCurrentCommandLine(), 0
   
   
