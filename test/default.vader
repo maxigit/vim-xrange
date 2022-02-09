@@ -1,12 +1,28 @@
-Given:
-  First line, not a range
-  !!: echo "a"
-  !!: echo "b"
-  !!named={ !!# This is a multiline command
+Execute (Init):
+  call yrange#ForceLoad()
+  let snr = matchstr(matchstr(split(execute('scriptnames'), "\n"), 'autoload/yrange.vim'), '^ *\d\+')
+  let g:s = "<SNR>".trim(snr). "_"
+  
+Given (a buffer with some commands):
+  First line, not a range      
+  !!: echo "a vim command"
+
+  A multiline range
+  !!named={
   var1=value1
   var2=ignoreme !! var2=value2 !!# var=ignoreme
-  var4=value4!!}
-Execute (find first range):
-  AssertEqual yrange#SearchNextCommandLine(), 2
+  var3=value3!!}
+  ^^^^ The end od the range
+
+  !!! echo "a shell command"
+Execute (find start and end):
+  AssertEqual {g:s}SearchNextCommandLine(), 2
+  AssertEqual {g:s}SearchEndOfCurrentCommandLine(), 2
+  2
+  AssertEqual {g:s}SearchNextCrmmandLine(), 4
+  AssertEqual {g:s}SearchEndOfCurrentCommandLine(), 8
+  4
+  AssertEqual {g:s}SearchNextCommandLine(), 11
+  AssertEqual {g:s}SearchEndOfCurrentCommandLine(), 11
   
   

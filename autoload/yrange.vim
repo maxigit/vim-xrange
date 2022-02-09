@@ -1,7 +1,11 @@
-vim9script  autoload
+vim9script
 b:xblock_prefix = '!!' # TODO remove, set by autocommand
 def StartRg(): string
   return b:xblock_prefix .. '\f*[!:={]'
+enddef
+
+export def ForceLoad(): string
+  return "yrange"
 enddef
 
 
@@ -13,7 +17,7 @@ const Props = ["syntax", "<", ">"]->join('\|')
 # !!!ls
 # Search the next command. Start on next line
 # to avoid finding the current line
-export def SearchNextCommandLine(): number
+def SearchNextCommandLine(): number
   return Search('\n\zs.*' .. StartRg(), 'Wn')
   #                ^  ^
   #                |  |
