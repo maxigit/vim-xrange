@@ -32,7 +32,7 @@ def SearchPreviousCommandLine(): number
 enddef
 
 # Doesn't check that the line 
-def CommandFromLineUnsafe(line: number): dict<any>
+def CommandRangeFromLine_unsafe(line: number): dict<any>
   if line == 0
     return {}
   endif
@@ -63,7 +63,7 @@ enddef
 #      Not this !! but this
 #      Not this !! but this !!# and not that
 #      This !!# but not that
-def s:extractCommandText(range: dict<any>): string
+def RangeToText(range: dict<any>): string
   const lines = getline(range.startLine, range.endLine)
   var results = []
   for l in lines
@@ -78,12 +78,18 @@ def s:extractCommandText(range: dict<any>): string
   return results->join(' ')
 enddef
 
+def RangeToCommand(range: dict<any>): dict<any>
+  return range->RangeToText()
+              ->TextToDict()
+              ->extend(range) # set ranges and name
+enddef
+
 # Parses and extract variable/properties declaration from command
 # a command should have have the following format
 # stmt ::= [bindings ] command
 # bindings ::= binding [ ' ' bindings ]
 # binding ::= dict | var=value + prop:value
-def s:parseCommand(command: string): dict<any>
+def TextToDict(command: string): dict<any>
   # split on space (but not '\ '
   const words = split(command, '[^\\]\zs\s\+')
   var vars: dict<string> = {} # variables
@@ -138,13 +144,22 @@ def s:parseCommand(command: string): dict<any>
   return r
 enddef
 
-def SearchCommandByName(name: string): number
+def FindCommandLine(name: string): number
    return s:search(b:xblock_prefix .. name .. '=', 'cwn')
 enddef
 
 def FindCommandByName(name: string): dict<any>
-  return SearchCommandByName(name)->CommandFromLineUnsafe()->s:extractCommandText()->s:parseCommand()
+  return FindCommandLine(name)->CommandRangeFromLine_unsafe()->RangeToText()->TextToDict()
 enddef
+
+def LineToCommand_unsafe(line: number): dict<any>
+  if line == 0
+    return {}
+  else
+   return CommandRangeFromLine_unsafe(line)->RangeToCommand()
+ endif
+enddef
+
 # !!main={
 # !! This  (1)
 # before comment (2)!!#  Not that
@@ -171,14 +186,14 @@ enddef
 
 :2
 echomsg line('.') "==>" SearchNextCommandLine()
-echomsg "Range" line('.') "==>" SearchNextCommandLine()->CommandFromLineUnsafe()
-echomsg "Text" line('.') "==>" SearchNextCommandLine()->CommandFromLineUnsafe()->s:extractCommandText()
+echomsg "Range" line('.') "==>" SearchNextCommandLine()->CommandRangeFromLine_unsafe()
+echomsg "Text" line('.') "==>" SearchNextCommandLine()->CommandRangeFromLine_unsafe()->RangeToCommand()
 :20
 echomsg line('.') "==>" SearchNextCommandLine()
-echomsg "Range" line('.') "==>" SearchNextCommandLine()->CommandFromLineUnsafe()
-echomsg "Text" line('.') "==>" SearchNextCommandLine()->CommandFromLineUnsafe()->s:extractCommandText()
+echomsg "Range" line('.') "==>" SearchNextCommandLine()->CommandRangeFromLine_unsafe()
+echomsg "Text" line('.') "==>" SearchNextCommandLine()->CommandRangeFromLine_unsafe()->RangeToText()
 
-echomsg "MYNAMAE" s:parseCommand('a=b  &myname &hello <::main:,.main.')
+echomsg "MYNAMAE" TextToDict('a=b  &myname &hello <::main:,.main.')
 
 
 
