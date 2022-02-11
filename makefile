@@ -1,6 +1,6 @@
 .PHONY: test
 test:
-		vim --not-a-term --noplugin -Nu mini.vimrc -c 'Vader! test/current.vader' > /dev/null
+		vim --not-a-term --noplugin -Nu mini.vimrc -c 'Vader! test/execute.vader' > /dev/null
 all:
 		vim --not-a-term --noplugin -Nu mini.vimrc -c 'Vader! test/*' > /dev/null
 v:
