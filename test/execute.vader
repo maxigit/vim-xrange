@@ -38,7 +38,9 @@ Execute (execute command):
   let out = #{mode:"out", range:in.range}
   let ranges = #{in:in, out:out}
   let command = "silent !tr l X <@in >@out"
-  call {g:s}ExecuteCommand(#{ranges:ranges, command:command})
+  let com = #{ranges:ranges, command:command}
+  AssertEqual {g:s}UsedRanges(com)->keys()->sort(), ["in", "out"]
+  call {g:s}ExecuteCommand(com)
 Expect (some lines):
   line 1
   Xine 2

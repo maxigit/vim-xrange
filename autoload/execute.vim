@@ -12,10 +12,11 @@ def ExecuteCommand(com: dict<any>): void
 
   #SaveVars(com)
   #ApplyVars(com)
-  PopulateRanges(com.ranges)
-  const command = ReplaceRanges(com.command, com.ranges)
+  final ranges = UsedRanges(com)
+  PopulateRanges(ranges)
+  const command = ReplaceRanges(com.command, ranges)
   :execute command
-  InjectRanges(com.ranges)
+  InjectRanges(ranges)
   #RestoreVars(com)
 enddef
 
@@ -57,4 +58,16 @@ def ReplaceRanges(com: string, ranges: dict<dict<any>>): string
   return command
 enddef
 
+# Return the list of ranges which are actually used.
+# This allowed to have lots of ranges defined by default
+# but only uses the needed ones.
+def UsedRanges(com: dict<any>): dict<dict<any>>
+  var result = {}
+  for [name, range] in com.ranges->items()
+    if match(com.command, '@' .. name .. '\>') != -1
+      result[name] = range
+    endif
+  endfor
+  return result
+enddef
 defcompile
