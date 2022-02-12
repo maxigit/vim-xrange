@@ -35,6 +35,9 @@ export def PopulateRanges(ranges: dict<dict<any>>): void
     execute command
   endfor
 enddef
+#
+#  range
+#  >>>>> where to insert
 
 export def InjectRanges(ranges: dict<dict<any>>): void
   for [name, range] in ranges->items()
@@ -73,4 +76,10 @@ export def UsedRanges(com: dict<any>): dict<dict<any>>
   endfor
   return result
 enddef
+
+export def DeleteRange(com: dict<any>, rangeName: string): void
+  :set nowrapscan
+  :silent! :/\%>.l^\S/;/^$/-d
+enddef
+
 defcompile

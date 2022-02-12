@@ -1,5 +1,10 @@
 vim9script
 b:xblock_prefix = '!!' # TODO remove, set by autocommand
+b:xblock_default_ranges = { in: { mode: 'in', range: '-' },
+                     out: { mode: 'out', range: '+,/!!\^\|\n\|$/' }
+                   }
+b:xblock_default = { ranges: b:xblock_default_ranges }
+
 def StartRg(): string
   return b:xblock_prefix .. '\f*[!:={]'
 enddef
@@ -84,9 +89,13 @@ def RangeToText(range: dict<any>): string
 enddef
 
 def RangeToCommand(range: dict<any>): dict<any>
-  return range->RangeToText()
+  # find default
+  var result = get(b:, 'xblock_default', {})
+  return result->extend(
+                range->RangeToText()
               ->TextToDict()
               ->extend(range) # set ranges and name
+              )
 enddef
 
 # Parses and extract variable/properties declaration from command
