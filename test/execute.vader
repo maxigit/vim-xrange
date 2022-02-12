@@ -1,14 +1,10 @@
-Execute (Init):
-  call execute#ForceLoad()
-  let snr = matchstr(matchstr(split(execute('scriptnames'), "\n"), 'autoload/execute.vim'), '^ *\d\+')
-  let g:s = "<SNR>".trim(snr). "_"
 Given (some lines):
   line 1
   line 2
   line 3
 Execute (populate one line 'in' range):
   let in = #{mode:"in", range:"?line 1?"}
-  call {g:s}PopulateRanges(#{in:in})
+  call yrange#execute#PopulateRanges(#{in:in})
   execute ":%r " .. in.tmp
 Expect:
   line 1
@@ -17,7 +13,7 @@ Expect:
   line 1
 Execute (populate one line 'in' range):
   let in = #{mode:"in", range:"1/line 2/;+"}
-  call {g:s}PopulateRanges(#{in:in})
+  call yrange#execute#PopulateRanges(#{in:in})
   execute ":%r " .. in.tmp
 Expect:
   line 1
@@ -27,9 +23,9 @@ Expect:
   line 3
 Execute (inject one line):
   let out = #{mode:"out", range:"1/line 2/;+"}
-  call {g:s}PopulateRanges(#{out:out})
+  call yrange#execute#PopulateRanges(#{out:out})
   silent execute "!echo 'hello' > " .. out.tmp
-  call {g:s}InjectRanges(#{out:out})
+  call yrange#execute#InjectRanges(#{out:out})
 Expect:
   line 1
   hello
@@ -39,8 +35,8 @@ Execute (execute command):
   let ranges = #{in:in, out:out}
   let command = "silent !tr l X <@in >@out"
   let com = #{ranges:ranges, command:command}
-  AssertEqual {g:s}UsedRanges(com)->keys()->sort(), ["in", "out"]
-  call {g:s}ExecuteCommand(com)
+  AssertEqual yrange#execute#UsedRanges(com)->keys()->sort(), ["in", "out"]
+  call yrange#execute#ExecuteCommand(com)
 Expect (some lines):
   line 1
   Xine 2

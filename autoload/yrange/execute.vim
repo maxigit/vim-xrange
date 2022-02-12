@@ -1,13 +1,13 @@
-vim9script
+vim9script autoload
 
 export def ForceLoad(): string
   return "execute"
 enddef
 
-def ExecuteCommand(com: dict<any>): void
-  #if com == {}
-  #  return
-  #endif
+export def ExecuteCommand(com: dict<any>): void
+  if com == {}
+    return
+  endif
   const cursorPos = getcurpos()
 
   #SaveVars(com)
@@ -21,7 +21,7 @@ def ExecuteCommand(com: dict<any>): void
 enddef
 
 # create temporary files and set the name to the dict
-def PopulateRanges(ranges: dict<dict<any>>): void
+export def PopulateRanges(ranges: dict<dict<any>>): void
   for [name, range] in ranges->items()
     range['tmp'] = tempname()
     #if range.mode != 'in'
@@ -36,7 +36,7 @@ def PopulateRanges(ranges: dict<dict<any>>): void
   endfor
 enddef
 
-def InjectRanges(ranges: dict<dict<any>>): void
+export def InjectRanges(ranges: dict<dict<any>>): void
   for [name, range] in ranges->items()
     if range.mode == 'in'
       continue
@@ -61,7 +61,10 @@ enddef
 # Return the list of ranges which are actually used.
 # This allowed to have lots of ranges defined by default
 # but only uses the needed ones.
-def UsedRanges(com: dict<any>): dict<dict<any>>
+export def UsedRanges(com: dict<any>): dict<dict<any>>
+  if !com->has_key('ranges')
+    return {}
+  endif
   var result = {}
   for [name, range] in com.ranges->items()
     if match(com.command, '@' .. name .. '\>') != -1

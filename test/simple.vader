@@ -3,6 +3,8 @@ Given (shell command with data):
   Hello world
   !!!tr a-z A-Z<@in >@out
 Execute (the command):
+  $
+  call yrange#ExecuteCommandUnderCursor()
 Expect (the result at the end):
   Line 1
   Hello world

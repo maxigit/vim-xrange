@@ -1,8 +1,3 @@
-Execute (Init):
-  call yrange#ForceLoad()
-  let snr = matchstr(matchstr(split(execute('scriptnames'), "\n"), 'autoload/yrange.vim'), '^ *\d\+')
-  let g:s = "<SNR>".trim(snr). "_"
-  
 Given (a buffer with some commands):
   First line, not a range      
   !!: echo "a vim command"
@@ -16,18 +11,18 @@ Given (a buffer with some commands):
 
   !!! echo "a shell command"
 Execute (find start and end):
-  AssertEqual {g:s}SearchNextCommandLine(), 2
+  AssertEqual yrange#search#SearchNextCommandLine(), 2
   2
-  AssertEqual {g:s}SearchEndOfCurrentCommandLine(), 0
+  AssertEqual yrange#search#SearchEndOfCurrentCommandLine(), 0
 Execute (find multiline):
   2
-  AssertEqual {g:s}SearchNextCommandLine(), 5
+  AssertEqual yrange#search#SearchNextCommandLine(), 5
   5
-  AssertEqual {g:s}SearchEndOfCurrentCommandLine(), 8
+  AssertEqual yrange#search#SearchEndOfCurrentCommandLine(), 8
 Execute (find across a multiline):
   5
-  AssertEqual {g:s}SearchNextCommandLine(), 11
+  AssertEqual yrange#search#SearchNextCommandLine(), 11
   11
-  AssertEqual {g:s}SearchEndOfCurrentCommandLine(), 0
+  AssertEqual yrange#search#SearchEndOfCurrentCommandLine(), 0
   
   
