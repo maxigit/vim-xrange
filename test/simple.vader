@@ -1,0 +1,11 @@
+Given (shell command with data):
+  Line 1
+  Hello world
+  !!!tr a-z A-Z<@in >@out
+Execute (the command):
+Expect (the result at the end):
+  Line 1
+  Hello world
+  !!!tr a-z A-Z<@in >@out
+  LINE 1
+  HELLO WORLD
