@@ -1,8 +1,5 @@
 vim9script autoload
-
-export def ForceLoad(): string
-  return "execute"
-enddef
+import "./search.vim" as search
 
 export def ExecuteCommand(com: dict<any>): void
   if com == {}
@@ -46,6 +43,7 @@ export def InjectRanges(ranges: dict<dict<any>>): void
     endif
     # inject the content of the file to the range
     var command = get(range, 'read', ':%range !cat %file')
+
     command = substitute(command, '%range', range.range, 'g')
     command = substitute(command, '%file', range.tmp, 'g')
     # :execute ":" .. range.range .. "!cat " .. range.tmp
@@ -77,9 +75,15 @@ export def UsedRanges(com: dict<any>): dict<dict<any>>
   return result
 enddef
 
-export def DeleteRange(com: dict<any>, rangeName: string): void
-  :set nowrapscan
-  :silent! :/\%>.l^\S/;/^$/-d
+
+# Delete all ranges starting from the given range
+# till the next one or end of file
+export def DeleteOuterRanges(com: dict<any>): void
+  const range = search.FindOuterRanges(com)
+  if range != {}
+    deletebufline(bufnr(), range.rangeStart, range.rangeEnd)
+  endif
 enddef
 
 defcompile
+

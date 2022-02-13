@@ -170,6 +170,29 @@ export def LineToCommand_unsafe(line: number, current: number): dict<any>
  endif
 enddef
 
+# Delete all ranges starting from the given range
+# till the next one or end of file
+export def FindOuterRanges(com: dict<any>): dict<any>
+  const cursorPos = getcurpos()
+  cursor(com.endLine, 1)
+  # find the last end of range marker 
+  # before the next range
+  var last = SearchNextCommandLine()
+  if last == 0
+    cursor(line('$'), 1)
+  endif
+  cursor(last, 1)
+
+  # find backward until the end 
+  const rangeEnd = Search(b:xblock_prefix .. '^\f\+\>', 'cbwn', com.endLine)
+  setpos('.', cursorPos)
+  if rangeEnd >= com.endLine + 1
+    return {rangeStart: com.endLine + 1, rangeEnd: rangeEnd}
+  else
+    return {}
+  end
+enddef
+
 # !!main={
 # !! This  (1)
 # before comment (2)!!#  Not that
@@ -182,10 +205,10 @@ def Search(...args: list<any>): number
   const smartcase = &smartcase
   const magic = &magic
   const foldenable = &foldenable
-  set noignorecase
-  set nosmartcase
-  set nomagic
-  set foldenable
+  setl noignorecase
+  setl nosmartcase
+  setl nomagic
+  setl foldenable
   const l = call("search", args)
   &ignorecase = ignorecase
   &smartcase = smartcase

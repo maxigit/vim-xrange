@@ -1,43 +1,49 @@
 Given (command with old output):
-  !!!echo "hello" >@in
+  !!!echo "hello" <@out
   Foo
+  !!^out
 
   NOT TO BE DELETED
 Execute (delele output):
   1
-  call yrange#CommandUnderCursor()->yrange#execute#DeleteRange('out')
+  call yrange#CommandUnderCursor()->yrange#execute#DeleteOuterRanges()
 Expect:
-  !!!echo "hello" >@in
+  !!!echo "hello" <@out
 
   NOT TO BE DELETED
-Given (command with old output #2):
-  !!!echo "hello" >@in
+Given (command with 2 old output #2):
+  !!!echo "hello" <@out
   Foo
   Bar
+  !!^out
+  error
+  !!^error
 
   NOT TO BE DELETED
-Execute (delele output):
+Execute (delele all outputs):
   1
-  call yrange#CommandUnderCursor()->yrange#execute#DeleteRange('out')
+  call yrange#CommandUnderCursor()->yrange#execute#DeleteOuterRanges()
 Expect:
-  !!!echo "hello" >@in
+  !!!echo "hello" <@out
 
   NOT TO BE DELETED
-Given (command with no output, but marker):
-  !!!echo "hello" >@in
-  
+Given (multiline command):
+  !!!{echo "hello"
+           <@out
+  !!}
+  Foo
+  !!^out
   NOT TO BE DELETED
 Execute (delele output):
-  call yrange#CommandUnderCursor()->yrange#execute#DeleteRange('out')
+  call yrange#CommandUnderCursor()->yrange#execute#DeleteOuterRanges()
 Expect:
-  !!!echo "hello" >@in
-
+  !!!{echo "hello"
+           <@out
+  !!}
   NOT TO BE DELETED
-Given (command with no output, but marker):
-  !!!echo "hello" >@in
-  NOT TO BE DELETED
+Given (command with no output):
+  !!!echo "hello" <@out
 Execute (delele output):
-  call yrange#CommandUnderCursor()->yrange#execute#DeleteRange('out')
+  call yrange#CommandUnderCursor()->yrange#execute#DeleteOuterRanges()
 Expect:
-  !!!echo "hello" >@in
-  NOT TO BE DELETED
+  !!!echo "hello" <@out
