@@ -6,48 +6,58 @@ export def ExecuteCommand(com: dict<any>): void
     return
   endif
   const cursorPos = getcurpos()
+  cursor(com.endLine, 1)
 
   #SaveVars(com)
   #ApplyVars(com)
   final ranges = UsedRanges(com)
   PopulateRanges(ranges)
   const command = ReplaceRanges(com.command, ranges)
-  :execute command
-  InjectRanges(ranges)
+  :silent execute command
+  DeleteOuterRanges(com)
+  InjectRangesInBuffer(com.endLine, ranges)
   #RestoreVars(com)
+  setpos('.', cursorPos)
 enddef
 
 # create temporary files and set the name to the dict
 export def PopulateRanges(ranges: dict<dict<any>>): void
   for [name, range] in ranges->items()
     range['tmp'] = tempname()
-    #if range.mode != 'in'
-    #  continue
-    #endif
+    if range.mode != 'in'
+      continue
+    endif
     # write the content of the range to the temporary file
     var command = get(range, 'write', ':%range write! %file')
     command = substitute(command, '%range', range.range, 'g')
     command = substitute(command, '%file', range.tmp, 'g')
     # :execute  ":" .. range.range .. "write! " .. range.tmp
-    execute command
+    silent execute command
   endfor
 enddef
 #
 #  range
 #  >>>>> where to insert
 
-export def InjectRanges(ranges: dict<dict<any>>): void
+export def InjectRangesInBuffer(insertAfter: number, ranges: dict<dict<any>>): void
   for [name, range] in ranges->items()
     if range.mode == 'in'
       continue
     endif
     # inject the content of the file to the range
-    var command = get(range, 'read', ':%range !cat %file')
+    var command = get(range, 'read', ':%range r %file')
 
-    command = substitute(command, '%range', range.range, 'g')
+    var rangeLine = insertAfter
+    # insert header and footer
+    var header = get(range, 'header', [])
+    if header != []
+      rangeLine += len(header)
+    endif
+    var footer = get(range, 'footer', [])
+    append(insertAfter, header + footer->add(b:xblock_prefix .. '^' .. name))
+    command = substitute(command, '%range', rangeLine, 'g')
     command = substitute(command, '%file', range.tmp, 'g')
-    # :execute ":" .. range.range .. "!cat " .. range.tmp
-    execute command
+    silent execute command
   endfor
 enddef
 

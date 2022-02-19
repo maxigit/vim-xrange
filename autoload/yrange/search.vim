@@ -1,7 +1,8 @@
 vim9script
 b:xblock_prefix = '!!' # TODO remove, set by autocommand
 b:xblock_default_ranges = { in: { mode: 'in', range: '-' },
-                     out: { mode: 'out', range: '+,/!!\^\|\n\|$/' }
+                     out: { mode: 'out', range: '+,/!!\^\|\n\|$/' },
+                     error: { mode: 'out', range: '+,/!!\^\|\n\|$/' }
                    }
 b:xblock_default = { ranges: b:xblock_default_ranges }
 

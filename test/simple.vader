@@ -1,5 +1,5 @@
 Given (command with old output):
-  !!!echo "hello" <@out
+  !!!echo "hello" >@out
   Foo
   !!^out
 
@@ -8,11 +8,20 @@ Execute (delele output):
   1
   call yrange#CommandUnderCursor()->yrange#execute#DeleteOuterRanges()
 Expect:
-  !!!echo "hello" <@out
+  !!!echo "hello" >@out
+
+  NOT TO BE DELETED
+Execute (echo hello):
+  1
+  call yrange#CommandUnderCursor()->yrange#execute#ExecuteCommand()
+Expect (hello to be present in the range):
+  !!!echo "hello" >@out
+  hello
+  !!^out
 
   NOT TO BE DELETED
 Given (command with 2 old output #2):
-  !!!echo "hello" <@out
+  !!!echo "hello" >@out
   Foo
   Bar
   !!^out
@@ -23,27 +32,38 @@ Given (command with 2 old output #2):
 Execute (delele all outputs):
   1
   call yrange#CommandUnderCursor()->yrange#execute#DeleteOuterRanges()
-Expect:
-  !!!echo "hello" <@out
+Expect (range to be deleted):
+  !!!echo "hello" >@out
 
   NOT TO BE DELETED
 Given (multiline command):
   !!!{echo "hello"
-           <@out
+           >@out
   !!}
   Foo
   !!^out
   NOT TO BE DELETED
 Execute (delele output):
   call yrange#CommandUnderCursor()->yrange#execute#DeleteOuterRanges()
-Expect:
+Expect (range to be deleted):
   !!!{echo "hello"
-           <@out
+           >@out
   !!}
   NOT TO BE DELETED
 Given (command with no output):
-  !!!echo "hello" <@out
+  !!!echo "hello" >@out
 Execute (delele output):
   call yrange#CommandUnderCursor()->yrange#execute#DeleteOuterRanges()
-Expect:
-  !!!echo "hello" <@out
+Expect (range to be deleted):
+  !!!echo "hello" >@out
+Given (a commond with two outputs):
+  !!! echo "hello" >@out ; echo "ERROR" >@error
+
+Execute (double command):
+  call yrange#CommandUnderCursor()->yrange#execute#ExecuteCommand()
+Expect (two output ranges in alpha order):
+  !!! echo "hello" >@out ; echo "ERROR" >@error
+  ERROR
+  !!^error
+  hello
+  !!^out
