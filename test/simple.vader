@@ -71,3 +71,41 @@ Then (find outer ranges):
   1
   AssertEqual yrange#CommandUnderCursor()->yrange#search#FindOuterRange('out'), #{rangeStart: 4, rangeEnd: 5}
   AssertEqual yrange#CommandUnderCursor()->yrange#search#FindOuterRange('error'), #{rangeStart: 2, rangeEnd: 3}
+Given (buffer with two inputs):
+  To be avoided
+  
+  Content of range 1 (line 3)
+  DATA
+  Content 
+  of range 2         (line 6)
+  !!! using @in and @data
+Execute (find inner ranges):
+  $
+  let com = yrange#CommandUnderCursor()
+  AssertEqual ['data', 'in'], com->yrange#execute#UsedRangeNames()
+  let inner = com->yrange#search#FindInnerRanges(com->yrange#execute#UsedRangeNames())
+  " AssertEqual inner, {}
+  AssertEqual ['data','in'], inner->keys()
+  AssertEqual 2, inner.in.startLine
+  AssertEqual 3, inner.in.endLine
+  AssertEqual 4, inner.data.startLine
+  AssertEqual 6, inner.data.endLine
+Given (buffer with one input used (of two)):
+  To be avoided
+  
+  Content of range 1 (line 3)
+  DATA
+  Content 
+  of range 2         (line 6)
+  !!! using @in
+Execute (ignore unused ranges):
+  $
+  let com = yrange#CommandUnderCursor()
+  AssertEqual ['in'], com->yrange#execute#UsedRangeNames()
+  let inner = com->yrange#search#FindInnerRanges(com->yrange#execute#UsedRangeNames())
+  " AssertEqual ['in'], inner->keys()
+  AssertEqual 2, inner.in.startLine
+  AssertEqual 6, inner.in.endLine
+
+
+

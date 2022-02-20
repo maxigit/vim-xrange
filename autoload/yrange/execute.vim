@@ -86,6 +86,9 @@ export def UsedRanges(com: dict<any>): dict<dict<any>>
 enddef
 
 
+export def UsedRangeNames(com: dict<any>): list<string>
+  return com->UsedRanges()->keys()
+enddef
 # Delete all ranges starting from the given range
 # till the next one or end of file
 export def DeleteOuterRanges(com: dict<any>): void

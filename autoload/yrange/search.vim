@@ -1,6 +1,8 @@
 vim9script
 b:xblock_prefix = '!!' # TODO remove, set by autocommand
-b:xblock_default_ranges = { in: { mode: 'in', range: '-' },
+b:xblock_default_ranges = { in: { mode: 'in', start: '^\n' },
+                          data: { mode: 'in', start: 'DATA'},
+                          BOF: { mode: 'in', start: '\%^'},
                           out: { mode: 'out'}, 
                      error: { mode: 'error'}
                    }
@@ -192,6 +194,45 @@ export def FindOuterRange(com: dict<any>, name: string): dict<any>
   return result
 enddef
 
+# Update command and the start and end line to all inner ranges
+# return the updated ranges
+# Only check for the given range names (to avoid finding 
+# default ranges  not used in the present command
+export def FindInnerRanges(com: dict<any>, used: list<string>): dict<any>
+  const cursorPos = getcurpos()
+  if (com.startLine == 1)
+    return {}
+  endif
+
+  cursor(com.startLine - 1, 1)
+  var first = SearchPreviousCommandLine()
+  var foundRanges: list<list<any> > = []
+  # find all ranges and sort them 
+  # so that each start of a range marks the end of the previous one
+  for name in  com.ranges->keys()
+    var range = com.ranges[name]
+    if used->index(name) == -1 || range.mode != 'in'
+      continue
+    endif
+    const rangeStart = Search(range.start, 'wn', first)
+    com.ranges[name]['startLine'] = rangeStart
+    if rangeStart > 0
+      foundRanges->add([rangeStart, name])
+    endif
+  endfor
+  final result = {}
+  if foundRanges != []
+    foundRanges->sort()->reverse()
+    var last = com.startLine - 1
+    for [line, name] in foundRanges 
+      com.ranges[name]['endLine'] = last
+      last = line - 1
+      result[name] = com.ranges[name]
+    endfor
+  endif
+  setpos('.', cursorPos)
+  return result
+enddef
 
 # Find all ranges starting from the given range
 # till the next one or end of file, regardless
