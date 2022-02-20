@@ -1,8 +1,8 @@
 vim9script
 b:xblock_prefix = '!!' # TODO remove, set by autocommand
 b:xblock_default_ranges = { in: { mode: 'in', range: '-' },
-                     out: { mode: 'out', range: '+,/!!\^\|\n\|$/' },
-                     error: { mode: 'out', range: '+,/!!\^\|\n\|$/' }
+                          out: { mode: 'out'}, 
+                     error: { mode: 'error'}
                    }
 b:xblock_default = { ranges: b:xblock_default_ranges }
 
@@ -171,8 +171,32 @@ export def LineToCommand_unsafe(line: number, current: number): dict<any>
  endif
 enddef
 
-# Delete all ranges starting from the given range
-# till the next one or end of file
+# Find range above !!^name finishing at next one
+export def FindOuterRange(com: dict<any>, name: string): dict<any>
+  const cursorPos = getcurpos()
+  cursor(com.endLine, 1)
+  var last = SearchNextCommandLine()
+  const endRange = Search(b:xblock_prefix .. '^' .. name, 'wn', last)
+  var result = {}
+  if endRange != 0
+    # find the end of another range or the end of the range itself
+    cursor(endRange, 1)
+    var previousEnd = Search(b:xblock_prefix .. '^\f\+\>', 'bwn', com.endLine)
+    if previousEnd == 0
+      # use current range end
+      previousEnd = cursorPos[1]
+    endif
+    result = {rangeStart: previousEnd + 1, rangeEnd: endRange}
+  endif
+  setpos('.', cursorPos)
+  return result
+enddef
+
+
+# Find all ranges starting from the given range
+# till the next one or end of file, regardless
+# of if ther are used or not. (this allow
+# to delete all ranges even though some are not used anymore.
 export def FindOuterRanges(com: dict<any>): dict<any>
   const cursorPos = getcurpos()
   cursor(com.endLine, 1)
@@ -183,7 +207,6 @@ export def FindOuterRanges(com: dict<any>): dict<any>
     cursor(line('$'), 1)
   endif
   cursor(last, 1)
-
   # find backward until the end 
   const rangeEnd = Search(b:xblock_prefix .. '^\f\+\>', 'cbwn', com.endLine)
   setpos('.', cursorPos)

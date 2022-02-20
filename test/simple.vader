@@ -67,3 +67,7 @@ Expect (two output ranges in alpha order):
   !!^error
   hello
   !!^out
+Then (find outer ranges):
+  1
+  AssertEqual yrange#CommandUnderCursor()->yrange#search#FindOuterRange('out'), #{rangeStart: 4, rangeEnd: 5}
+  AssertEqual yrange#CommandUnderCursor()->yrange#search#FindOuterRange('error'), #{rangeStart: 2, rangeEnd: 3}
