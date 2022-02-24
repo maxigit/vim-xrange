@@ -13,6 +13,6 @@ augroup yrange
 augroup END
 
 
-nnoremap <silent> <space>xx :call yrange#ExecuteCommandUnderCursor()
+nnoremap <silent> <space>xx :call yrange#ExecuteCommandUnderCursor()<CR>
 
 
