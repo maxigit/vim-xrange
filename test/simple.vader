@@ -5,7 +5,6 @@ Given (command with old output):
 
   NOT TO BE DELETED
 Execute (delele output):
-  do yrange BufCreatt
   1
   call yrange#CommandUnderCursor()->yrange#execute#DeleteOuterRanges()
 Expect:

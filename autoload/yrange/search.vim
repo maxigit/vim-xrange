@@ -207,8 +207,8 @@ export def FindInnerRanges(com: dict<any>, used: list<string>): dict<any>
       continue
     endif
     const rangeStart = Search(range.start, 'wn', first)
-    com.ranges[name]['startLine'] = rangeStart
     if rangeStart > 0
+      com.ranges[name]['startLine'] = rangeStart
       foundRanges->add([rangeStart, name])
     endif
   endfor

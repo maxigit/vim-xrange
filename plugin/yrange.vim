@@ -1,6 +1,6 @@
 function s:initBuffer()
   let b:xblock_prefix = '!!' 
-  let b:xblock_default_ranges = #{ in: #{ mode: 'in', start: '^\n' },
+  let b:xblock_default_ranges = #{ in: #{ mode: 'in', start: '^\n\|\%^' },
         \  data: #{ mode: 'in', start: 'DATA'},
         \  BOF: #{ mode: 'in', start: '\%^'},
         \  out: #{ mode: 'out'}, 

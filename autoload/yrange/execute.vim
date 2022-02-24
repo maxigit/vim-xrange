@@ -8,9 +8,12 @@ export def ExecuteCommand(com: dict<any>): void
   const cursorPos = getcurpos()
   cursor(com.endLine, 1)
 
+
   #SaveVars(com)
   #ApplyVars(com)
   final ranges = UsedRanges(com)
+  # populate range limits
+  search.FindInnerRanges(com, ranges->keys())
   PopulateRanges(ranges)
   const command = ReplaceRanges(com.command, ranges)
   :silent execute command
@@ -24,12 +27,12 @@ enddef
 export def PopulateRanges(ranges: dict<dict<any>>): void
   for [name, range] in ranges->items()
     range['tmp'] = tempname()
-    if range.mode != 'in'
+    if range.mode != 'in' || !range->has_key('startLine')
       continue
     endif
     # write the content of the range to the temporary file
     var command = get(range, 'write', ':%range write! %file')
-    command = substitute(command, '%range', range.range, 'g')
+    command = substitute(command, '%range', printf("%d,%d", range.startLine, range.endLine), 'g')
     command = substitute(command, '%file', range.tmp, 'g')
     # :execute  ":" .. range.range .. "write! " .. range.tmp
     silent execute command
@@ -57,7 +60,7 @@ export def InjectRangesInBuffer(insertAfter: number, ranges: dict<dict<any>>): v
     append(insertAfter, header + footer->add(b:xblock_prefix .. '^' .. name))
     command = substitute(command, '%range', rangeLine, 'g')
     command = substitute(command, '%file', range.tmp, 'g')
-    silent execute command
+    silent! execute command
   endfor
 enddef
 

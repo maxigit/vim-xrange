@@ -1,0 +1,32 @@
+Before (execute autocommand):
+  do yrange BufAdd
+Given (a command with input):
+  Foo
+  bar
+  !!! tr 'a-z' 'A-Z' <@in >@out
+Execute (the shell command):
+  $
+  call yrange#ExecuteCommandUnderCursor()
+Expect (an output with uppercase):
+  Foo
+  bar
+  !!! tr 'a-z' 'A-Z' <@in >@out
+  FOO
+  BAR
+  !!^out
+Before (execute autocommand):
+  do yrange BufAdd
+Given (a command with 2 commands):
+  !!! ls <@in
+  Foo
+  bar
+  !!! tr 'a-z' 'A-Z' <@BOF >@out
+Execute (the last command):
+  $
+  call yrange#ExecuteCommandUnderCursor()
+Expect (ignore input overlapping with previous command):
+  !!! ls <@in
+  Foo
+  bar
+  !!! tr 'a-z' 'A-Z' <@BOF >@out
+  !!^out
