@@ -1,12 +1,4 @@
 vim9script
-b:xblock_prefix = '!!' # TODO remove, set by autocommand
-b:xblock_default_ranges = { in: { mode: 'in', start: '^\n' },
-                          data: { mode: 'in', start: 'DATA'},
-                          BOF: { mode: 'in', start: '\%^'},
-                          out: { mode: 'out'}, 
-                     error: { mode: 'error'}
-                   }
-b:xblock_default = { ranges: b:xblock_default_ranges }
 
 def StartRg(): string
   return b:xblock_prefix .. '\f*[!:={]'
