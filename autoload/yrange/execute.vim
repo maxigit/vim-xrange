@@ -1,6 +1,36 @@
 vim9script autoload
 import "./search.vim" as search
 
+# Save current values of environment variables
+def SaveVars(com: dict<any>): dict<any>
+  const env = environ()
+  var result = {}
+  for vname in com.env->keys()
+    if env->has_key(vname)
+      result[vname] = env[vname]
+    else
+      result[vname] = v:none
+    endif
+  endfor
+  return result
+enddef
+
+# Set or Unset env variables
+def SetEnvs(env: dict<any>): void
+  for [vname, value] in env->items()
+    if value == v:none
+      execute('unlet $' .. vname)
+    else
+      execute(printf("$%s = '%s'", vname, value))
+    endif
+  endfor
+enddef
+
+
+
+
+
+
 export def ExecuteCommand(com: dict<any>): void
   if com == {}
     return
@@ -9,17 +39,19 @@ export def ExecuteCommand(com: dict<any>): void
   cursor(com.endLine, 1)
 
 
-  #SaveVars(com)
-  #ApplyVars(com)
+  const oldEnv = SaveVars(com)
+  SetEnvs(com.env)
   final ranges = UsedRanges(com)
   # populate range limits
   search.FindInnerRanges(com, ranges->keys())
   PopulateRanges(ranges)
   const command = ReplaceRanges(com.command, ranges)
+  #append('.', " " .. string(com))
+  #append('.', "COM " .. command)
   :silent execute command
   DeleteOuterRanges(com)
   InjectRangesInBuffer(com.endLine, ranges)
-  #RestoreVars(com)
+  SetEnvs(oldEnv)
   setpos('.', cursorPos)
 enddef
 
@@ -31,7 +63,8 @@ export def PopulateRanges(ranges: dict<dict<any>>): void
       continue
     endif
     # write the content of the range to the temporary file
-    var command = get(range, 'write', ':%range write! %file')
+    # var command = get(range, 'write', ':%range write! %file')
+    var command = get(range, 'write', ':%range write !envsubst > %file')
     command = substitute(command, '%range', printf("%d,%d", range.startLine, range.endLine), 'g')
     command = substitute(command, '%file', range.tmp, 'g')
     # :execute  ":" .. range.range .. "write! " .. range.tmp
@@ -102,4 +135,5 @@ export def DeleteOuterRanges(com: dict<any>): void
 enddef
 
 defcompile
+
 

@@ -79,7 +79,7 @@ def RangeToText(range: dict<any>): string
     results->add(s)
   endfor
   # on first line, removes name and { if any
-  results[0] = substitute(results[0], '^\f*={\?', '', '')
+  results[0] = substitute(results[0], '^\%(\f*=\)\?{\?', '', '')
   return results->join(' ')
 enddef
 
@@ -98,7 +98,9 @@ enddef
 # stmt ::= [bindings ] command
 # bindings ::= binding [ ' ' bindings ]
 # binding ::= dict | var=value + prop:value
-def TextToDict(command: string): dict<any>
+def TextToDict(command_: string): dict<any>
+  # extract the prefix !, : etc ...
+  const [_, prefix, command;_] = matchlist(command_, '^\([!:]\?\)\s*\(.*\)')
   # split on space (but not '\ '
   const words = split(command, '[^\\]\zs\s\+')
   var vars: dict<string> = {} # variables
@@ -112,14 +114,10 @@ def TextToDict(command: string): dict<any>
     if coms != []
       coms->add(word)
     else
-      var match = matchlist(word, '\(\$\?\)\(\i\+\)=\(.*\)')
+      var match = matchlist(word, '\(\i\+\)=\(.*\)')
       if match != []
-        const [_,isEnv,name,value;_] = match
-        if isEnv == '$'
-          env[name] = value
-        else
-          vars[name] = value
-        endif
+        const [_,name,value;_] = match
+        env[name] = value
       else
         match = matchlist(word, '\(' .. Props .. '\):\(.*\)')
         if match != []
@@ -144,6 +142,9 @@ def TextToDict(command: string): dict<any>
   endfor
   if coms != []
     r.command = coms->join(' ')
+  endif
+  if prefix == "!"
+    r.command = "!" .. r.command
   endif
   return r
 enddef

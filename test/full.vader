@@ -30,3 +30,54 @@ Expect (ignore input overlapping with previous command):
   bar
   !!! tr 'a-z' 'A-Z' <@BOF >@out
   !!^out
+Given (an awk script with data):
+  /a/ {print $0;}
+  DATA
+  foo
+  bar
+  hello
+  !!!awk -f @in <@data >@out 2>@error
+Execute (awk script):
+  $
+  call yrange#ExecuteCommandUnderCursor()
+Expect (no error):
+  /a/ {print $0;}
+  DATA
+  foo
+  bar
+  hello
+  !!!awk -f @in <@data >@out 2>@error
+  !!^error
+  bar
+  !!^out
+Given (an awk script with error):
+-- filler to shift the awk file line
+-- so that we can test the line have been shifted properly
+
+
+
+
+  /a/ {
+  DATA
+  foo
+  bar
+  hello
+  !!!awk -f @in <@data >@out 2>@error
+Execute (awk script):
+  $
+  call yrange#ExecuteCommandUnderCursor()
+Expect (error with correct filename/lineno):
+  Filler
+
+  /a/ {
+  DATA
+  foo
+  bar
+  hello
+  !!!awk -f @in <@data >@out 2>@error
+  awk: @in:1: (END OF FILE)
+  awk: @in:1: ^ source files / command line arguments must contain complete functions or rules
+
+  !!^error
+  bar
+  !!^out
