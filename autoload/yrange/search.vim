@@ -236,9 +236,12 @@ export def FindInnerRanges(com: dict<any>, used: list<string>): dict<any>
     if used->index(name) == -1 || range.mode != 'in'
       continue
     endif
-    const rangeStart = Search(range.start, 'wn', first)
+    const rangeStart = Search(range.start, 'bwn', first)
+    #append('$', 'Find ' .. name .. ' ' .. string(range) .. ' ' .. rangeStart)
     if rangeStart > 0
       com.ranges[name]['startLine'] = rangeStart
+      # find the end of the match. in case the match matches multiple line.
+      com.ranges[name]['bodyStart'] = Search(printf('\%(%s\)\zs', range.start), 'bwn', first)
       foundRanges->add([rangeStart, name])
     endif
   endfor

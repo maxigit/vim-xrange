@@ -53,11 +53,10 @@ Given (multline variables block):
      price=10.00
   !!}
 
-
   Your order is
     product: $product
     price: ${price}$
-  !!! cat <@in >@out
+  !!!cat @in >@out
 Execute:
   $
   call yrange#ExecuteCommandUnderCursor()
@@ -67,12 +66,43 @@ Expect (pen 10.00$):
      price=10.00
   !!}
 
+  Your order is
+    product: $product
+    price: ${price}$
+  !!!cat @in >@out
+  Your order is
+    product: pen
+    price: 10.00$
+  !!^out
+Given (overriding variables):
+  !!default={
+     product=pen
+     price=10.00
+  !!}
+  !!price=price=20.00
 
   Your order is
     product: $product
     price: ${price}$
-  !!! cat <@in >@out
+    quantity: $quantity
+  !!!&price quantity=3 cat @in >@out
+Execute:
+  $
+  call yrange#ExecuteCommandUnderCursor()
+Expect (pen 10.00$):
+  !!default={
+     product=pen
+     price=10.00
+  !!}
+  !!price=price=20.00
+
+  Your order is
+    product: $product
+    price: ${price}$
+    quantity: $quantity
+  !!!&price quantity=3 cat @in >@out
   Your order is
     product: pen
-    price: 10.00$
+    price: 20.00$
+    quantity: 3
   !!^out

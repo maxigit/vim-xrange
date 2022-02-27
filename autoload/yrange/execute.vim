@@ -57,15 +57,18 @@ enddef
 
 # create temporary files and set the name to the dict
 export def PopulateRanges(ranges: dict<dict<any>>): void
+    #append('$', "RANGES " .. " " .. string(ranges))
   for [name, range] in ranges->items()
     range['tmp'] = tempname()
-    if range.mode != 'in' || !range->has_key('startLine')
+    #append('$', "RANGE " .. name .. " " .. string(range))
+    if range.mode != 'in' || !range->has_key('bodyStart')
       continue
     endif
+    #append('$', "IN " .. name .. " " .. string(range))
     # write the content of the range to the temporary file
     # var command = get(range, 'write', ':%range write! %file')
     var command = get(range, 'write', ':%range write !envsubst > %file')
-    command = substitute(command, '%range', printf("%d,%d", range.startLine, range.endLine), 'g')
+    command = substitute(command, '%range', printf("%d,%d", range.bodyStart, range.endLine), 'g')
     command = substitute(command, '%file', range.tmp, 'g')
     # :execute  ":" .. range.range .. "write! " .. range.tmp
     silent execute command

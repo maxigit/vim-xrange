@@ -2,7 +2,7 @@ function s:initBuffer()
   let b:xblock_prefix = '!!' 
   let b:xblock_default_ranges = #{
         \  in: #{ mode: 'in', start: '^\s*\n\|\%^' },
-        \  data: #{ mode: 'in', start: '\<DATA\>'},
+        \  data: #{ mode: 'in', start: '\<DATA\>.*\n'},
         \  BOF: #{ mode: 'in', start: '\%^'},
         \  out: #{ mode: 'out'}, 
         \  error: #{ mode: 'error'} }
