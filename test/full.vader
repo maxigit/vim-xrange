@@ -14,8 +14,6 @@ Expect (an output with uppercase):
   FOO
   BAR
   !!^out
-Before (execute autocommand):
-  do yrange BufAdd
 Given (a command with 2 commands):
   !!! ls <@in
   Foo

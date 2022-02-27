@@ -11,5 +11,9 @@ export def ExecuteCommandUnderCursor(): void
     exm.ExecuteCommand(yrange#CommandUnderCursor())
 enddef
 
+export def CommandByName(name: string): dict<any>
+  return search.FindCommandByName(name)
+enddef
+
       
 defcompile

@@ -3,7 +3,7 @@ Given (some lines):
   line 2
   line 3
 Execute (populate one line 'in' range):
-  let in = #{mode:"in", range:"?line 1?"}
+  let in = #{mode:"in", range:"line 1"}
   call yrange#execute#PopulateRanges(#{in:in})
   execute ":%r " .. in.tmp
 Expect:

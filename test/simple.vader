@@ -1,3 +1,5 @@
+Before:
+  do yrange BufAdd
 Given (command with old output):
   !!!echo "hello" >@out
   Foo

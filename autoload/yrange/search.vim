@@ -1,7 +1,7 @@
 vim9script
 
 def StartRg(): string
-  return b:xblock_prefix .. '\f*[!:={]'
+  return b:xblock_prefix .. '\i*[!:=&{]'
 enddef
 
 export def ForceLoad(): string
@@ -44,7 +44,7 @@ export def CommandRangeFromLine_unsafe(line: number, current: number=0): dict<an
   const cursorPos = getcurpos()
   cursor(line, 1)
   # check if the command is multiline
-  const [_,name,opening;_] = matchlist(getline(line), b:xblock_prefix .. '\(\f*\)[!:=]\?\({\)\?')
+  const [_,name,opening;_] = matchlist(getline(line), b:xblock_prefix .. '\(\i*\)[!:=]\?\({\)\?')
   var result: dict<any> = {name: name}
     # on line
   if opening == "{"
@@ -79,17 +79,42 @@ def RangeToText(range: dict<any>): string
     results->add(s)
   endfor
   # on first line, removes name and { if any
-  results[0] = substitute(results[0], '^\%(\f*=\)\?{\?', '', '')
+  results[0] = substitute(results[0], '^\%(\i*=\)\?{\?', '', '')
   return results->join(' ')
+enddef
+
+# Extend command recursively
+def ExtendCommand(com1: dict<any>, com2: dict<any>): dict<any>
+  for key in com2->keys()
+    if com1->has_key(key)
+      var value = com1[key]
+      if type(value) == v:t_dict
+        value->ExtendCommand(com2[key])
+      else
+        com1[key] = com2[key]
+      endif
+    else
+        com1[key] = com2[key]
+    endif
+  endfor
+  return com1
 enddef
 
 def RangeToCommand(range: dict<any>): dict<any>
   # find default
   var result = get(b:, 'xblock_default', {})
-  return result->extend(
+  var command = range->RangeToText()
+  if range->get('name', '') != 'default'
+    var default = yrange#search#FindCommandByName('default')
+    if default->has_key('name')
+      unlet default.name
+    endif
+    result->ExtendCommand(default)
+  endif
+  return result->ExtendCommand(
                 range->RangeToText()
-              ->TextToDict()
-              ->extend(range) # set ranges and name
+                  ->TextToDict()
+                  ->extend(range) # set ranges and name
               )
 enddef
 
@@ -124,15 +149,11 @@ def TextToDict(command_: string): dict<any>
           const [_,prop,value;_] = match
           r[prop] = value
         else
-          match = matchlist(word, '&\(\f\+\)')
+          match = matchlist(word, '&\(\i\+\)')
           if match != []
             # lookup 
-            var com2 = FindCommandByName(match[1])
-            r->extend(FindCommandByName(match[1]))
-            vars->extend(com2.vars)
-            env->extend(com2.env)
-            r->extend(com2)
-            r->extend({vars: vars, env: env})
+            var com2 = yrange#search#FindCommandByName(match[1])
+            r->ExtendCommand(com2)
            else # command
              coms->add(word)
            endif
@@ -153,8 +174,16 @@ def FindCommandLine(name: string): number
    return Search(b:xblock_prefix .. name .. '=', 'cwn')
 enddef
 
-def FindCommandByName(name: string): dict<any>
-  return FindCommandLine(name)->yrange#search#CommandRangeFromLine_unsafe()->RangeToText()->TextToDict()
+export def FindCommandByName(name: string): dict<any>
+  const line = FindCommandLine(name)
+  if line == 0
+    return {}
+  endif
+  var command = line->yrange#search#CommandRangeFromLine_unsafe()
+                    ->RangeToText()
+                    ->TextToDict()
+  command.name = name
+  return command
 enddef
 
 export def LineToCommand_unsafe(line: number, current: number): dict<any>
@@ -176,7 +205,7 @@ export def FindOuterRange(com: dict<any>, name: string): dict<any>
   if endRange != 0
     # find the end of another range or the end of the range itself
     cursor(endRange, 1)
-    var previousEnd = Search(b:xblock_prefix .. '^\f\+\>', 'bwn', com.endLine)
+    var previousEnd = Search(b:xblock_prefix .. '^\i\+\>', 'bwn', com.endLine)
     if previousEnd == 0
       # use current range end
       previousEnd = cursorPos[1]
@@ -242,7 +271,7 @@ export def FindOuterRanges(com: dict<any>): dict<any>
   endif
   cursor(last, 1)
   # find backward until the end 
-  const rangeEnd = Search(b:xblock_prefix .. '^\f\+\>', 'cbwn', com.endLine)
+  const rangeEnd = Search(b:xblock_prefix .. '^\i\+\>', 'cbwn', com.endLine)
   setpos('.', cursorPos)
   if rangeEnd >= com.endLine + 1
     return {rangeStart: com.endLine + 1, rangeEnd: rangeEnd}

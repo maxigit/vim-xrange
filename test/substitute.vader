@@ -1,10 +1,10 @@
 Before (execute autocommand):
   do yrange BufAdd
+
 Given (an input with variable):
   hello $name
   !!!name=bob cat @in >@out
 Execute:
-  let $name='pipo'
   $
   call yrange#ExecuteCommandUnderCursor()
 Expect (hello bob):
@@ -12,6 +12,7 @@ Expect (hello bob):
   !!!name=bob cat @in >@out
   hello bob
   !!^out
+
 Given (a command with variable):
   !!!name=bob echo 'hello' $name >@out
 Execute:
@@ -20,4 +21,58 @@ Execute:
 Expect (hello bob):
   !!!name=bob echo 'hello' $name >@out
   hello bob
+  !!^out
+Given (default variable):
+  !!default=name=Alice
+  !!!echo 'hello' $name >@out
+Execute:
+  $
+  call yrange#ExecuteCommandUnderCursor()
+Expect (hello Alice):
+  !!default=name=Alice
+  !!!echo 'hello' $name >@out
+  hello Alice
+  !!^out
+
+Given (command refering a named command):
+  !!default=name=Alice
+  !!charlie=name=Charlie
+  !!&charlie !echo 'hello' $name >@out
+Execute:
+  $
+  call yrange#ExecuteCommandUnderCursor()
+Expect (hello Charlie):
+  !!default=name=Alice
+  !!charlie=name=Charlie
+  !!&charlie !echo 'hello' $name >@out
+  hello Charlie
+  !!^out
+Given (multline variables block):
+  !!default={
+     product=pen
+     price=10.00
+  !!}
+
+
+  Your order is
+    product: $product
+    price: ${price}$
+  !!! cat <@in >@out
+Execute:
+  $
+  call yrange#ExecuteCommandUnderCursor()
+Expect (pen 10.00$):
+  !!default={
+     product=pen
+     price=10.00
+  !!}
+
+
+  Your order is
+    product: $product
+    price: ${price}$
+  !!! cat <@in >@out
+  Your order is
+    product: pen
+    price: 10.00$
   !!^out
