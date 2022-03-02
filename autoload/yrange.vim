@@ -1,4 +1,4 @@
-vim9script autoload
+vim9script
 import autoload "yrange/search.vim" as search
 import autoload "yrange/execute.vim" as exm
 

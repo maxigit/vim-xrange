@@ -1,4 +1,4 @@
-vim9script autoload
+vim9script
 import "./search.vim" as search
 
 # Save current values of environment variables
@@ -93,7 +93,7 @@ export def InjectRangesInBuffer(insertAfter: number, ranges: dict<dict<any>>): v
       rangeLine += len(header)
     endif
     var footer = get(range, 'footer', [])
-    append(insertAfter, header + footer->add(b:xblock_prefix .. '^' .. name))
+    append(insertAfter, header + footer->add(g:xblock_prefix .. '^' .. name))
     command = substitute(command, '%range', rangeLine, 'g')
     command = substitute(command, '%file', range.tmp, 'g')
     silent! execute command

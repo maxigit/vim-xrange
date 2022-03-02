@@ -1,7 +1,7 @@
 vim9script
 
 def StartRg(): string
-  return b:xblock_prefix .. '\i*[!:=&{]'
+  return g:xblock_prefix .. '\i*[!:=&{]'
 enddef
 
 export def ForceLoad(): string
@@ -10,7 +10,7 @@ enddef
 
 
 def EndRg(): string
-  return b:xblock_prefix .. '}'
+  return g:xblock_prefix .. '}'
 enddef
 
 const Props = ["syntax", "<", ">"]->join('\|')
@@ -44,7 +44,7 @@ export def CommandRangeFromLine_unsafe(line: number, current: number=0): dict<an
   const cursorPos = getcurpos()
   cursor(line, 1)
   # check if the command is multiline
-  const [_,name,opening;_] = matchlist(getline(line), b:xblock_prefix .. '\(\i*\)[!:=]\?\({\)\?')
+  const [_,name,opening;_] = matchlist(getline(line), g:xblock_prefix .. '\(\i*\)[!:=]\?\({\)\?')
   var result: dict<any> = {name: name}
     # on line
   if opening == "{"
@@ -73,9 +73,9 @@ def RangeToText(range: dict<any>): string
   var results = []
   for l in lines
     # remove "comment" strip right
-    var s = substitute(l, b:xblock_prefix .. '[#}].*', '', '')
+    var s = substitute(l, g:xblock_prefix .. '[#}].*', '', '')
     # strip right
-    s = substitute(s, '^.\{-}' .. b:xblock_prefix, '', '')
+    s = substitute(s, '^.\{-}' .. g:xblock_prefix, '', '')
     results->add(s)
   endfor
   # on first line, removes name and { if any
@@ -102,7 +102,10 @@ enddef
 
 def RangeToCommand(range: dict<any>): dict<any>
   # find default
-  var result = get(b:, 'xblock_default', {})
+  var result = get(g:, 'xblock_default', {})
+  if type(result) == v:t_string
+    result = TextToDict(result)
+  endif
   var command = range->RangeToText()
   if range->get('name', '') != 'default'
     var default = yrange#search#FindCommandByName('default')
@@ -153,6 +156,15 @@ def TextToDict(command_: string): dict<any>
           if match != []
             # lookup 
             var com2 = yrange#search#FindCommandByName(match[1])
+            if com2 == {}
+              const com3: any = get(g:xblock_commands, match[1], {})
+              if type(com3) == v:t_string
+                com2 = TextToDict(com3)
+              else
+                com2 = com3
+              endif
+            endif
+            #append('$', match[1] .. " " .. string(com2))
             r->ExtendCommand(com2)
            else # command
              coms->add(word)
@@ -171,7 +183,7 @@ def TextToDict(command_: string): dict<any>
 enddef
 
 def FindCommandLine(name: string): number
-   return Search(b:xblock_prefix .. name .. '=', 'cwn')
+   return Search(g:xblock_prefix .. name .. '=', 'cwn')
 enddef
 
 export def FindCommandByName(name: string): dict<any>
@@ -200,12 +212,12 @@ export def FindOuterRange(com: dict<any>, name: string): dict<any>
   const cursorPos = getcurpos()
   cursor(com.endLine, 1)
   var last = SearchNextCommandLine()
-  const endRange = Search(b:xblock_prefix .. '^' .. name, 'wn', last)
+  const endRange = Search(g:xblock_prefix .. '^' .. name, 'wn', last)
   var result = {}
   if endRange != 0
     # find the end of another range or the end of the range itself
     cursor(endRange, 1)
-    var previousEnd = Search(b:xblock_prefix .. '^\i\+\>', 'bwn', com.endLine)
+    var previousEnd = Search(g:xblock_prefix .. '^\i\+\>', 'bwn', com.endLine)
     if previousEnd == 0
       # use current range end
       previousEnd = cursorPos[1]
@@ -274,7 +286,7 @@ export def FindOuterRanges(com: dict<any>): dict<any>
   endif
   cursor(last, 1)
   # find backward until the end 
-  const rangeEnd = Search(b:xblock_prefix .. '^\i\+\>', 'cbwn', com.endLine)
+  const rangeEnd = Search(g:xblock_prefix .. '^\i\+\>', 'cbwn', com.endLine)
   setpos('.', cursorPos)
   if rangeEnd >= com.endLine + 1
     return {rangeStart: com.endLine + 1, rangeEnd: rangeEnd}
