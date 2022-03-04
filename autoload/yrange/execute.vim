@@ -47,10 +47,10 @@ export def Eval(value: string): string
         endif
       elseif prefix == '^'
         # lookup var=value or var:value 
-        result = Eval(printf('?.*\ze\n.*%s^%s', g:xblock_prefix, command))
+        result = Eval(printf('?.*\ze\n.*%s^%s', g:xblock_prefix, escape(command, '.')))
       elseif prefix == '@'
         # lookup var=value or var:value 
-        result = Eval(printf('?\<%s\>\s*[=:]\s*\zs.*', command))
+        result = Eval(printf('?\<%s\>\s*[=:]\s*\zs.*', escape(command, '.')))
       endif
       return result
 enddef
@@ -74,7 +74,7 @@ export def ExecuteCommand(com: dict<any>): void
   #append('.', "COM " .. command)
   :silent execute command
   DeleteOuterRanges(com)
-  InjectRangesInBuffer(com.endLine, ranges)
+  InjectRangesInBuffer(com->get('name', ''), com.endLine, ranges)
   SetEnvs(oldEnv)
   setpos('.', cursorPos)
 enddef
@@ -102,7 +102,7 @@ enddef
 #  range
 #  >>>>> where to insert
 
-export def InjectRangesInBuffer(insertAfter: number, ranges: dict<dict<any>>): void
+export def InjectRangesInBuffer(comName: string, insertAfter: number, ranges: dict<dict<any>>): void
   for [name, range] in ranges->items()
     if range.mode == 'in'
       continue
@@ -117,7 +117,11 @@ export def InjectRangesInBuffer(insertAfter: number, ranges: dict<dict<any>>): v
       rangeLine += len(header)
     endif
     var footer = get(range, 'footer', [])
-    append(insertAfter, header + footer->add(g:xblock_prefix .. '^' .. name))
+    var fullName = name
+    if comName != ""
+      fullName = comName .. '.' .. name
+    endif
+    append(insertAfter, header + footer->add(g:xblock_prefix .. '^' .. fullName))
     command = substitute(command, '%range', rangeLine, 'g')
     command = substitute(command, '%file', range.tmp, 'g')
     silent! execute command

@@ -53,7 +53,7 @@ export def CommandRangeFromLine_unsafe(line: number, current: number=0): dict<an
       result->extend({startLine: line, endLine: endLine})
     endif
   else
-      result = {startLine: line, endLine: line}
+      result->extend({startLine: line, endLine: line})
     endif
   setpos('.', cursorPos)
   return result
@@ -136,7 +136,7 @@ def TextToDict(command_: string): dict<any>
   var r: dict<any> = {vars: vars, env: env}
   var coms = []
   for w in words 
-    const word = substitute(w, '\ ', ' ', 'g')
+    const word = substitute(w, '\\ ', ' ', 'g')
     # if the command itself is started to be parsed
     # skip the binding parsing
     if coms != []
