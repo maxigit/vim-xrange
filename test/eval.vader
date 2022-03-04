@@ -1,0 +1,24 @@
+Given (a buffer with variable definitions):
+  name= Alice
+
+  === order ids ===
+  1
+  10
+  !!^out
+    
+Before:
+  $
+Execute (find monoline regexp):
+  AssertEqual yrange#execute#Eval('?name *= *\zs.*'), 'Alice'
+Execute (find value by name):
+  AssertEqual yrange#execute#Eval('@name'), 'Alice'
+Execute (find multiline regexp, first id):
+  AssertEqual yrange#execute#Eval('?order ids.*\n\zs.*'), '1'
+Execute (find multiline regexp, last id):
+  AssertEqual yrange#execute#Eval('?.*\ze\n.*^out'), '10'
+Execute (find value by range):
+  AssertEqual yrange#execute#Eval('^out'), '10'
+Execute(makes calculation):
+  AssertEqual yrange#execute#Eval(':4 * 2'), '8'
+
+

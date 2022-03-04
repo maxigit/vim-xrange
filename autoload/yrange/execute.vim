@@ -21,15 +21,39 @@ def SetEnvs(env: dict<any>): void
     if value == v:none
       execute('unlet $' .. vname)
     else
-      execute(printf("$%s = '%s'", vname, value))
+      execute(printf("$%s = '%s'", vname, Eval(value)))
     endif
   endfor
 enddef
 
-
-
-
-
+export def Eval(value: string): string
+      var result = value
+      const [_,prefix,command;_] = matchlist(value, '\([:^@?]\?\)\(.*\)')
+      if prefix == ':'
+        result = eval(command)->string()
+      elseif prefix == '?'
+        # lookup value by regex
+        const regex = command->substitute('\\z[se]', '', 'g')
+        const start = search.Search(regex, 'nbW')
+        if start == 0
+          result = ''
+        else
+          const end = search.Search(regex, 'nebW')
+          # clean \zs and \ze which interfere with the line number
+          const lines = getline(start, end)
+          const line = lines->join("\n")
+          # result = string({start: start, end: end, line: line, match: matchstr(line, command), r: regex})
+          result = matchstr(line, command)
+        endif
+      elseif prefix == '^'
+        # lookup var=value or var:value 
+        result = Eval(printf('?.*\ze\n.*%s^%s', g:xblock_prefix, command))
+      elseif prefix == '@'
+        # lookup var=value or var:value 
+        result = Eval(printf('?\<%s\>\s*[=:]\s*\zs.*', command))
+      endif
+      return result
+enddef
 
 export def ExecuteCommand(com: dict<any>): void
   if com == {}

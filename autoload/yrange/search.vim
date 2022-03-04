@@ -302,7 +302,7 @@ enddef
 # !!}
 
 # Like search but make sure the search ignore user and fold settings
-def Search(...args: list<any>): number
+export def Search(...args: list<any>): number
   const ignorecase = &ignorecase
   const smartcase = &smartcase
   const magic = &magic
