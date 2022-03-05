@@ -52,5 +52,39 @@ def Within(com: dict<any>, line: number): bool
     return true
   endif
 enddef
+
+# Delete {{{
+export def DeleteCommandAndOuterRanges(com: dict<any>): void
+  if com == {}
+    return
+  endif
+  com->exm.DeleteOuterRanges()
+  com->exm.DeleteCommand()
+enddef
       
+export def DeleteOuterRanges(com: dict<any>): void
+  exm.DeleteOuterRanges(com)
+enddef
+
+# Navigation {{{
+def GoToLine(line: number): void
+  if line <= 0
+    return
+  endif
+  setpos('.', [0, line, 0, 0])
+enddef
+
+export def GoToNextCommand(): void
+  search.SearchNextCommandLine()->GoToLine()
+enddef
+
+export def GoToPreviousCommand(): void
+  search.SearchPreviousCommandLine(false)->GoToLine()
+enddef
+
+
+
+
+
+
 defcompile

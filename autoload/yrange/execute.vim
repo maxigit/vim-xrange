@@ -170,6 +170,13 @@ export def DeleteOuterRanges(com: dict<any>): void
   endif
 enddef
 
+export def DeleteCommand(com: dict<any>): void
+  if com == {}
+    return
+  endif
+  deletebufline(bufnr(), com.startLine, com.endLine)
+enddef
+
 defcompile
 
 

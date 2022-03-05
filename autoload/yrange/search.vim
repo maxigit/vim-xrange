@@ -31,8 +31,12 @@ export def SearchEndOfCurrentCommandLine(): number
   return Search(EndRg(), 'Wnc', SearchNextCommandLine())
 enddef
 
-export def SearchPreviousCommandLine(): number
-  return Search(StartRg(), 'Wnbc')
+export def SearchPreviousCommandLine(matchCurrent: bool=true): number
+  var flags = 'Wnb'
+  if matchCurrent
+    flags = flags .. 'c'
+  endif
+  return Search(StartRg(), flags)
 enddef
 
 # Doesn't check that the line is on the start of a range

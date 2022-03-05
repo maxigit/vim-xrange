@@ -17,5 +17,9 @@ let g:xblock_commands['mysql'] = "pre= post= options= !$pre mysql $options -u$MY
 let g:xblock_commands['mysql'] = "pre= post= options= !$pre mysql $options -u$MYSQL_USER -p$MYSQL_PASSWORD -P$MYSQL_PORT -h$MYSQL_HOST $MYSQL_DB $post <@in >@out 2>@error"
 
 nnoremap <silent> <space>xx :call yrange#ExecuteCommandUnderCursor()<CR>
+nnoremap <silent> <space>xd :call yrange#CommandUnderCursor()->yrange#DeleteOuterRanges()<CR>
+nnoremap <silent> <space>xD :call yrange#CommandUnderCursor()->yrange#DeleteCommandAndOuterRanges()<CR>
+nnoremap <silent> <space>xn :call yrange#GoToNextCommand()<CR>
+nnoremap <silent> <space>xN :call yrange#GoToPreviousCommand()<CR>
 
 
