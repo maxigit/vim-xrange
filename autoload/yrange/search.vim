@@ -13,7 +13,7 @@ def EndRg(): string
   return g:xblock_prefix .. '}'
 enddef
 
-const Props = ["syntax", "<", ">"]->join('\|')
+const Props = ["syntax", "<", ">", "root"]->join('\|')
 # !!!ls
 # Search the next command. Start on next line
 # to avoid finding the current line
@@ -107,20 +107,26 @@ enddef
 def RangeToCommand(range: dict<any>): dict<any>
   # find default
   var result = get(g:, 'xblock_default', {})
+  var rangeDict = range->RangeToText()->TextToDict()
   if type(result) == v:t_string
     result = TextToDict(result)
   endif
   var command = range->RangeToText()
   if range->get('name', '') != 'default'
-    var default = yrange#search#FindCommandByName('default')
+    var default = {}
+    if !rangeDict->has_key('root')
+      default = FindCommandAbove(range.startLine)
+    endif
+    if default == {}
+      default = yrange#search#FindCommandByName('default')
+    endif
     if default->has_key('name')
       unlet default.name
     endif
     result->ExtendCommand(default)
   endif
   return result->ExtendCommand(
-                range->RangeToText()
-                  ->TextToDict()
+                  rangeDict
                   ->extend(range) # set ranges and name
               )
 enddef
@@ -180,7 +186,7 @@ def TextToDict(command_: string): dict<any>
   if coms != []
     r.command = coms->join(' ')
   endif
-  if prefix == "!"
+  if prefix == "!" && r->has_key('command')
     r.command = "!" .. r.command
   endif
   return r
@@ -209,6 +215,17 @@ export def LineToCommand_unsafe(line: number, current: number): dict<any>
    return yrange#search#CommandRangeFromLine_unsafe(line, current)
           ->RangeToCommand()
  endif
+enddef
+
+export def FindCommandAbove(line: number): dict<any>
+  setpos('.', [0, line, 0, 0])
+  const start = SearchPreviousCommandLine(false)
+  if start == 0
+    return {}
+  endif
+  return CommandRangeFromLine_unsafe(start)
+           ->RangeToText()
+           ->TextToDict()
 enddef
 
 # Find range above !!^name finishing at next one
