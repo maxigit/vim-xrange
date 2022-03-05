@@ -30,7 +30,12 @@ export def Eval(value: string): string
       var result = value
       const [_,prefix,command;_] = matchlist(value, '\([:^@?]\?\)\(.*\)')
       if prefix == ':'
-        result = eval(command)->string()
+        const r: any  = eval(command) #->string()
+        if type(r) != v:t_string
+          result = string(r)
+        else
+          result = r
+        endif
       elseif prefix == '?'
         # lookup value by regex
         const regex = command->substitute('\\z[se]', '', 'g')

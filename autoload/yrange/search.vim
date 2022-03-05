@@ -301,6 +301,7 @@ enddef
 # !! in between (3)
 # !!}
 
+
 # Like search but make sure the search ignore user and fold settings
 export def Search(...args: list<any>): number
   const ignorecase = &ignorecase
