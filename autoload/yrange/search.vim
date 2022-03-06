@@ -170,7 +170,6 @@ def TextToDict(command_: string): dict<any>
           # set  and creates dict if needed
           # example a.b.c =2 =>  {a:{b:{c:2}}}
           var keys = split(prop, '\.')
-          append('$', printf("PROP %s %s", prop, keys))
           const lastKey = keys->remove(-1)
           for key in keys
             if !target->has_key(key)

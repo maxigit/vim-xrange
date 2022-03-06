@@ -13,7 +13,8 @@ let g:xblock_default = #{ ranges: g:xblock_default_ranges,
 if !exists('g:xblock_commands')
   let g:xblock_commands = {}
 endif
-let g:xblock_commands['mysql'] = "pre= post= options= !$pre mysql $options -u$MYSQL_USER -p$MYSQL_PASSWORD -P$MYSQL_PORT -h$MYSQL_HOST $MYSQL_DB <@in $post >@out 2>@error"
+let g:xblock_commands['mysql'] = "&tail !mysql :OPTIONS: -u$MYSQL_USER -p$MYSQL_PASSWORD -P$MYSQL_PORT -h$MYSQL_HOST $MYSQL_DB <@in :{POST?%| %s}: >@out 2>@error"
+let g:xblock_commands['tail'] = 'POST::{TAIL?%tail\ -%s}:'
 
 nnoremap <silent> <space>xx :call yrange#ExecuteCommandUnderCursor()<CR>
 nnoremap <silent> <space>xd :call yrange#CommandUnderCursor()->yrange#DeleteOuterRanges()<CR>

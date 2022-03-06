@@ -16,12 +16,12 @@ def SaveVars(com: dict<any>): dict<any>
 enddef
 
 # Set or Unset env variables
-def SetEnvs(env: dict<any>): void
+def SetEnvs(env: dict<any>, vars: dict<any>): void
   for [vname, value] in env->items()
     if value == v:none
       execute('unlet $' .. vname)
     else
-      execute(printf("$%s = '%s'", vname, Eval(value)))
+      execute(printf("$%s = '%s'", vname, Eval(ExpandCommand(value, vars))))
     endif
   endfor
 enddef
@@ -69,18 +69,21 @@ export def ExecuteCommand(com: dict<any>): void
 
 
   const oldEnv = SaveVars(com)
-  SetEnvs(com.env)
+  SetEnvs(com.env, com.vars)
   final ranges = UsedRanges(com)
   # populate range limits
   search.FindInnerRanges(com, ranges->keys())
   PopulateRanges(ranges)
-  const command = ReplaceRanges(com.command, ranges)
+  #for v in com.vars->keys()
+  #  com.vars[v] = ExpandCommand(com.vars[v], com.vars)
+  #endfor
+  const command = ReplaceRanges(com.command, ranges)->ExpandCommand(com.vars)
   #append('.', " " .. string(com))
   #append('.', "COM " .. command)
   :silent execute command
   DeleteOuterRanges(com)
   InjectRangesInBuffer(com->get('name', ''), com.endLine, ranges)
-  SetEnvs(oldEnv)
+  SetEnvs(oldEnv, com.vars)
   setpos('.', cursorPos)
 enddef
 
@@ -141,11 +144,19 @@ def ReplaceRanges(com: string, ranges: dict<dict<any>>): string
 enddef
 
 # Expand ':variable:' and ':{code}:' in a string
-# Expand ':variable|default:' and ':{code}:' in a string
-# :{limit?printf('--limit=%s', limit):''}:
-# :{LIMIT('--limit=%s', limit):''}:
+# see test for full syntax
 
 export def ExpandCommand(com: string, vars: dict<any>): string
+  var current = com
+  var new = ExpandCommand_(current, vars)
+  while new != current
+    current = new
+    new = ExpandCommand_(new, vars)
+  endwhile
+  return new
+enddef
+
+def ExpandCommand_(com: string, vars: dict<any>): string
   const matchProp = matchlist(com, '\([^:]*\):\(\i\+\):\(.*\)')
   if matchProp != []
     const [_,before,varname,after;_] = matchProp
