@@ -85,8 +85,7 @@ export def ExecuteCommand(com: dict<any>): void
 enddef
 
 # create temporary files and set the name to the dict
-export def PopulateRanges(ranges: dict<dict<any>>): void
-    #append('$', "RANGES " .. " " .. string(ranges))
+export def PopulateRanges(ranges: dict<dict<any>>): void #append('$', "RANGES " .. " " .. string(ranges))
   for [name, range] in ranges->items()
     range['tmp'] = tempname()
     #append('$', "RANGE " .. name .. " " .. string(range))
@@ -140,6 +139,62 @@ def ReplaceRanges(com: string, ranges: dict<dict<any>>): string
   endfor
   return command
 enddef
+
+# Expand ':variable:' and ':{code}:' in a string
+# Expand ':variable|default:' and ':{code}:' in a string
+# :{limit?printf('--limit=%s', limit):''}:
+# :{LIMIT('--limit=%s', limit):''}:
+
+export def ExpandCommand(com: string, vars: dict<any>): string
+  const matchProp = matchlist(com, '\([^:]*\):\(\i\+\):\(.*\)')
+  if matchProp != []
+    const [_,before,varname,after;_] = matchProp
+    return before .. vars->get(varname, '') .. ExpandCommand(after, vars)
+  endif
+  const matchLambda8 = matchlist(com, '\([^:]*\):\({\(\i\+\)\s*->.\{-}}\):\(.*\)')
+  if matchLambda8 != []
+    const [_,before, lambda, varname, after;_] = matchLambda8
+    const F = <func>Eval8(lambda)
+    return before .. F(vars->get(varname, '')) .. ExpandCommand(after, vars)
+  endif
+  const matchLambda9 = matchlist(com, '\([^:]*\):{\((\(\i\+\))\s*=>.\{-}\)}:\(.*\)')
+  if matchLambda9 != []
+    const [_,before, lambda, varname, after;_] = matchLambda9
+    const F = <func>eval(lambda)
+    return before .. F(vars->get(varname, '')) .. ExpandCommand(after, vars)
+  endif
+  const matchIf = matchlist(com, '\([^:]*\):{\(\i\+\)??\(.\{-}\)}:\(.*\)')
+  if matchIf != []
+    const [_,before,varname, default, after;_] = matchIf
+    return before .. vars->get(varname, default) .. ExpandCommand(after, vars)
+  endif
+  const matchIfElse = matchlist(com, '\([^:]*\):{\(\i\+\)?\(.\{-}\):\(.\{-}\)}:\(.*\)')
+  if matchIfElse != []
+    const [_,before,varname, then_, else_, after;_] = matchIfElse
+    const value = vars->has_key(varname) ? then_ : else_
+    return before .. value .. ExpandCommand(after, vars)
+  endif
+  const matchFormatIf = matchlist(com, '\([^:]*\):{\(\i\+\)?%\(.\{-}\)}:\(.*\)')
+  if matchFormatIf != []
+    const [_,before,varname, format, after;_] = matchFormatIf
+    var formated = ''
+    if vars->has_key(varname)
+      formated = printf(format, vars[varname])
+    endif
+    return before .. formated .. ExpandCommand(after, vars)
+  endif
+  const match8 = matchlist(com, '\([^:]*\):{\(.\{-}\)}:\(.*\)')
+  if match8 != []
+    const [_,before, code, after;_] = match8
+    const F = <func>Eval8(printf("{ vars -> %s }", code))
+    return before .. F(vars) .. ExpandCommand(after, vars)
+  endif
+  return com
+enddef
+
+function Eval8(command)
+  return eval(a:command)
+endfunction
 
 # Return the list of ranges which are actually used.
 # This allowed to have lots of ranges defined by default

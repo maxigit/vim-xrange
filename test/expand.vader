@@ -1,0 +1,22 @@
+Execute (expand one variable):
+  AssertEqual yrange#execute#ExpandCommand("hello :x:",#{x: 'bob'}), "hello bob"
+Execute (expand two variables):
+  AssertEqual yrange#execute#ExpandCommand(":greet: :x:!",#{x: 'bob', greet:'hello'}), "hello bob!"
+Execute (expand lambda 8):
+  AssertEqual yrange#execute#ExpandCommand(":x:+1 = :{x -> x+1}:", #{x: 10}), "10+1 = 11" 
+Execute (expand lambda 9):
+  AssertEqual yrange#execute#ExpandCommand(":x:+1 = :{(x) => str2nr(x) + 1}:", #{x: '10'}), "10+1 = 11" 
+Execute (expand vars):
+  AssertEqual yrange#execute#ExpandCommand(":x:+1 = :{vars.x+1}:", #{x: 10}), "10+1 = 11" 
+Execute (default value):
+  AssertEqual yrange#execute#ExpandCommand(":{greet??hello}:", {}), "hello"
+Execute (default value):
+  AssertEqual yrange#execute#ExpandCommand(":{greet??hello}:", #{greet: "bonjour"}), "bonjour"
+Execute (if else ):
+  AssertEqual yrange#execute#ExpandCommand(":{yes?YES:NO}:", {}), "NO"
+Execute (if then ):
+  AssertEqual yrange#execute#ExpandCommand(":{yes?YES:NO}:", #{yes:''}), "YES"
+Execute (format):
+  AssertEqual yrange#execute#ExpandCommand(":{LIMIT?%--limit=%s}:", {}), ""
+Execute (use vars):
+  AssertEqual yrange#execute#ExpandCommand(":{str2nr(vars.x) * str2nr(vars.y)}:", #{x:3, y:5}), "15"
