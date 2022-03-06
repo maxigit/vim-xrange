@@ -14,8 +14,10 @@ Execute (default value):
   AssertEqual yrange#execute#ExpandCommand(":{greet??hello}:", #{greet: "bonjour"}), "bonjour"
 Execute (if else ):
   AssertEqual yrange#execute#ExpandCommand(":{yes?YES:NO}:", {}), "NO"
+Execute (if else ):
+  AssertEqual yrange#execute#ExpandCommand(":{yes?YES:NO}:", #{yes:''}), "NO"
 Execute (if then ):
-  AssertEqual yrange#execute#ExpandCommand(":{yes?YES:NO}:", #{yes:''}), "YES"
+  AssertEqual yrange#execute#ExpandCommand(":{yes?YES:NO}:", #{yes:'1'}), "YES"
 Execute (format):
   AssertEqual yrange#execute#ExpandCommand(":{LIMIT?%--limit=%s}:", {}), ""
 Execute (use vars):

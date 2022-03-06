@@ -182,14 +182,14 @@ def ExpandCommand_(com: string, vars: dict<any>): string
   const matchIfElse = matchlist(com, '\([^:]*\):{\(\i\+\)?\(.\{-}\):\(.\{-}\)}:\(.*\)')
   if matchIfElse != []
     const [_,before,varname, then_, else_, after;_] = matchIfElse
-    const value = vars->has_key(varname) ? then_ : else_
+    const value = vars->get(varname, '') != '' ? then_ : else_
     return before .. value .. ExpandCommand(after, vars)
   endif
   const matchFormatIf = matchlist(com, '\([^:]*\):{\(\i\+\)?%\(.\{-}\)}:\(.*\)')
   if matchFormatIf != []
     const [_,before,varname, format, after;_] = matchFormatIf
     var formated = ''
-    if vars->has_key(varname)
+    if vars->get(varname, '') != ''
       formated = printf(format, vars[varname])
     endif
     return before .. formated .. ExpandCommand(after, vars)
