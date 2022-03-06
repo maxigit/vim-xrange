@@ -7,3 +7,14 @@ The main use cases are
   - to use a vim buffer as a REPL by evaluting code in different languages and collecting the results in the same buffer. This is sometimes called [reproductible research'](https://en.wikipedia.org/wiki/Reproducibility#Reproducible_research) as is in [Emacs org-babel](https://orgmode.org/worg/org-contrib/babel/) or [Jupyter Notebook](https://jupyter.org/)
 
 
+# Todo
+- [ ] expand post and pre and options as variable in command line
+- [ ] add post and pre to output range (cancel above ?)
+- [ ] text-object
+- [ ] navigation between ranges [x ]x
+- [ ] automark using range mark
+- [ ] lookup variable by mark
+- [ ] set ranges via @range.parameter:valute
+- [ ] debug bug first line not working
+- [ ] fix all tests
+- [ ] clean vars (not used)
