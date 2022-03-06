@@ -25,3 +25,6 @@ nnoremap <silent> <space>xN :call yrange#GoToPreviousCommand()<CR>
 nnoremap <silent> <space>xi :echo yrange#CommandUnderCursor()<CR>
 
 
+nnoremap <silent> [x -:call yrange#GoToCurrentRangeBy('startLine')<CR>
+nnoremap <silent> ]x +:call yrange#GoToCurrentRangeBy('endLine')<CR>
+

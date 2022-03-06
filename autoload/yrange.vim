@@ -7,14 +7,19 @@ export def CommandUnderCursor(): dict<any>
   const startLine = search.SearchPreviousCommandLine()
   var current = search.LineToCommand_unsafe(startLine, currentLine)
   # Check that the current line belongs to the current range + outer + inner
-  if current->Within(currentLine)
+  var range = current->Within(currentLine)
+  if range != {}
+    current.currentRange = range
     return current
   endif
   var next = search.LineToCommand_unsafe(search.SearchNextCommandLine(), currentLine)
-  if next->Within(currentLine)
+  range = next->Within(currentLine)
+  if range != {}
+    next.currentRange = range
     return next
   endif
-  return next
+  #return next
+  return {}
 enddef
 
 export def ExecuteCommandUnderCursor(): void
@@ -27,9 +32,10 @@ enddef
 
 # Check wether the given line is within the given range
 # (including inner and outer ranges)
-def Within(com: dict<any>, line: number): bool
+# Returns the range (startLine, endLine, etc ... }
+export def Within(com: dict<any>, line: number): dict<number>
   if com == {}
-    return false
+    return {}
   endif
 
   if line < com.startLine
@@ -37,19 +43,19 @@ def Within(com: dict<any>, line: number): bool
     const inners = search.FindInnerRanges(com, com->exm.UsedRangeNames())
     for inner in inners->values()
       if line >= inner.startLine && line <= inner.endLine
-        return true
+        return {startLine: inner.startLine, endLine: inner.endLine}
       endif
     endfor
-    return false
+    return {}
   elseif line > com.endLine
     # check for outer ranges
     const outer = search.FindOuterRanges(com)
     if outer != {} && line >= outer.rangeStart && line <= outer.rangeEnd
-      return true
+      return {startLine: outer.rangeStart, endLine: outer.rangeEnd}
     endif
-    return false
+    return {}
   else # between start and end
-    return true
+    return {startLine: com.startLine, endLine: com.endLine}
   endif
 enddef
 
@@ -84,6 +90,14 @@ enddef
 
 
 
+export def GoToCurrentRangeBy(param: string): void
+  var command = CommandUnderCursor()
+  if command == {}
+    return
+  endif
+  command.currentRange[param]->GoToLine()
+enddef
+  
 
 
 

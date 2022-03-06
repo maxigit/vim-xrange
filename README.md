@@ -11,7 +11,7 @@ The main use cases are
 - [ ] expand post and pre and options as variable in command line
 - [ ] add post and pre to output range (cancel above ?)
 - [ ] text-object
-- [ ] navigation between ranges [x ]x
+- [X] navigation between ranges [x ]x
 - [ ] automark using range mark
 - [ ] lookup variable by mark
 - [ ] set ranges via @range.parameter:valute
