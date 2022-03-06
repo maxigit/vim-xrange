@@ -13,7 +13,7 @@ def EndRg(): string
   return g:xblock_prefix .. '}'
 enddef
 
-const Props = ["syntax", "<", ">", "root"]->join('\|')
+const Props = ["root", "ranges", "syntax"]->join('\|')
 # !!!ls
 # Search the next command. Start on next line
 # to avoid finding the current line
@@ -106,7 +106,7 @@ enddef
 
 def RangeToCommand(range: dict<any>): dict<any>
   # find default
-  var result = get(g:, 'xblock_default', {})
+  var result = get(g:, 'xblock_default', {})->deepcopy()
   var rangeDict = range->RangeToText()->TextToDict()
   if type(result) == v:t_string
     result = TextToDict(result)
@@ -120,6 +120,7 @@ def RangeToCommand(range: dict<any>): dict<any>
     if default == {}
       default = yrange#search#FindCommandByName('default')
     endif
+    default = deepcopy(default)
     if default->has_key('name')
       unlet default.name
     endif
@@ -143,7 +144,7 @@ def TextToDict(command_: string): dict<any>
   const words = split(command, '[^\\]\zs\s\+')
   var vars: dict<string> = {} # variables
   var env: dict<string> = {} # env variables
-  var r: dict<any> = {vars: vars, env: env}
+  var r: dict<any> = {vars: vars, env: env, ranges: {}}
   var coms = []
   for w in words 
     const word = substitute(w, '\\ ', ' ', 'g')
@@ -157,10 +158,27 @@ def TextToDict(command_: string): dict<any>
         const [_,name,value;_] = match
         env[name] = value
       else
-        match = matchlist(word, '\(' .. Props .. '\):\(.*\)')
+        match = matchlist(word, '\(\(@\?\)[[:ident:].]\+\):\(.*\)')
         if match != []
-          const [_,prop,value;_] = match
-          r[prop] = value
+          const [_,prop,isRange,value;_] = match
+          var target = r
+          if isRange == '@' 
+            target = r.ranges
+          elseif match(prop, Props) == -1
+            target = vars
+          endif
+          # set  and creates dict if needed
+          # example a.b.c =2 =>  {a:{b:{c:2}}}
+          var keys = split(prop, '\.')
+          append('$', printf("PROP %s %s", prop, keys))
+          const lastKey = keys->remove(-1)
+          for key in keys
+            if !target->has_key(key)
+              target[key] = {}
+            endif
+            target = target[key]
+          endfor
+          target[lastKey] = value
         else
           match = matchlist(word, '&\(\i\+\)')
           if match != []
