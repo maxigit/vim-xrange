@@ -8,13 +8,12 @@ The main use cases are
 
 
 # Todo
-- [ ] expand post and pre and options as variable in command line
+- [X] expand post and pre and options as variable in command line
 - [ ] add post and pre to output range (cancel above ?)
 - [ ] text-object
 - [X] navigation between ranges [x ]x
 - [ ] automark using range mark
 - [ ] lookup variable by mark
-- [ ] set ranges via @range.parameter:valute
+- [X] set ranges via @range.parameter:valute
 - [ ] debug bug first line not working
 - [ ] fix all tests
-- [ ] clean vars (not used)
