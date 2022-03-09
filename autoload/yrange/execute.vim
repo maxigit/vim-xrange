@@ -103,7 +103,7 @@ export def PopulateRanges(ranges: dict<dict<any>>): void #append('$', "RANGES " 
     # to strip comments or indentation for example
     # To do so, we execute the command on the buffer itself
     # and then undo it.
-    var undo_pos = undotree().seq_cur
+    const undo_pos = undotree().seq_cur
     if range->has_key('pre') && range.bodyStart <= range.endLine
       setpos('.', [0, range.bodyStart, 0 0])
       var pre = ExpandCommand(range.pre, vars)
@@ -127,6 +127,7 @@ export def InjectRangesInBuffer(comName: string, insertAfter: number, ranges: di
     if range.mode == 'in'
       continue
     endif
+
     # inject the content of the file to the range
     var command = get(range, 'read', '::range: r :{post?%!%s<}: :tmp:')
     var rangeLine = insertAfter
@@ -141,10 +142,16 @@ export def InjectRangesInBuffer(comName: string, insertAfter: number, ranges: di
       fullName = comName .. '.' .. name
     endif
     append(insertAfter, header + footer->add(g:xblock_prefix .. '^' .. fullName))
+    const lastLineBefore = line('$')
     var vars = deepcopy(range)->extend({range: rangeLine})
     command = ExpandCommand(command, vars)
     echomsg '[>' command '<]'
     silent! execute command
+    const lastLineAfter = line('$')
+    # cancel if output is empty according to range options
+    if lastLineBefore == lastLineAfter && !!range->get('clearEmpty', false)
+      deletebufline("%", insertAfter + 1, insertAfter + 1 + lastLineAfter - lastLineBefore)
+    endif
   endfor
 enddef
 
