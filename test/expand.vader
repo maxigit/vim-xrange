@@ -22,3 +22,8 @@ Execute (format):
   AssertEqual yrange#execute#ExpandCommand(":{LIMIT?%--limit=%s}:", {}), ""
 Execute (use vars):
   AssertEqual yrange#execute#ExpandCommand(":{str2nr(vars.x) * str2nr(vars.y)}:", #{x:3, y:5}), "15"
+Execute (skip unused colonrs):
+  AssertEqual yrange#execute#ExpandCommand("::x:", #{x:3}), ":3"
+Execute (skip unused colons):
+  AssertEqual yrange#execute#ExpandCommand(":range: write !:{pre?%%s |}: envsubst :{post?%|%s}: > :tmp:", #{range: '1,$', pre:'tr a b', tmp:"myfile"}), "1,$ write !tr a b | envsubst  > myfile"
+

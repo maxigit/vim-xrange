@@ -158,9 +158,9 @@ def TextToDict(command_: string): dict<any>
         const [_,name,value;_] = match
         env[name] = value
       else
-        match = matchlist(word, '\(\(@\?\)[[:ident:].]\+\):\(.*\)')
+        match = matchlist(word, '\(@\?\)\([[:ident:].]\+\):\(.*\)')
         if match != []
-          const [_,prop,isRange,value;_] = match
+          const [_,isRange,prop,value;_] = match
           var target = r
           if isRange == '@' 
             target = r.ranges

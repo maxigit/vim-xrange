@@ -91,17 +91,16 @@ enddef
 export def PopulateRanges(ranges: dict<dict<any>>): void #append('$', "RANGES " .. " " .. string(ranges))
   for [name, range] in ranges->items()
     range['tmp'] = tempname()
+    echomsg range
     #append('$', "RANGE " .. name .. " " .. string(range))
     if range.mode != 'in' || !range->has_key('bodyStart')
       continue
     endif
-    #append('$', "IN " .. name .. " " .. string(range))
     # write the content of the range to the temporary file
     # var command = get(range, 'write', ':%range write! %file')
-    var command = get(range, 'write', ':%range write !envsubst > %file')
-    command = substitute(command, '%range', printf("%d,%d", range.bodyStart, range.endLine), 'g')
-    command = substitute(command, '%file', range.tmp, 'g')
-    # :execute  ":" .. range.range .. "write! " .. range.tmp
+    const vars = deepcopy(range)->extend({range: printf("%d,%d", range.bodyStart, range.endLine)})
+    var command = ':' .. ExpandCommand(get(range, 'write', ':range: write !:{pre?% %s|}: envsubst :{post?%|%s}:  > :tmp:'), vars)
+    echomsg '[<' command '>]'
     silent execute command
   endfor
 enddef
@@ -115,8 +114,7 @@ export def InjectRangesInBuffer(comName: string, insertAfter: number, ranges: di
       continue
     endif
     # inject the content of the file to the range
-    var command = get(range, 'read', ':%range r %file')
-
+    var command = get(range, 'read', '::range: r :{post?%!%s<}: :tmp:')
     var rangeLine = insertAfter
     # insert header and footer
     var header = get(range, 'header', [])
@@ -129,8 +127,9 @@ export def InjectRangesInBuffer(comName: string, insertAfter: number, ranges: di
       fullName = comName .. '.' .. name
     endif
     append(insertAfter, header + footer->add(g:xblock_prefix .. '^' .. fullName))
-    command = substitute(command, '%range', rangeLine, 'g')
-    command = substitute(command, '%file', range.tmp, 'g')
+    var vars = deepcopy(range)->extend({range: rangeLine})
+    command = ExpandCommand(command, vars)
+    echomsg '[>' command '<]'
     silent! execute command
   endfor
 enddef
@@ -157,35 +156,29 @@ export def ExpandCommand(com: string, vars: dict<any>): string
 enddef
 
 def ExpandCommand_(com: string, vars: dict<any>): string
-  const matchProp = matchlist(com, '\([^:]*\):\(\i\+\):\(.*\)')
+  const matchProp = matchlist(com, '\(.\{-}\):\(\i\+\):\(.*\)')
   if matchProp != []
     const [_,before,varname,after;_] = matchProp
     return before .. vars->get(varname, '') .. ExpandCommand(after, vars)
   endif
-  const matchLambda8 = matchlist(com, '\([^:]*\):\({\(\i\+\)\s*->.\{-}}\):\(.*\)')
+  const matchLambda8 = matchlist(com, '\(.\{-}\):\({\(\i\+\)\s*->.\{-}}\):\(.*\)')
   if matchLambda8 != []
     const [_,before, lambda, varname, after;_] = matchLambda8
     const F = <func>Eval8(lambda)
     return before .. F(vars->get(varname, '')) .. ExpandCommand(after, vars)
   endif
-  const matchLambda9 = matchlist(com, '\([^:]*\):{\((\(\i\+\))\s*=>.\{-}\)}:\(.*\)')
+  const matchLambda9 = matchlist(com, '\(.\{-}\):{\((\(\i\+\))\s*=>.\{-}\)}:\(.*\)')
   if matchLambda9 != []
     const [_,before, lambda, varname, after;_] = matchLambda9
     const F = <func>eval(lambda)
     return before .. F(vars->get(varname, '')) .. ExpandCommand(after, vars)
   endif
-  const matchIf = matchlist(com, '\([^:]*\):{\(\i\+\)??\(.\{-}\)}:\(.*\)')
+  const matchIf = matchlist(com, '\(.\{-}\):{\(\i\+\)??\(.\{-}\)}:\(.*\)')
   if matchIf != []
     const [_,before,varname, default, after;_] = matchIf
     return before .. vars->get(varname, default) .. ExpandCommand(after, vars)
   endif
-  const matchIfElse = matchlist(com, '\([^:]*\):{\(\i\+\)?\(.\{-}\):\(.\{-}\)}:\(.*\)')
-  if matchIfElse != []
-    const [_,before,varname, then_, else_, after;_] = matchIfElse
-    const value = vars->get(varname, '') != '' ? then_ : else_
-    return before .. value .. ExpandCommand(after, vars)
-  endif
-  const matchFormatIf = matchlist(com, '\([^:]*\):{\(\i\+\)?%\(.\{-}\)}:\(.*\)')
+  const matchFormatIf = matchlist(com, '\(.\{-}\):{\(\i\+\)?%\(.\{-}\)}:\(.*\)')
   if matchFormatIf != []
     const [_,before,varname, format, after;_] = matchFormatIf
     var formated = ''
@@ -194,7 +187,13 @@ def ExpandCommand_(com: string, vars: dict<any>): string
     endif
     return before .. formated .. ExpandCommand(after, vars)
   endif
-  const match8 = matchlist(com, '\([^:]*\):{\(.\{-}\)}:\(.*\)')
+  const matchIfElse = matchlist(com, '\(.\{-}\):{\(\i\+\)?\([^:]\{-}\):\(.\{-}\)}:\(.*\)')
+  if matchIfElse != []
+    const [_,before,varname, then_, else_, after;_] = matchIfElse
+    const value = vars->get(varname, '') != '' ? then_ : else_
+    return before .. value .. ExpandCommand(after, vars)
+  endif
+  const match8 = matchlist(com, '\(.\{-}\):{\(.\{-}\)}:\(.*\)')
   if match8 != []
     const [_,before, code, after;_] = match8
     const F = <func>Eval8(printf("{ vars -> %s }", code))
@@ -204,6 +203,7 @@ def ExpandCommand_(com: string, vars: dict<any>): string
 enddef
 
 function Eval8(command)
+  echomsg a:command
   return eval(a:command)
 endfunction
 
