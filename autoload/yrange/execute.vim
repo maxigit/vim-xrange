@@ -96,12 +96,26 @@ export def PopulateRanges(ranges: dict<dict<any>>): void #append('$', "RANGES " 
     if range.mode != 'in' || !range->has_key('bodyStart')
       continue
     endif
+    const vars = {write:  ':range: write !:{trimLeft?% sed ''s/^%s//''|}::{preenv?% %s|}: :envsubst: :{postenv?%|%s}:  > :tmp:',
+                 envsubst: 'envsubst'
+                 }->extend(deepcopy(range))->extend({range: printf("%d,%d", range.bodyStart, range.endLine)})
+    # execute vim code on the given range
+    # to strip comments or indentation for example
+    # To do so, we execute the command on the buffer itself
+    # and then undo it.
+    var undo_pos = undotree().seq_cur
+    if range->has_key('pre') && range.bodyStart <= range.endLine
+      setpos('.', [0, range.bodyStart, 0 0])
+      var pre = ExpandCommand(range.pre, vars)
+      echomsg ":::" pre ":::"
+      execute pre
+    endif
     # write the content of the range to the temporary file
     # var command = get(range, 'write', ':%range write! %file')
-    const vars = deepcopy(range)->extend({range: printf("%d,%d", range.bodyStart, range.endLine)})
-    var command = ':' .. ExpandCommand(get(range, 'write', ':range: write !:{pre?% %s|}: envsubst :{post?%|%s}:  > :tmp:'), vars)
+    var command = ':' .. ExpandCommand(vars.write, vars)
     echomsg '[<' command '>]'
     silent execute command
+    execute "undo" undo_pos
   endfor
 enddef
 #
