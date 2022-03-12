@@ -153,12 +153,12 @@ def TextToDict(command_: string): dict<any>
     if coms != []
       coms->add(word)
     else
-      var match = matchlist(word, '\(\i\+\)=\(.*\)')
+      var match = matchlist(word, '^\(\i\+\)=\(.*\)')
       if match != []
         const [_,name,value;_] = match
         env[name] = value
       else
-        match = matchlist(word, '\(@\?\)\([[:ident:].]\+\):\(.*\)')
+        match = matchlist(word, '^\(@\?\)\([[:ident:].]\+\):\(.*\)')
         if match != []
           const [_,isRange,prop,value;_] = match
           var target = r
@@ -179,7 +179,7 @@ def TextToDict(command_: string): dict<any>
           endfor
           target[lastKey] = value
         else
-          match = matchlist(word, '&\(\i\+\)')
+          match = matchlist(word, '^&\(\i\+\)')
           if match != []
             # lookup 
             var com2 = yrange#search#FindCommandByName(match[1])

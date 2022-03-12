@@ -15,7 +15,7 @@ if !exists('g:xblock_commands')
 endif
 let g:xblock_commands['o'] = "! :exe: :{post?%| %s}: >@out 2>@error"
 let g:xblock_commands['io'] = "! :exe: :{post?%| %s}:  <@in >@out 2>@error"
-let g:xblock_commands['mysql'] = "!mysql :OPTIONS: :{unsafe?:--i-am-a-dummy}: :{limit?%--select-limit=%s}: -u$MYSQL_USER -p$MYSQL_PASSWORD -P$MYSQL_PORT -h$MYSQL_HOST $MYSQL_DB <@in :{post?%| %s}: >@out 2>@error"
+let g:xblock_commands['mysql'] = "! :{DEBUG?echo:}: mysql :OPTIONS: :{unsafe?:--i-am-a-dummy}: :{limit?%--select-limit=%s}: -u$MYSQL_USER -p$MYSQL_PASSWORD -P$MYSQL_PORT -h$MYSQL_HOST $MYSQL_DB <@in :{post?%| %s}: >@out 2>@error"
 for limit in [1,2, 5, 10,20, 50, 100, 200, 500, 1000]
   let g:xblock_commands['t' .. limit] = '@out.post:tail\ -' .. limit
   let g:xblock_commands['h' .. limit] = '@out.post:head\ -' .. limit
