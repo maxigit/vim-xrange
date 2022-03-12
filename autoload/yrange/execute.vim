@@ -28,7 +28,7 @@ enddef
 
 export def Eval(value: string): string
       var result = value
-      const [_,prefix,command;_] = matchlist(value, '\([:^@?]\?\)\(.*\)')
+      const [_,prefix,command;_] = matchlist(value, '\([:^@?$]\?\)\(.*\)')
       if prefix == ':'
         const r: any  = eval(command) #->string()
         if type(r) != v:t_string
@@ -36,6 +36,8 @@ export def Eval(value: string): string
         else
           result = r
         endif
+      elseif prefix == '$' # env variables
+        result = eval(value) #->string()
       elseif prefix == '?'
         # lookup value by regex
         const regex = command->substitute('\\z[se]', '', 'g')
