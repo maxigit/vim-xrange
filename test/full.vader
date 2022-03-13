@@ -74,8 +74,8 @@ Expect (error with correct filename/lineno):
   bar
   hello
   !!!awk -f @in <@data >@out 2>@error
-  awk: @in:1: (END OF FILE)
-  awk: @in:1: ^ source files / command line arguments must contain complete functions or rules
+  awk: [Vader-workbench]:1: (END OF FILE)
+  awk: [Vader-workbench]:1: ^ source files / command line arguments must contain complete functions or rules
 
   !!^error
   bar

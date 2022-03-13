@@ -151,8 +151,26 @@ export def InjectRangesInBuffer(comName: string, insertAfter: number, ranges: di
     silent! execute command
     const lastLineAfter = line('$')
     # cancel if output is empty according to range options
+    const numberOfNewLine = lastLineAfter - lastLineBefore
+    const firstInserted = insertAfter + 1
+    const lastInserted = firstInserted + numberOfNewLine
     if lastLineBefore == lastLineAfter && !!range->get('clearEmpty', false)
-      deletebufline("%", insertAfter + 1, insertAfter + 1 + lastLineAfter - lastLineBefore)
+      # deletebufline("%", insertAfter + 1, insertAfter + 1 + lastLineAfter - lastLineBefore)
+      deletebufline("%", firstInserted, lastInserted)
+    elseif range.mode == 'error'
+      #
+      # replace reference to <tmp file>:line with current file adjusted line
+      # number
+      const currentFile = expand('%')
+      for [iname, irange] in ranges->items()
+        if !irange->has_key('tmp')
+          continue
+        endif
+        if irange->has_key('bodyStart')
+          execute(printf(':%d,%ds#%s:\zs\d\+\ze#\=submatch(0)->str2nr() + %d#ge', firstInserted, lastInserted, fnameescape(irange.tmp), irange.bodyStart - 1))
+        endif
+        execute(printf(':%d,%ds#%s#%s#ge', firstInserted, lastInserted, fnameescape(irange.tmp), fnameescape(currentFile)))
+      endfor
     endif
   endfor
 enddef
