@@ -3,7 +3,7 @@ Given (some lines):
   line 2
   line 3
 Execute (populate one line 'in' range):
-  let in = #{mode:"in", range:"line 1"}
+  let in = #{mode:"in", bodyStart:1, endLine:1}
   call yrange#execute#PopulateRanges(#{in:in})
   execute ":%r " .. in.tmp
 Expect:
@@ -12,7 +12,7 @@ Expect:
   line 3
   line 1
 Execute (populate one line 'in' range):
-  let in = #{mode:"in", range:"1/line 2/;+"}
+  let in = #{mode:"in", bodyStart:2, endLine:3 }
   call yrange#execute#PopulateRanges(#{in:in})
   execute ":%r " .. in.tmp
 Expect:
@@ -21,25 +21,3 @@ Expect:
   line 3
   line 2
   line 3
-Execute (inject one line):
-  let out = #{mode:"out", range:"1/line 2/;+"}
-  call yrange#execute#PopulateRanges(#{out:out})
-  silent execute "!echo 'hello' > " .. out.tmp
-  call yrange#execute#InjectRanges(#{out:out})
-Expect:
-  line 1
-  hello
-Execute (execute command):
-  let in = #{mode:"in", range:"1/line 2/;+"}
-  let out = #{mode:"out", range:in.range}
-  let ranges = #{in:in, out:out}
-  let command = "silent !tr l X <@in >@out"
-  let com = #{ranges:ranges, command:command}
-  AssertEqual yrange#execute#UsedRanges(com)->keys()->sort(), ["in", "out"]
-  call yrange#execute#ExecuteCommand(com)
-Expect (some lines):
-  line 1
-  Xine 2
-  Xine 3
-
-

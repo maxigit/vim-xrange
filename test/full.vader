@@ -1,5 +1,3 @@
-Before (execute autocommand):
-  do yrange BufAdd
 Given (a command with input):
   Foo
   bar
@@ -45,12 +43,12 @@ Expect (no error):
   bar
   hello
   !!!awk -f @in <@data >@out 2>@error
-  !!^error
   bar
   !!^out
 Given (an awk script with error):
 -- filler to shift the awk file line
 -- so that we can test the line have been shifted properly
+-- when looking at the line number in the error range
 
 
 
@@ -61,11 +59,14 @@ Given (an awk script with error):
   bar
   hello
   !!!awk -f @in <@data >@out 2>@error
-Execute (awk script):
+-- Line number wrong
+Execute (FIXME: awk script):
   $
   call yrange#ExecuteCommandUnderCursor()
 Expect (error with correct filename/lineno):
-  Filler
+
+
+
 
   /a/ {
   DATA

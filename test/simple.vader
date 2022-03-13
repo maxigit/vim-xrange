@@ -1,5 +1,3 @@
-Before:
-  do yrange BufAdd
 Given (command with old output):
   !!!echo "hello" >@out
   Foo
@@ -108,6 +106,41 @@ Execute (ignore unused ranges):
   " AssertEqual ['in'], inner->keys()
   AssertEqual 2, inner.in.startLine
   AssertEqual 6, inner.in.endLine
+--------------------------------------------------
+Given (buffer with block at first line):
+  hello $name
+  !!!name=bob cat @in >@out
+Execute (find inner range [1,1]):
+  $
+  let com = yrange#CommandUnderCursor()
+  let inner = com->yrange#search#FindInnerRanges(com->yrange#execute#UsedRangeNames())
+  AssertEqual 1, inner.in.startLine
+  AssertEqual 1, inner.in.bodyStart
+  AssertEqual 1, inner.in.endLine
 
 
+--------------------------------------------------
+Given (buffer with block at second line):
 
+  hello $name
+  !!!name=bob cat @in >@out
+Execute (find inner range [2,2]):
+  $
+  let com = yrange#CommandUnderCursor()
+  let inner = com->yrange#search#FindInnerRanges(com->yrange#execute#UsedRangeNames())
+  AssertEqual 1, inner.in.startLine
+  AssertEqual 2, inner.in.bodyStart
+  AssertEqual 2, inner.in.endLine
+
+--------------------------------------------------
+Given (buffer with block with empty line):
+  hello $name
+
+  !!!name=bob cat @in >@out
+Execute (find inner range):
+  $
+  let com = yrange#CommandUnderCursor()
+  let inner = com->yrange#search#FindInnerRanges(com->yrange#execute#UsedRangeNames())
+  AssertEqual 1, inner.in.startLine
+  AssertEqual 1, inner.in.bodyStart
+  AssertEqual 2, inner.in.endLine

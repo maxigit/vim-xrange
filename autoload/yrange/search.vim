@@ -219,8 +219,7 @@ export def FindCommandByName(name: string): dict<any>
     return {}
   endif
   var command = line->yrange#search#CommandRangeFromLine_unsafe()
-                    ->RangeToText()
-                    ->TextToDict()
+                    ->RangeToCommand()
   command.name = name
   return command
 enddef
@@ -277,7 +276,7 @@ export def FindInnerRanges(com: dict<any>, used: list<string>): dict<any>
   endif
 
   cursor(com.startLine - 1, 1)
-  var first = SearchPreviousCommandLine()
+  var first = SearchPreviousCommandLine() + 1
   var foundRanges: list<list<any> > = []
   # find all ranges and sort them 
   # so that each start of a range marks the end of the previous one
