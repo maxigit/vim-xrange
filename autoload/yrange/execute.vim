@@ -168,6 +168,9 @@ export def InjectRangesInBuffer(comName: string, insertAfter: number, ranges: di
         endif
         if irange->has_key('bodyStart')
           execute(printf(':%d,%ds#%s:\zs\d\+\ze#\=submatch(0)->str2nr() + %d#ge', firstInserted, lastInserted, fnameescape(irange.tmp), irange.bodyStart - 1))
+          if !!range->get('lineNumberFormat')
+            execute(printf(':%d,%ds#%s#\=submatch(0)->str2nr() + %d#ge', firstInserted, lastInserted, range.lineNumberFormat, irange.bodyStart - 1))
+          endif
         endif
         execute(printf(':%d,%ds#%s#%s#ge', firstInserted, lastInserted, fnameescape(irange.tmp), fnameescape(currentFile)))
       endfor
