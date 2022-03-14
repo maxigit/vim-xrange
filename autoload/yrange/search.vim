@@ -275,8 +275,8 @@ export def FindInnerRanges(com: dict<any>, used: list<string>): dict<any>
     return {}
   endif
 
-  cursor(com.startLine - 1, 1)
-  var first = SearchPreviousCommandLine() + 1
+  cursor(com.startLine, 1)
+  var first = SearchPreviousCommandLine(false) + 1
   var foundRanges: list<list<any> > = []
   # find all ranges and sort them 
   # so that each start of a range marks the end of the previous one
@@ -285,12 +285,12 @@ export def FindInnerRanges(com: dict<any>, used: list<string>): dict<any>
     if used->index(name) == -1 || range.mode != 'in'
       continue
     endif
-    const rangeStart = Search(range.start, 'bwn', first)
+    const rangeStart = Search(printf('\%(%s\)\%%<.l', range.start), 'bWn', first)
     #append('$', 'Find ' .. name .. ' ' .. string(range) .. ' ' .. rangeStart)
     if rangeStart > 0
       com.ranges[name]['startLine'] = rangeStart
       # find the end of the match. in case the match matches multiple line.
-      com.ranges[name]['bodyStart'] = Search(printf('\%(%s\)\zs', range.start), 'bwn', first)
+      com.ranges[name]['bodyStart'] = Search(printf('\%(%s\)\%%<.l\zs', range.start), 'bWn', first)
       foundRanges->add([rangeStart, name])
     endif
   endfor

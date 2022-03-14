@@ -79,12 +79,11 @@ Given (buffer with two inputs):
   Content 
   of range 2         (line 6)
   !!! using @in and @data
-Execute (find inner ranges):
+Execute (find 2 inner ranges):
   $
   let com = yrange#CommandUnderCursor()
   AssertEqual ['data', 'in'], com->yrange#execute#UsedRangeNames()
   let inner = com->yrange#search#FindInnerRanges(com->yrange#execute#UsedRangeNames())
-  " AssertEqual inner, {}
   AssertEqual ['data','in'], inner->keys()
   AssertEqual 2, inner.in.startLine
   AssertEqual 3, inner.in.endLine
