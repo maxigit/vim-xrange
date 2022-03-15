@@ -84,7 +84,7 @@ export def ExecuteCommand(com: dict<any>): void
   #append('.', "COM " .. command)
   :silent execute command
   DeleteOuterRanges(com)
-  InjectRangesInBuffer(com->get('name', ''), com.endLine, ranges)
+  InjectRangesInBuffer(com)
   SetEnvs(oldEnv, com.vars)
   setpos('.', cursorPos)
 enddef
@@ -124,8 +124,9 @@ enddef
 #  range
 #  >>>>> where to insert
 
-export def InjectRangesInBuffer(comName: string, insertAfter: number, ranges: dict<dict<any>>): void
-  for [name, range] in ranges->items()
+export def InjectRangesInBuffer(com: dict<any>): void
+  const insertAfter = com.endLine
+  for [name, range] in com.ranges->items()
     if range.mode == 'in'
       continue
     endif
@@ -140,8 +141,8 @@ export def InjectRangesInBuffer(comName: string, insertAfter: number, ranges: di
     endif
     var footer = get(range, 'footer', [])
     var fullName = name
-    if comName != ""
-      fullName = comName .. '.' .. name
+    if com->get('name') != ""
+      fullName = com.name .. '.' .. name
     endif
     append(insertAfter, header + footer->add(g:xblock_prefix .. '^' .. fullName))
     const lastLineBefore = line('$')
@@ -157,25 +158,103 @@ export def InjectRangesInBuffer(comName: string, insertAfter: number, ranges: di
     if lastLineBefore == lastLineAfter && !!range->get('clearEmpty', false)
       # deletebufline("%", insertAfter + 1, insertAfter + 1 + lastLineAfter - lastLineBefore)
       deletebufline("%", firstInserted, lastInserted)
-    elseif range.mode == 'error'
-      #
-      # replace reference to <tmp file>:line with current file adjusted line
-      # number
-      const currentFile = expand('%')
-      for [iname, irange] in ranges->items()
-        if !irange->has_key('tmp')
-          continue
-        endif
-        if irange->has_key('bodyStart')
-          execute(printf(':%d,%ds#%s:\zs\d\+\ze#\=submatch(0)->str2nr() + %d#ge', firstInserted, lastInserted, fnameescape(irange.tmp), irange.bodyStart - 1))
-          if !!range->get('lineNumberFormat')
-            execute(printf(':%d,%ds#%s#\=submatch(0)->str2nr() + %d#ge', firstInserted, lastInserted, range.lineNumberFormat, irange.bodyStart - 1))
-          endif
-        endif
-        execute(printf(':%d,%ds#%s#%s#ge', firstInserted, lastInserted, fnameescape(irange.tmp), fnameescape(currentFile)))
-      endfor
+    else
+      range.startLine = firstInserted
+      range.endLine = lastInserted
+      range.bodyEnd = lastInserted - len(footer)
+      if range.mode == 'error'
+        com->ProcessErrorRange(range)
+      endif
     endif
   endfor
+enddef
+
+def ProcessErrorRange(com: dict<any>, range: dict<any>): void
+  if !range.tmp
+    return
+  endif
+  # Load QF and replace line number and buffer
+  # with correct buffer one
+  # Apply the same correction to the content of the range itself
+
+  # stores compilers options and set them from command
+  const old_efm = &efm
+  const old_makeprg = &makeprg
+  if com->has_key('compiler')
+    execute "compiler" com.compiler
+  endif
+  if !!com->get('efm')
+    &efm = com.efm
+  endif
+
+  const qf = range->get('qf', com->get('qf', 'loc'))
+  var isLoc = false
+  if qf == 'loc'
+    isLoc = true
+    execute "lgetfile" range.tmp
+  elseif qf == 'qf'
+    execute 'cgetfile' range.tmp
+  endif
+
+  var errors: list<dict<any>> = []
+  if isLoc
+    errors = getloclist(0)
+  else
+    errors = getqflist()
+  endif
+
+  var rangeByTemp = {}
+  var defaultInput = {}
+  for [rname, r] in com.ranges->items()
+    if r->has_key('tmp')
+      rangeByTemp[r.tmp] = r
+      execute(printf(':%d,%ds#%s#@%s#ge', range.startLine, range.endLine, r.tmp, rname))
+      if !!r->get('default', '') && !defaultInput
+        defaultInput = r
+      endif
+    endif
+  endfor
+
+  # replace tmp file with curren buffer
+  # and offset line number according to range start
+  for error in errors
+    TranslateError(error, range.startLine, defaultInput, rangeByTemp)
+  endfor
+
+  if isLoc
+    setloclist(0, errors)
+    ll
+  else
+    setqflist(errors)
+    cc
+  endif
+
+  &efm = old_efm
+  &makeprg = old_makeprg
+enddef
+
+#  
+def TranslateError(error: dict<any>, start: number, defRange: dict<any>, rangeByTemp: dict<dict<any>>): void
+  var bufname = bufname(error.bufnr)
+  if error.bufnr == 0
+    bufname = defRange->get('tmp', bufname(error.bufnr))
+    # return
+  endif
+
+  if rangeByTemp->has_key(bufname)
+    const range = rangeByTemp[bufname]
+    # buffer matches  a range
+    # set to current buffer and update line number
+    error.bufnr = 0
+    if range->has_key('name')
+      error.module = range.name
+    endif
+    if range->has_key('bodyStart') && error.lnum > 0
+      const newLineNr = error.lnum + range.bodyStart - 1
+      # TODO replace the line number at the given line by the adjusted line
+      error.lnum = newLineNr
+    endif
+  endif
 enddef
 
 def ReplaceRanges(com: string, ranges: dict<dict<any>>): string

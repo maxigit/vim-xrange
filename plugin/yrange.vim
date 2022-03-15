@@ -1,6 +1,6 @@
 let g:xblock_prefix = '!!' 
 let g:xblock_default_ranges = #{
-      \  in: #{ mode: 'in', start: '^\s*\n\|\%^' },
+      \  in: #{ mode: 'in', start: '^\s*\n\|\%^', default:1 },
       \  data: #{ mode: 'in', start: '\<DATA\>.*\n'},
       \  BOF: #{ mode: 'in', start: '\%^'},
       \  out: #{ mode: 'out'}, 
@@ -15,6 +15,7 @@ if !exists('g:xblock_commands')
 endif
 let g:xblock_commands['o'] = "!:{ECHO?echo:}: :exe: :{post?%| %s}: >@out 2>@error"
 let g:xblock_commands['io'] = "!:{ECHO?echo:}: :exe: :{post?%| %s}:  <@in >@out 2>@error"
+let g:xblock_commands['i'] = "!:{ECHO?echo:}: :exe: :{post?%| %s}:  @in >@out 2>@error"
 let g:xblock_commands['mysql'] = '&io exe:mysql\ :OPTIONS:\ :{unsafe?:--i-am-a-dummy}:\ :{limit?%--select-limit=%s}:\ -u$MYSQL_USER\ -p$MYSQL_PASSWORD\ -P$MYSQL_PORT\ -h$MYSQL_HOST\ $MYSQL_DB @error.lineNumberFormat:at\ line\ \zs\d\+'
 for limit in [1,2, 5, 10,20, 50, 100, 200, 500, 1000]
   let g:xblock_commands['t' .. limit] = '@out.post:tail\ -' .. limit

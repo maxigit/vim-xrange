@@ -58,12 +58,14 @@ Given (an awk script with error):
   foo
   bar
   hello
-  !!!awk -f @in <@data >@out 2>@error
+  !!!efm:awk:\ %f:%l:%m awk -f @in <@data >@out 2>@error
+-- ^ The efm is need there. Without it going to the current
+-- error open a file in a new buffer
 -- Line number wrong
-Execute (FIXME: awk script):
+Execute (awk script):
   $
   call yrange#ExecuteCommandUnderCursor()
-Expect (error with correct filename/lineno):
+Expect (error with correct filename, but don't correct filename):
 
 
 
@@ -73,10 +75,8 @@ Expect (error with correct filename/lineno):
   foo
   bar
   hello
-  !!!awk -f @in <@data >@out 2>@error
-  awk: [Vader-workbench]:1: (END OF FILE)
-  awk: [Vader-workbench]:1: ^ source files / command line arguments must contain complete functions or rules
-
+  !!!efm:awk:\ %f:%l:%m awk -f @in <@data >@out 2>@error
+  awk: @in:1: (END OF FILE)
+  awk: @in:1: ^ source files / command-line arguments must contain complete functions or rules
   !!^error
-  bar
   !!^out

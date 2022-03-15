@@ -13,7 +13,7 @@ def EndRg(): string
   return g:xblock_prefix .. '}'
 enddef
 
-const Props = ["root", "ranges", "syntax"]->join('\|')
+const Props = ["root", "ranges", "syntax", "compiler", "efm", "qf"]->join('\|')
 # !!!ls
 # Search the next command. Start on next line
 # to avoid finding the current line
