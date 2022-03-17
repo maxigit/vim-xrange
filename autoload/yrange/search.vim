@@ -104,33 +104,45 @@ def ExtendCommand(com1: dict<any>, com2: dict<any>): dict<any>
   return com1
 enddef
 
+# Convert a Range to a Command
+# Do so, by expanding the given range
+# to a dictionary but also prepend
+# the the previous command, the buffer default
+# or the global default (by priority).
+# Defaulting to can be preventing by setting
+# an empty lookup ('&') (or setting 'root:1')
 def RangeToCommand(range: dict<any>): dict<any>
-  # find default
-  var result = get(g:, 'xblock_default', {})->deepcopy()
   var rangeDict = range->RangeToText()->TextToDict()
-  if type(result) == v:t_string
-    result = TextToDict(result)
+  var base: dict<any>
+  if range->get('name', '') == 'default'
+    # default range
+    # use global default as a base
+    # unless root is set
+    base = rangeDict->has_key('root') ? {} : GetGlobalDefault()
+  else
+    # normal range
+    # uses previous range
+    #  or default
+    if rangeDict->has_key('root')
+      base = FindCommandByName('default')
+    else
+      # use previous range if any
+      base = FindCommandAbove(range.startLine)
+    endif
+    base = base ?? GetGlobalDefault()
   endif
-  var command = range->RangeToText()
-  if range->get('name', '') != 'default'
-    var default = {}
-    if !rangeDict->has_key('root')
-      default = FindCommandAbove(range.startLine)
-    endif
-    if default == {}
-      default = yrange#search#FindCommandByName('default')
-    endif
-    default = deepcopy(default)
-    if default->has_key('name')
-      unlet default.name
-    endif
-    result->ExtendCommand(default)
-  endif
-  return result->ExtendCommand(
-                  rangeDict
-                  ->extend(range) # set ranges and name
-              )
+  return base->deepcopy()->ExtendCommand(rangeDict)->extend(range)
 enddef
+
+def GetGlobalDefault(): dict<any>
+  const glob = get(g:, 'xblock_default', {})
+  if type(glob) == v:t_string
+    return TextToDict(glob)
+  endif
+  return glob
+enddef
+
+
 
 # Parses and extract variable/properties declaration from command
 # a command should have have the following format
@@ -240,8 +252,9 @@ export def FindCommandAbove(line: number): dict<any>
     return {}
   endif
   return CommandRangeFromLine_unsafe(start)
-           ->RangeToText()
-           ->TextToDict()
+           ->RangeToCommand()
+           #->RangeToText()
+           #->TextToDict()
 enddef
 
 # Find range above !!^name finishing at next one
