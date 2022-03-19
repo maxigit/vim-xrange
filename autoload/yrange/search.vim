@@ -153,7 +153,7 @@ def TextToDict(command_: string): dict<any>
   # extract the prefix !, : etc ...
   const [_, prefix, command;_] = matchlist(command_, '^\([!:]\?\)\s*\(.*\)')
   # split on space (but not '\ '
-  const words = split(command, '[^\\]\zs\s\+')
+  const words = Split(command)
   var vars: dict<string> = {} # variables
   var env: dict<string> = {} # env variables
   var r: dict<any> = {vars: vars, env: env, ranges: {}}
@@ -219,6 +219,65 @@ def TextToDict(command_: string): dict<any>
     r.command = "!" .. r.command
   endif
   return r
+enddef
+
+const closingDict = {'(': ')', '[': '\]', '{': '}', '<': '>', '''': '''', '"': '"', ';': ';', '~': '~'}
+#  Split on unescaped spaces
+#  unless inside a balanced quotes defined ([{<'""
+#  This should solves the escaping problems
+#  by allowing the user to use a quoting character
+#  not used in the expression.
+export def Split(s: string): list<string>
+  var input = s
+  var tokens: list<string> = []
+  while !!input
+    # find next possible break
+    const match = matchlist(input, '\s*\(@\?[[:alpha:].]*[:=]\?:\?\)\(.\?\)\(.*\)')
+    if !!match
+      var [_,token,c,leftover;_] = match
+      if trim(c) == ''
+        # space, token found
+        input = leftover
+      elseif c == '\' || !closingDict->has_key(c)
+        if c != '\' 
+          token = token .. c
+        endif
+        # find the next unescaped space
+        const match2 = matchlist(leftover, '\(..\{-}[^\\]\)\s\(.*\)')
+        #                                    abbbbbccccccccc
+        #
+        #                                    a : escaped char to be kept
+        #                                    b : everything non greedy
+        #                                    c : space not precedeed by \
+        if !!match2
+          const [_,token2,leftover2;_] = match2
+          token = token .. token2
+          input = leftover2
+        else 
+          # all leftover
+          token = token .. leftover
+          input = ''
+        endif
+        token = substitute(token, '\\ ', ' ', 'g')
+      else
+        # find balanced
+        const closing = closingDict[c]
+        const match2 = matchlist(leftover, printf('\([^%s]*\)%s\(.*\)', closing, closing))
+        if !!match2
+          const [_,quoted,leftover2;_] = match2
+          token = token .. quoted
+          input = leftover2
+        else
+          echoerr printf('No matching quotes [%s] for [%s]', closing, input)
+        endif
+      endif
+      tokens->add(token)
+    else
+      tokens->add(input)
+      break
+    endif
+  endwhile
+  return tokens
 enddef
 
 def FindCommandLine(name: string): number
