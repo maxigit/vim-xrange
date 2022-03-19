@@ -1,0 +1,10 @@
+Execute (split on spaces):
+  AssertEqual yrange#search#Split('a b c'), ['a', 'b', 'c']
+Execute (skip escaped space):
+  AssertEqual yrange#search#Split('a\ b c'), ['a b', 'c']
+Execute (skip many escaped spaces):
+  AssertEqual yrange#search#Split('a\ b\ c'), ['a b c']
+Execute (skip braces starting after a space):
+  AssertEqual yrange#search#Split('x=(a b) c'), ['x=a b', 'c']
+Execute (does't skip braces in the middle):
+  AssertEqual yrange#search#Split('a=x(b  c)'), ['a=x(b', 'c)']

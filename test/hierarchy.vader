@@ -5,7 +5,7 @@ Given (many commands with no names):
 
   !!!c:1
 
-  !!!root: d:1
+  !!!&  d:1
 Execute (all commands aggregates predecessors variables):
   1
   AssertEqual yrange#CommandUnderCursor().vars, #{a: '1'}
@@ -18,11 +18,11 @@ Execute (all commands aggregates predecessors variables):
 Given (variables definitions):
   !!a= a:1 !!# a:1
 
-  !!b=root: b:1 !!# b:1
+  !!b=&  b:1 !!# b:1
 
   !!c= c:1 !!# b:1 c:1
   
-  !!d= root: &b d:1 !!# b:1 d:1
+  !!d= &&b d:1 !!# b:1 d:1
 Execute (&& doesnt' use the previous block):
   1
   AssertEqual yrange#CommandUnderCursor().vars, #{a: '1'}
@@ -37,9 +37,9 @@ Given (variables definitions with default):
 
   !!b=b:1 !!# a:1 b:1
 
-  !!c= root: c:1 !!# a:1 c:1
+  !!c= &  c:1 !!# a:1 c:1
   
-  !!d= root: &b d:1 !!# a: b:1 d:1
+  !!d= &&b d:1 !!# a: b:1 d:1
 Execute (&& use default):
   1
   AssertEqual yrange#CommandUnderCursor().vars, #{a: '1'}
