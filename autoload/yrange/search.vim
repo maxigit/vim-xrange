@@ -153,7 +153,7 @@ def TextToDict(command_: string): dict<any>
   # extract the prefix !, : etc ...
   const [_, prefix, command;_] = matchlist(command_, '^\([!:]\?\)\s*\(.*\)')
   # split on space (but not '\ '
-  const words = Split(command)
+  const words = split(command)
   var vars: dict<string> = {} # variables
   var env: dict<string> = {} # env variables
   var r: dict<any> = {vars: vars, env: env, ranges: {}}
@@ -232,7 +232,7 @@ export def Split(s: string): list<string>
   var tokens: list<string> = []
   while !!input
     # find next possible break
-    const match = matchlist(input, '\s*\(@\?[[:alpha:].]*[:=]\?:\?\)\(.\?\)\(.*\)')
+    const match = matchlist(input, '\s*\([@&]\?[[:alpha:].]*[:=]\?:\?\)\(.\?\)\(.*\)')
     if !!match
       var [_,token,c,leftover;_] = match
       if trim(c) == ''
@@ -265,7 +265,7 @@ export def Split(s: string): list<string>
         const match2 = matchlist(leftover, printf('\([^%s]*\)%s\(.*\)', closing, closing))
         if !!match2
           const [_,quoted,leftover2;_] = match2
-          token = token .. quoted
+          token = token .. c .. quoted .. closing
           input = leftover2
         else
           echoerr printf('No matching quotes [%s] for [%s]', closing, input)

@@ -5,9 +5,9 @@ Execute (skip escaped space):
 Execute (skip many escaped spaces):
   AssertEqual yrange#search#Split('a\ b\ c'), ['a b c']
 Execute (skip braces starting after a space):
-  AssertEqual yrange#search#Split('x=(a b) c'), ['x=a b', 'c']
+  AssertEqual yrange#search#Split('x=(a b) c'), ['x=(a b)', 'c']
 Execute (does't skip braces in the middle):
   AssertEqual yrange#search#Split('a=x(b  c)'), ['a=x(b', 'c)']
 Execute (complex cases):
-  AssertEqual yrange#search#Split('(b c)'), ['b c']
+  AssertEqual yrange#search#Split('(b c)'), ['(b c)']
   AssertEqual yrange#search#Split('x=(b c) &stag&limit y @holl.a=:<pay lon> z="pat the cat" &bilbo'), ['x=b c', '&stag', '&limit', 'y', '@holl.a=:pay lon', 'z=pat the cat', "&bilbo"]
