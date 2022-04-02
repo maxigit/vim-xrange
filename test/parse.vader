@@ -1,0 +1,44 @@
+Execute (find beginning):
+  AssertEqual yrange#parse#Token('ab')('abcd'), #{token:'ab', leftover:'cd'}
+
+Execute (doesn't find in the middle):
+  AssertEqual yrange#parse#Token('bc')('abcd'), {}
+
+Execute (parses ident):
+  AssertEqual yrange#parse#ParseIdent()('abc.d e'), #{token: 'abc.d', leftover:' e'}
+
+Execute (parses sequence):
+  AssertEqual yrange#parse#Sequence([yrange#parse#Token('a'), yrange#parse#Token('bc')])('abcd'), #{token: ['a', 'bc'], leftover: 'd'}
+
+Execute (map over):
+  AssertEqual yrange#parse#Token('bc')->yrange#parse#Map({token->#{B:token}})('abcd'), {}
+
+Execute (parse simple values on space):
+  AssertEqual yrange#parse#ParseValue()('abc a=1'), #{token:'abc', leftover:' a=1'}
+
+Execute (parse simple values withn parenthesis ):
+  AssertEqual yrange#parse#ParseValue()('(abc\) a=1)'), #{token:'abc) a=1', leftover:''}
+
+Execute (skip \ in values):
+  AssertEqual yrange#parse#ParseValue()('abc\ 1\\2\ \\\3\ \\\\4'), #{token:'abc 1\2 \\3 \\4', leftover:''}
+
+Execute (keep colon):
+  AssertEqual yrange#parse#ParseValue()(':[ab cd]'), #{token:':{ab cd}', leftover:''}
+  AssertEqual yrange#parse#ParseValue()(':"ab cd"'), #{token:':{ab cd}', leftover:''}
+
+Execute (keep delimiter):
+  AssertEqual yrange#parse#ParseValue()('\(ab cd)'), #{token:'(ab cd)', leftover:''}
+
+Execute (parses var binding):
+  AssertEqual yrange#parse#ParseEnvBinding()('x = (1 + 2)'), #{token:#{ident: 'x', value:'1 + 2'}, leftover: ''}
+
+
+Execute (parses full command):
+  AssertEqual yrange#parse#ParseInput('&&ref1&ref2 x=1 y:3 the command'),
+    \[#{tag: 'ref', value: ''},
+    \ #{tag: 'ref', value: 'ref1'},
+    \ #{tag: 'ref', value: 'ref2'},
+    \ #{tag: 'env', ident: 'x', value: '1'},
+    \ #{tag: 'var', ident: 'y', value: '3'},
+    \ #{tag: 'command', value: 'the command'}
+    \]
