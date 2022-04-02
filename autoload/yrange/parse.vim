@@ -17,6 +17,27 @@ enddef
 
 
 export def ParseVarBinding(): func(string): dict<any>
+
 enddef
+
+
+export def Sequence(parsers: list<func(string): dict<any>>): func(string): dict<any>
+  var Parse = (input: string) => {
+    const leftover = input;
+    var tokens = []
+    for parser in parsers {
+        const parsed = parser(leftover)
+        if parsed == {}
+          return {}
+        endif
+        tokens.push(parsed.token)
+        leftover = parsed.leftover
+        }
+    return {token: tokens, leftover}
+  }
+  return Parse
+enddef
+
+
 
 
