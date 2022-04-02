@@ -1,11 +1,22 @@
 Execute (find beginning):
   AssertEqual yrange#parse#Token('ab')('abcd'), #{token:'ab', leftover:'cd'}
+
 Execute (doesn't find in the middle):
   AssertEqual yrange#parse#Token('bc')('abcd'), {}
+
 Execute (parses ident):
   AssertEqual yrange#parse#ParseIdent()('abc.d e'), #{token: 'abc.d', leftover:' e'}
+
 Execute (parses sequence):
   AssertEqual yrange#parse#Sequence([yrange#parse#Token('a'), yrange#parse#Token('bc')])('abcd'), #{token: ['a', 'bc'], leftover: 'd'}
+
 Execute (map over):
   AssertEqual yrange#parse#Token('bc')->yrange#parse#Map({token->#{B:token}})('abcd'), {}
+
+Execute (parse simple values on space):
+  AssertEqual yrange#parse#ParseValue()('abc a=1'), #{token:'abc', leftover:' a=1'}
+
+Execute (parse simple values withn parenthesis ):
+  AssertEqual yrange#parse#ParseValue()('(abc\) a=1)'), #{token:'abc) a=1', leftover:''}
+                                                                                        
 
