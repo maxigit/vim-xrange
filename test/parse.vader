@@ -1,0 +1,4 @@
+Execute (find beginning):
+  AssertEqual yrange#parse#Token('ab')('abcd'), #{token:'ab', leftover:'cd'}
+Execute (Don't find in the middle):
+  AssertEqual yrange#parse#Token('bc')('abcd'), {}
