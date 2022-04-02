@@ -1,4 +1,11 @@
 Execute (find beginning):
   AssertEqual yrange#parse#Token('ab')('abcd'), #{token:'ab', leftover:'cd'}
-Execute (Don't find in the middle):
+Execute (doesn't find in the middle):
   AssertEqual yrange#parse#Token('bc')('abcd'), {}
+Execute (parses ident):
+  AssertEqual yrange#parse#ParseIdent()('abc.d e'), #{token: 'abc.d', leftover:' e'}
+Execute (parses sequence):
+  AssertEqual yrange#parse#Sequence([yrange#parse#Token('a'), yrange#parse#Token('bc')])('abcd'), #{token: ['a', 'bc'], leftover: 'd'}
+Execute (map over):
+  AssertEqual yrange#parse#Token('bc')->yrange#parse#Map({token->#{B:token}})('abcd'), {}
+
