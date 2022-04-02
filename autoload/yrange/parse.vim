@@ -74,9 +74,14 @@ export def ParseValue(): func(string): dict<any>
          ParseInPair('""')
          ParseInPair('''''')
         ]
-  return Any(pairs + [Token('\%(\S\|\\\s\)\+')])
+  return Any(pairs + [ParseNonSpaces()])
 enddef
 
 export def ParseInPair(pair: string): func(string): dict<any>
   return Token(printf('%s.\{-}\\\@<!%s', pair[0], pair[1]))->Map((token) => token->substitute('\\\ze' .. pair[1], '', 'g'))
+enddef
+
+
+export def ParseNonSpaces(): func(string): dict<any>
+  return Token('\%(\\\s\|\S\)\+')->Map((token) => token->substitute('\\\ze[^\\]', '', 'g'))
 enddef
