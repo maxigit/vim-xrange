@@ -61,7 +61,7 @@ enddef
 
 
 export def ParseVarBinding(): func(string): dict<any>
-  return Sequence[Ident, Token('='), ParseValue()]->Map((ident,_, value) => {ident: ident, value: value})
+  return Sequence([ParseIdent(), Token('\s*=\s*'), ParseValue()])->Map((l) => ({'ident': l[0], 'value': l[2]}))
 enddef
 
 

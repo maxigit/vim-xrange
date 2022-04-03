@@ -28,3 +28,6 @@ Execute (keep colon):
 
 Execute (keep delimiter):
   AssertEqual yrange#parse#ParseValue()('\(ab cd)'), #{token:'(ab cd)', leftover:''}
+
+Execute (parses var binding):
+  AssertEqual yrange#parse#ParseVarBinding()('x = (1 + 2)'), #{token:#{ident: 'x', value:'1 + 2'}, leftover: ''}
