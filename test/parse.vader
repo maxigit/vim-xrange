@@ -25,3 +25,6 @@ Execute (skip \ in values):
 Execute (keep colon):
   AssertEqual yrange#parse#ParseValue()(':[ab cd]'), #{token:':{ab cd}', leftover:''}
   AssertEqual yrange#parse#ParseValue()(':"ab cd"'), #{token:':{ab cd}', leftover:''}
+
+Execute (keep delimiter):
+  AssertEqual yrange#parse#ParseValue()('\(ab cd)'), #{token:'(ab cd)', leftover:''}
