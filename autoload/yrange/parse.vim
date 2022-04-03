@@ -42,14 +42,13 @@ export def Any(parsers: list<func(string): dict<any>>): func(string): dict<any>
   return Parse
 enddef
 
-export def Map(Parser: func(string): dict<any>, F: func): func(string): dict<any>
+export def Map(Parser: func(string): dict<any>, F: func(any): any): func(string): dict<any>
   var Parse = (input: string) => {
-    var parsed = Parser(input)
+    const parsed = Parser(input)
     if parsed == {}
       return {}
     endif
-    parsed.token = F(parsed.token)
-    return parsed
+    return {leftover: parsed.leftover, token: F(parsed.token)}
     }
   return Parse
 enddef
@@ -66,19 +65,31 @@ export def ParseVarBinding(): func(string): dict<any>
 enddef
 
 
+# Parse things between pairs like (...) '...' etc
+# un remove them unless it start with a backslash
 export def ParseValue(): func(string): dict<any>
-  var pairs: list<func(string): dict<any>> =
-        [ParseInPair('()')->Map((s) => s[1 : -2]), 
+  const pairs: list<func(string): dict<any>> =
+        [ParseInPair('()'), 
          ParseInPair('[]'),
          ParseInPair('{}')
          ParseInPair('""')
          ParseInPair('''''')
         ]
-  return Any(pairs + [ParseNonSpaces()])
+  const InPairs = Any(pairs)->Map((s) => s[1 : -2])
+  # if start with a backslash
+  const OutPairs = Sequence([Token('\\'), Any(pairs)])->Map((l) => l[1])
+  # starts with : keep it
+  const WithColon = Sequence([Token(':'), InPairs])->Map((l) => printf(':{%s}', l[1]))
+  return Any([InPairs, OutPairs, WithColon, ParseNonSpaces()])
 enddef
 
 export def ParseInPair(pair: string): func(string): dict<any>
-  return Token(printf('%s.\{-}\\\@<!%s', pair[0], pair[1]))->Map((token) => token->substitute('\\\ze' .. pair[1], '', 'g'))
+  var open = pair[0]
+  if open == '['
+    open = '\' .. open
+  endif
+  const close = pair[1]
+  return Token(printf('%s.\{-}\\\@<!%s', open, close))->Map((token) => token->substitute('\\\ze' .. close, '', 'g'))
 enddef
 
 
