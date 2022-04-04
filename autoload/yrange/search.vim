@@ -1,4 +1,5 @@
 vim9script
+import './parse.vim' as parse
 
 def StartRg(): string
   return g:xblock_prefix .. '\i*[!:=&{]'
@@ -153,68 +154,53 @@ def TextToDict(command_: string): dict<any>
   # extract the prefix !, : etc ...
   const [_, prefix, command;_] = matchlist(command_, '^\([!:]\?\)\s*\(.*\)')
   # split on space (but not '\ '
-  const words = split(command, '[^\\]\zs\s\+')
+  const tokens = parse.ParseInput(command)
   var vars: dict<string> = {} # variables
   var env: dict<string> = {} # env variables
   var r: dict<any> = {vars: vars, env: env, ranges: {}}
-  var coms = []
-  for w in words 
-    const word = substitute(w, '\\ ', ' ', 'g')
-    # if the command itself is started to be parsed
-    # skip the binding parsing
-    if coms != []
-      coms->add(word)
-    else
-      var match = matchlist(word, '^\(\i\+\)=\(.*\)')
-      if match != []
-        const [_,name,value;_] = match
-        env[name] = value
-      else
-        match = matchlist(word, '^\(@\?\)\([[:ident:].]\+\):\(.*\)')
-        if match != []
-          const [_,isRange,prop,value;_] = match
-          var target = r
-          if isRange == '@' 
-            target = r.ranges
-          elseif match(prop, Props) == -1
-            target = vars
-          endif
-          # set  and creates dict if needed
-          # example a.b.c =2 =>  {a:{b:{c:2}}}
-          var keys = split(prop, '\.')
-          const lastKey = keys->remove(-1)
-          for key in keys
-            if !target->has_key(key)
-              target[key] = {}
-            endif
-            target = target[key]
-          endfor
-          target[lastKey] = value
-        else
-          match = matchlist(word, '^&\(\i\+\)')
-          if match != []
-            # lookup 
-            var com2 = yrange#search#FindCommandByName(match[1])
-            if com2 == {}
-              const com3: any = get(g:xblock_commands, match[1], {})
-              if type(com3) == v:t_string
-                com2 = TextToDict(com3)
-              else
-                com2 = com3
-              endif
-            endif
-            #append('$', match[1] .. " " .. string(com2))
-            r->ExtendCommand(com2)
-           else # command
-             coms->add(word)
-           endif
+  for token in tokens 
+    const tag = token.tag
+    if tag == 'env'
+      env[token.ident] = token.value
+    elseif tag == 'var'
+        const prop = token.ident
+        const value = token.value
+        var target = r
+        if prop[0] == '@' 
+          target = r.ranges
+        elseif match(prop, Props) == -1
+          target = vars
         endif
-      endif
+        # set  and creates dict if needed
+        # example a.b.c =2 =>  {a:{b:{c:2}}}
+        var keys = split(prop, '\.')
+        const lastKey = keys->remove(-1)
+        for key in keys
+          if !target->has_key(key)
+            target[key] = {}
+          endif
+          target = target[key]
+        endfor
+        target[lastKey] = value
+    elseif tag == 'ref'
+        # lookup 
+        var com2 = yrange#search#FindCommandByName(token.value)
+        if com2 == {}
+          const com3: any = get(g:xblock_commands, token.value, {})
+          if type(com3) == v:t_string
+            com2 = TextToDict(com3)
+          else
+            com2 = com3
+          endif
+        endif
+        #append('$', match[1] .. " " .. string(com2))
+        r->ExtendCommand(com2)
+    elseif tag == 'command' # command
+      r.command = token.value
+    else
+      throw token.tag .. 'not implemented'
     endif
   endfor
-  if coms != []
-    r.command = coms->join(' ')
-  endif
   if prefix == "!" && r->has_key('command')
     r.command = "!" .. r.command
   endif
