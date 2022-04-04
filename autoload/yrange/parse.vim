@@ -118,7 +118,7 @@ export def ParseInPair(pair: string): func(string): dict<any>
 enddef
 
 export def ParseReference(): func(string): dict<any>
-  return SkipFirst(Token('&'), ParseIdent())
+  return Any([SkipFirst(Token('&'), ParseIdent()), Token('&\ze[&[:space:]]')->Map((_) => '')])
 enddef
 
 export def ParseNonSpaces(): func(string): dict<any>
@@ -141,7 +141,7 @@ export def ParseInput(input_: string): list<dict<any>>
   while true
     const parsed = ParseStatement()(input)
     if parsed == {}
-      tokens->add({'tag': 'command', 'value': input})
+      tokens->add({'tag': 'command', 'value': input->trim()})
       break
     else
       tokens->add(parsed.token)

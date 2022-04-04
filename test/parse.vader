@@ -31,3 +31,14 @@ Execute (keep delimiter):
 
 Execute (parses var binding):
   AssertEqual yrange#parse#ParseEnvBinding()('x = (1 + 2)'), #{token:#{ident: 'x', value:'1 + 2'}, leftover: ''}
+
+
+Execute (parses full command):
+  AssertEqual yrange#parse#ParseInput('&&ref1&ref2 x=1 y:3 the command'),
+    \[#{tag: 'ref', value: ''},
+    \ #{tag: 'ref', value: 'ref1'},
+    \ #{tag: 'ref', value: 'ref2'},
+    \ #{tag: 'env', ident: 'x', value: '1'},
+    \ #{tag: 'var', ident: 'y', value: '3'},
+    \ #{tag: 'command', value: 'the command'}
+    \]
