@@ -64,8 +64,7 @@ enddef
 export def Tag(parser: func(string): dict<any>, tag: string): func(string): dict<any>
   return Map(parser, (token) => {
     if type(token) == v:t_dict
-      token.tag = tag
-      return token
+      return {tag: tag}->extend(token, 'keep')
     else
       return {value: token, tag: tag}
       
@@ -128,12 +127,26 @@ enddef
 
 # Terminal {{{1
 export def ParseStatement(): func(string):  dict<any>
-  return Any([ParseReference()->Tag('ref'),
-         ParseVarBinding()->Tag('var'),
-         ParseEnvBinding()->Tag('env'),
-         SkipFirst(Token('-'), ParseIdent())->Tag('unset'),
-         SkipFirst(Token('+'), ParseIdent())->Tag('set'),
-         ])
+  return SkipFirst(Token('\s*'), Any([ParseReference()->Tag('ref'),
+           ParseVarBinding()->Tag('var'),
+           ParseEnvBinding()->Tag('env'),
+           SkipFirst(Token('-'), ParseIdent())->Tag('unset'),
+           SkipFirst(Token('+'), ParseIdent())->Tag('set'),
+         ]))
 enddef
 
-
+export def ParseInput(input_: string): list<dict<any>>
+  var input = input_
+  var tokens = []
+  while true
+    const parsed = ParseStatement()(input)
+    if parsed == {}
+      tokens->add({'tag': 'command', 'value': input})
+      break
+    else
+      tokens->add(parsed.token)
+      input = parsed.leftover
+    endif
+  endwhile
+  return tokens
+enddef
