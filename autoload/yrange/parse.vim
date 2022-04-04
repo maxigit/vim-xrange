@@ -42,6 +42,14 @@ export def Any(parsers: list<func(string): dict<any>>): func(string): dict<any>
   return Parse
 enddef
 
+export def Join(parsers: list<func(string): dict<any>>): func(string): dict<any>
+  return Sequence(parsers)->Map((l) => l->join(''))
+enddef
+
+export def SkipFirst(toskip: func(string): dict<any>, parser: func(string): dict<any>): func(string): dict<any>
+  Sequence([toskip, parser])->Map((l) => l[1])
+enddef
+
 export def Map(Parser: func(string): dict<any>, F: func(any): any): func(string): dict<any>
   var Parse = (input: string) => {
     const parsed = Parser(input)
@@ -59,11 +67,17 @@ export def ParseIdent(): func(string): dict<any>
   return Token('[-a-zA-Z0-9_.]\+')
 enddef
 
+export def ParseVarName(): func(string): dict<any>
+  return Join([Token('@\?'), ParseIdent()])
+enddef
 
-export def ParseVarBinding(): func(string): dict<any>
+export def ParseEnvBinding(): func(string): dict<any>
   return Sequence([ParseIdent(), Token('\s*=\s*'), ParseValue()])->Map((l) => ({'ident': l[0], 'value': l[2]}))
 enddef
 
+export def ParseVarBinding(): func(string): dict<any>
+  return Sequence([ParseVarName(), Token('\s*:\s*'), ParseValue()])->Map((l) => ({'ident': l[0], 'value': l[2]}))
+enddef
 
 # Parse things between pairs like (...) '...' etc
 # un remove them unless it start with a backslash
@@ -92,7 +106,14 @@ export def ParseInPair(pair: string): func(string): dict<any>
   return Token(printf('%s.\{-}\\\@<!%s', open, close))->Map((token) => token->substitute('\\\ze' .. close, '', 'g'))
 enddef
 
+export def ParseReference(): func(string): dict<any>
+  return SkipFirst(Token('&'), ParseIdent())
+enddef
 
 export def ParseNonSpaces(): func(string): dict<any>
   return Token('\%(\\\s\|\S\)\+')->Map((token) => token->substitute('\\\ze[^\\]', '', 'g'))
 enddef
+
+
+
+
