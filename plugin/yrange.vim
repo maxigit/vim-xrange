@@ -29,7 +29,8 @@ nnoremap <silent> <space>xn :call yrange#GoToNextCommand()<CR>
 nnoremap <silent> <space>xN :call yrange#GoToPreviousCommand()<CR>
 
 " info
-nnoremap <silent> <space>xi :echo yrange#CommandUnderCursor()<CR>
+nnoremap <silent> <space>xi :call yrange#CommandUnderCursor()->yrange#WithRanges()->yrange#Print()<CR>
+nnoremap <silent> <space>xI :echo yrange#CommandUnderCursor()->yrange#Expand()<CR>
 
 
 nnoremap <silent> [x -:call yrange#GoToCurrentRangeBy('startLine')<CR>

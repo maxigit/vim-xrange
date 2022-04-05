@@ -99,6 +99,33 @@ export def GoToCurrentRangeBy(param: string): void
 enddef
   
 
+export def Print(d: any, indent: string =''): void
+  const type = type(d)
+  if type == v:t_list
+    for item in d
+      Print(item, indent .. '- ')
+    endfor
+  elseif type == v:t_dict
+    for [key, val] in d->items()
+      if type(val) == v:t_dict
+        echo indent .. key .. ':'
+        Print(val, indent .. '  ')
+      else
+        echo indent .. key .. ': ''' .. val .. ''''
+      endif
+    endfor
+  else
+    echo indent .. d
+  endif
+enddef
 
+export def Expand(d: dict<any>): string
+  return exm.ExpandCommand(d.command, d.vars)
+enddef
+
+export def WithRanges(com: dict<any>): dict<any>
+  search.FindInnerRanges(com, exm.UsedRanges(com)->keys())
+  return com
+enddef
 
 defcompile
