@@ -3,23 +3,31 @@ import autoload "yrange/search.vim" as search
 import autoload "yrange/execute.vim" as exm
 
 export def CommandUnderCursor(): dict<any>
-  const currentLine = line('.')
-  const startLine = search.SearchPreviousCommandLine()
-  var current = search.LineToCommand_unsafe(startLine, currentLine)
-  # Check that the current line belongs to the current range + outer + inner
-  var range = current->Within(currentLine)
-  if range != {}
-    current.currentRange = range
-    return current
-  endif
-  var next = search.LineToCommand_unsafe(search.SearchNextCommandLine(), currentLine)
-  range = next->Within(currentLine)
-  if range != {}
-    next.currentRange = range
-    return next
-  endif
-  #return next
-  return {}
+  const cursorPos = getcurpos()
+  const currentLine = cursorPos[1]
+  var result = {}
+  while true # to break and restore position
+    const startLine = search.SearchPreviousCommandLine()
+    var current = search.LineToCommand_unsafe(startLine, currentLine)
+    # Check that the current line belongs to the current range + outer + inner
+    var range = current->Within(currentLine)
+    if range != {}
+      current.currentRange = range
+      result = current
+      break
+    endif
+    var next = search.LineToCommand_unsafe(search.SearchNextCommandLine(), currentLine)
+    range = next->Within(currentLine)
+    if range != {}
+      next.currentRange = range
+      result = next
+      break
+    endif
+    #return next
+    break
+  endwhile
+  setpos('.', cursorPos)
+  return result
 enddef
 
 export def ExecuteCommandUnderCursor(): void
