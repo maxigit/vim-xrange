@@ -126,7 +126,7 @@ enddef
 
 export def InjectRangesInBuffer(com: dict<any>): void
   const insertAfter = com.endLine
-  for [name, range] in com.ranges->items()
+  for [name, range] in UsedRanges(com)->items()
     if range.mode == 'in'
       continue
     endif
@@ -170,7 +170,7 @@ export def InjectRangesInBuffer(com: dict<any>): void
 enddef
 
 def ProcessErrorRange(com: dict<any>, range: dict<any>): void
-  if !range.tmp
+  if !range->has_key('tmp')
     return
   endif
   # Load QF and replace line number and buffer
