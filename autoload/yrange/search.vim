@@ -158,7 +158,17 @@ def TextToDict(command_: string): dict<any>
   var vars: dict<string> = {} # variables
   var env: dict<string> = {} # env variables
   var r: dict<any> = {vars: vars, env: env, ranges: {}}
-  for token in tokens 
+  for token_ in tokens 
+    var token = token_
+    # pre processing of shorthand
+    if token.tag == 'ref' && token.value == ''
+      token = {tag: 'var', ident: 'root', value: '1'}
+    elseif token.tag == 'unset'
+      token = {tag: 'var', ident: token.value, value: '' }
+    elseif token.tag == 'set'
+      token = {tag: 'var', ident: token.value, value: '1' }
+    endif
+    # processing
     const tag = token.tag
     if tag == 'env'
       env[token.ident] = token.value
@@ -198,7 +208,7 @@ def TextToDict(command_: string): dict<any>
     elseif tag == 'command' # command
       r.command = token.value
     else
-      throw token.tag .. 'not implemented'
+      throw token.tag .. ' not implemented'
     endif
   endfor
   if prefix == "!" && r->has_key('command')
