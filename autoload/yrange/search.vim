@@ -173,11 +173,15 @@ def TextToDict(command_: string): dict<any>
     if tag == 'env'
       env[token.ident] = token.value
     elseif tag == 'var'
-        const prop = token.ident
-        const value = token.value
+        var prop = token.ident
+        var value = token.value
         var target = r
         if prop[0] == '@' 
+          prop = prop[1 : -1]
           target = r.ranges
+          if type(value) == v:t_string && value[0] == '{'
+            value = eval(value)
+          endif
         elseif match(prop, Props) == -1
           target = vars
         endif

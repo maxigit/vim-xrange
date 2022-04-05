@@ -141,7 +141,10 @@ export def ParseInput(input_: string): list<dict<any>>
   while true
     const parsed = ParseStatement()(input)
     if parsed == {}
-      tokens->add({'tag': 'command', 'value': input->trim()})
+      const command = input->trim()
+      if !!command
+        tokens->add({'tag': 'command', 'value': command})
+      endif
       break
     else
       tokens->add(parsed.token)
