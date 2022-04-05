@@ -8,6 +8,10 @@ The main use cases are
 
 
 # Todo
+- [X] decide syntax for env 
+         env=hello var:x +set -unset
+- [X] make & set root:
+- [X] check if ranges need to be stored with the @ in it
 - [X] expand post and pre and options as variable in command line
 - [ ] add post and pre to output range (cancel above ?)
 - [ ] text-object
