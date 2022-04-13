@@ -104,7 +104,11 @@ export def ParseValue(): func(string): dict<any>
   # if start with a backslash
   const OutPairs = Sequence([Token('\\'), Any(pairs)])->Map((l) => l[1])
   # starts with : keep it
-  const WithColon = Sequence([Token(':'), InPairs])->Map((l) => printf(':{%s}', l[1]))
+  const WithColon = Sequence([Token(':'),
+                             InPairs,
+                             Token(':\?')]
+                             )->Map((l) => printf(':{%s}:', l[1])
+                             )
   return Any([InPairs, OutPairs, WithColon, ParseNonSpaces()])
 enddef
 
