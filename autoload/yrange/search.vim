@@ -91,18 +91,35 @@ enddef
 # Extend command recursively
 def ExtendCommand(com1: dict<any>, com2: dict<any>): dict<any>
   for key in com2->keys()
+    const new = com2[key]
     if com1->has_key(key)
       var value = com1[key]
       if type(value) == v:t_dict
-        value->ExtendCommand(com2[key])
-      else
-        com1[key] = com2[key]
+        value->ExtendCommand(new)
+        continue
       endif
-    else
-        com1[key] = com2[key]
     endif
+    # Save previous value with a different name
+    if com1->has_key(key) &&
+       com1[key] != new &&
+       new->match('\<' .. key .. '_\+\>') > -1
+      #com1[key .. '_'] = com1[key]
+      SavePreviousKey(com1, key)
+    endif
+    com1[key] = new
   endfor
   return com1
+enddef
+
+def SavePreviousKey(com: dict<any>, key: string): void
+  if !com->has_key(key)
+    return
+  endif
+  const prevKey = key .. '_'
+  if com->has_key(prevKey)
+    com->SavePreviousKey(key .. '_')
+  endif
+  com[prevKey] = com[key]->substitute('\<' .. key .. '\ze_\+\>', prevKey, 'g')
 enddef
 
 # Convert a Range to a Command

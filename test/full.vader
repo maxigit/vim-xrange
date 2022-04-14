@@ -80,3 +80,13 @@ Expect (error with correct filename, but don't correct filename):
   awk: @in:1: ^ source files / command-line arguments must contain complete functions or rules
   !!^error
   !!^out
+Given (commands using parent variables):
+  !!!post:cat :post:
+  !!!post:[:{post_?%%s | }:tr a-z A-Z]
+  !!!post:[:{post_?%%s | }:post2]
+Execute:
+  2
+  AssertEqual yrange#CommandUnderCursor()->yrange#Expand(), "!cat | tr a-z A-Z"
+  3
+  AssertEqual yrange#CommandUnderCursor()->yrange#Expand(), "!cat | tr a-z A-Z | post2"
+  "AssertEqual yrange#CommandUnderCursor(), "!cat | tr a-z A-Z | post2"
