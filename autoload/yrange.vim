@@ -114,7 +114,7 @@ export def Print(d: any, indent: string =''): void
       Print(item, indent .. '- ')
     endfor
   elseif type == v:t_dict
-    for [key, val] in d->items()
+    for [key, val] in d->items()->sort()
       if type(val) == v:t_dict
         echo indent .. key .. ':'
         Print(val, indent .. '  ')
