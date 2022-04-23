@@ -102,6 +102,7 @@ def ExtendCommand(com1: dict<any>, com2: dict<any>): dict<any>
     # Save previous value with a different name
     if com1->has_key(key) &&
        com1[key] != new &&
+       type(new) == v:t_string &&
        new->match('\<' .. key .. '_\+\>') > -1
       #com1[key .. '_'] = com1[key]
       SavePreviousKey(com1, key)
@@ -418,7 +419,7 @@ export def FindOuterRanges(com: dict<any>): dict<any>
     return {rangeStart: com.endLine + 1, rangeEnd: rangeEnd}
   else
     return {}
-  end
+  endif
 enddef
 
 # !!main={

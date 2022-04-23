@@ -46,8 +46,8 @@ export def Join(parsers: list<func(string): dict<any>>): func(string): dict<any>
   return Sequence(parsers)->Map((l) => l->join(''))
 enddef
 
-export def SkipFirst(toskip: func(string): dict<any>, parser: func(string): dict<any>): func(string): dict<any>
-  return Sequence([toskip, parser])->Map((l) => l[1])
+export def SkipFirst(Toskip: func(string): dict<any>, Parser: func(string): dict<any>): func(string): dict<any>
+  return Sequence([Toskip, Parser])->Map((l) => l[1])
 enddef
 
 export def Map(Parser: func(string): dict<any>, F: func(any): any): func(string): dict<any>
@@ -61,8 +61,8 @@ export def Map(Parser: func(string): dict<any>, F: func(any): any): func(string)
   return Parse
 enddef
 
-export def Tag(parser: func(string): dict<any>, tag: string): func(string): dict<any>
-  return Map(parser, (token) => {
+export def Tag(Parser: func(string): dict<any>, tag: string): func(string): dict<any>
+  return Map(Parser, (token) => {
     if type(token) == v:t_dict
       return {tag: tag}->extend(token, 'keep')
     else
