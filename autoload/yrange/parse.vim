@@ -96,8 +96,8 @@ export def ParseValue(): func(string): dict<any>
   const pairs: list<func(string): dict<any>> =
         [ParseInPair('()'), 
          ParseInPair('[]'),
-         ParseInPair('{}')
-         ParseInPair('""')
+         ParseInPair('{}'),
+         ParseInPair('""'),
          ParseInPair('''''')
         ]
   const InPairs = Any(pairs)->Map((s) => s[1 : -2])

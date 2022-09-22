@@ -107,7 +107,7 @@ export def PopulateRanges(ranges: dict<dict<any>>): void #append('$', "RANGES " 
     # and then undo it.
     const undo_pos = undotree().seq_cur
     if range->has_key('pre') && range.bodyStart <= range.endLine
-      setpos('.', [0, range.bodyStart, 0 0])
+      setpos('.', [0, range.bodyStart, 0, 0])
       var pre = ExpandCommand(range.pre, vars)
       echomsg ":::" pre ":::"
       execute pre
