@@ -127,7 +127,7 @@ enddef
 export def InjectRangesInBuffer(com: dict<any>): void
   const insertAfter = com.endLine
   for [name, range] in UsedRanges(com)->items()
-    if range.mode == 'in'
+    if range.mode == 'in' || range.mode == 'skip'
       continue
     endif
 
@@ -339,7 +339,7 @@ export def UsedRanges(com: dict<any>): dict<dict<any>>
   endif
   var result = {}
   for [name, range] in com.ranges->items()
-    if match(com.command, '@' .. name .. '\>') != -1
+    if range.mode == 'skip' || match(com.command, '@' .. name .. '\>') != -1
       result[name] = range
     endif
   endfor

@@ -372,7 +372,7 @@ export def FindInnerRanges(com: dict<any>, used: list<string>): dict<any>
   # so that each start of a range marks the end of the previous one
   for name in  com.ranges->keys()
     var range = com.ranges[name]
-    if used->index(name) == -1 || range.mode != 'in'
+    if used->index(name) == -1 || (range.mode != 'in' && range.mode != 'skip')
       continue
     endif
     const rangeStart = Search(printf('\%(%s\)\%%<.l', range.start), 'bWn', first)
