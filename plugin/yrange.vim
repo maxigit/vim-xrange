@@ -4,7 +4,8 @@ let g:xblock_default_ranges = #{
       \  data: #{ mode: 'in', start: '\<DATA\>.*\n'},
       \  query: #{ mode: 'in', start: '\<QUERY\>.*\n'},
       \  in2: #{ mode: 'in', start: '^===.*\n'},
-      \  BOF: #{ mode: 'in', start: '\%^'},
+      \  last: #{mode: 'in', start: '!!\i*[!:=&{].*\n', force: '1', end: '\n!!^[[:ident:].]'},
+      \  BOF: #{ mode: 'in', start: '\%^', force: '1'},
       \  out: #{ mode: 'out'}, 
       \  error: #{ mode: 'error', clearEmpty: 1} }
 let g:xblock_default = #{ ranges: g:xblock_default_ranges,

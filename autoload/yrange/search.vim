@@ -366,12 +366,13 @@ export def FindInnerRanges(com: dict<any>, used: list<string>): dict<any>
   endif
 
   cursor(com.startLine, 1)
-  var first = SearchPreviousCommandLine(false) + 1
+  var first0 = SearchPreviousCommandLine(false) + 1
   var foundRanges: list<list<any> > = []
   # find all ranges and sort them 
   # so that each start of a range marks the end of the previous one
   for name in  com.ranges->keys()
     var range = com.ranges[name]
+    var first = !!range->get('force', '') ? 0 : first0
     if used->index(name) == -1 || (range.mode != 'in' && range.mode != 'skip')
       continue
     endif
@@ -389,9 +390,18 @@ export def FindInnerRanges(com: dict<any>, used: list<string>): dict<any>
     foundRanges->sort()->reverse()
     var last = com.startLine - 1
     for [line, name] in foundRanges 
-      com.ranges[name]['endLine'] = last
+      # check if a defined end is shorter
+      var range = com.ranges[name]
+      if range->has_key('end')
+        cursor(line, 1)
+        const rangeEnd = Search(range.end, 'Wn', last)
+        if rangeEnd > 0
+           last = rangeEnd # exclude end
+        endif
+      endif
+      range['endLine'] = last
       last = line - 1
-      result[name] = com.ranges[name]
+      result[name] = range
     endfor
   endif
   setpos('.', cursorPos)
