@@ -2,6 +2,8 @@ let g:xblock_prefix = '!!'
 let g:xblock_default_ranges = #{
       \  in: #{ mode: 'in', start: '^\s*\n\|\%^', default:1 },
       \  data: #{ mode: 'in', start: '\<DATA\>.*\n'},
+      \  query: #{ mode: 'in', start: '\<QUERY\>.*\n'},
+      \  in2: #{ mode: 'in', start: '^===.*\n'},
       \  BOF: #{ mode: 'in', start: '\%^'},
       \  out: #{ mode: 'out'}, 
       \  error: #{ mode: 'error', clearEmpty: 1} }
