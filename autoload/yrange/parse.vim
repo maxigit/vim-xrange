@@ -134,8 +134,8 @@ export def ParseStatement(): func(string):  dict<any>
   return SkipFirst(Token('\s*'), Any([ParseReference()->Tag('ref'),
            ParseVarBinding()->Tag('var'),
            ParseEnvBinding()->Tag('env'),
-           SkipFirst(Token('-'), ParseIdent())->Tag('unset'),
-           SkipFirst(Token('+'), ParseIdent())->Tag('set'),
+           SkipFirst(Token('-'), ParseVarName())->Tag('unset'),
+           SkipFirst(Token('+'), ParseVarName())->Tag('set'),
          ]))
 enddef
 

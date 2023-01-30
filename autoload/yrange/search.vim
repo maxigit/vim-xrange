@@ -361,7 +361,7 @@ enddef
 # default ranges  not used in the present command
 export def FindInnerRanges(com: dict<any>, used: list<string>): dict<any>
   const cursorPos = getcurpos()
-  if (com.startLine == 1)
+  if (com->get('startLine', 1) == 1)
     return {}
   endif
 
