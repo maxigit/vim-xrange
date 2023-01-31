@@ -39,3 +39,11 @@ nnoremap <silent> <space>xI :echo yrange#CommandUnderCursor()->yrange#Expand()<C
 nnoremap <silent> [x -:call yrange#GoToCurrentRangeBy('startLine')<CR>
 nnoremap <silent> ]x +:call yrange#GoToCurrentRangeBy('endLine')<CR>
 
+" syntax
+" 
+nnoremap <silent> <space>xh :call yrange#syntax#InstallSyntax()<CR>
+
+augroup xrange
+        au BufNew,BufReadPost,Syntax * call yrange#syntax#InstallSyntax()
+augroup END
+
