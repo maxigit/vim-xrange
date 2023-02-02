@@ -9,7 +9,7 @@ import autoload './search.vim' as search
 #
 export def InstallSyntax()
   if !hlexists("XRangeX")
-    hi link XRangeX Underlined
+    hi link XRangeX SpellLocal
     hi link XRangeRange SpellRare
     # hi link XRangeStart SpellCap
     hi link XRangeDel SpellBad
