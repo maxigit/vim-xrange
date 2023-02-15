@@ -17,9 +17,15 @@ if !exists('g:xblock_commands')
   let g:xblock_commands = {}
 endif
 let g:xblock_commands['o'] = "!:{ECHO?echo:}: :exe: :{post?%| %s}: >@out 2>@error"
-let g:xblock_commands['io'] = "!:{ECHO?echo:}: :exe: <@in :{post?%| %s}: >@out 2>@error"
+let g:xblock_commands['io'] = "!:{ECHO?echo:}: :exe: :{in??<}: @in :{post?%| %s}: >@out 2>@error"
 let g:xblock_commands['i'] = "!:{ECHO?echo:}: :exe: :{post?%| %s}:  @in >@out 2>@error"
 let g:xblock_commands['mysql'] = '&io exe:[mysql :OPTIONS: :{unsafe?:--i-am-a-dummy}: :{limit?%--select-limit=%s}: :{t?--table:}: :{e?-E:}: -u$MYSQL_USER -p$MYSQL_PASSWORD -P$MYSQL_PORT -h$MYSQL_HOST $MYSQL_DB] @error.lineNumberFormat:[at line zs\d\+]'
+let g:xblock_commands['psql'] = '&io exe:[psql :OPTIONS: :{e?-x:}: :{csv?--csv:}: :{A?--no-align:}:
+                              \ $PSQL_DB $PSQL_USER]
+                              \ @error.lineNumberFormat:[LINE zs\d\+]
+                              \ in:-f
+                              \ efm:[psql:%f:%l: %m]
+                              \'
 for limit in [1,2, 5, 10,20, 50, 100, 200, 500, 1000]
   let g:xblock_commands['t' .. limit] = '@out.post:tail\ -' .. limit
   let g:xblock_commands['h' .. limit] = '@out.post:head\ -' .. limit
