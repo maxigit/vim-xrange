@@ -387,7 +387,7 @@ export def FindInnerRanges(com: dict<any>, used: list<string>): dict<any>
   endfor
   final result = {}
   if foundRanges != []
-    foundRanges->sort()->reverse()
+    foundRanges->sort(CompareRange)->reverse()
     var last = com.startLine - 1
     for [line, name] in foundRanges 
       # check if a defined end is shorter
@@ -406,6 +406,19 @@ export def FindInnerRanges(com: dict<any>, used: list<string>): dict<any>
   endif
   setpos('.', cursorPos)
   return result
+enddef
+
+# used to sort inner ranges in the form
+# [startLine, name ]
+def CompareRange(a: list<any>, b: list<any>): number
+  const d = a[0] - b[0]
+  if d == 0
+    return 0
+  elseif d > 0
+    return 1
+  else 
+    return -1
+  endif
 enddef
 
 # Find all ranges starting from the given range
